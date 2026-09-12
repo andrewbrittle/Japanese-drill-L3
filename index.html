@@ -52,6 +52,15 @@
     --bg: #0f0f0f;
     --surface: #1a1a1a;
     --surface2: #242424;
+    /* CRITICAL FIX (2026-09-12): .opt:hover used to hardcode this exact
+       value inline instead of a theme variable - harmless here (dark
+       text stays light-on-dark either way), but in the light theme below
+       the same hardcoded hex put near-black hover text on a near-black
+       hover background, making every answer option briefly unreadable on
+       hover. Pulled out as a var so each theme can set its own value;
+       this one is unchanged from the old hardcoded hex, so dark mode
+       looks pixel-identical to before. */
+    --opt-hover-bg: #2a2a2a;
     --border: rgba(255,255,255,0.08);
     --border-hover: rgba(255,255,255,0.16);
     --text: #f8f6f2;
@@ -95,6 +104,10 @@
     --bg: #f7f5f0;
     --surface: #ffffff;
     --surface2: #efece4;
+    /* See CRITICAL FIX (2026-09-12) above the dark --opt-hover-bg - this is
+       the light-theme value that was missing entirely before, which is
+       what caused the bug. */
+    --opt-hover-bg: #e3ddd0;
     --border: rgba(0,0,0,0.10);
     --border-hover: rgba(0,0,0,0.20);
     --text: #1a1a1a;
@@ -372,7 +385,7 @@
     color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer;
     transition: all 0.15s; line-height: 1.35;
   }
-  .opt:hover:not(:disabled) { border-color: var(--border-hover); background: #2a2a2a; }
+  .opt:hover:not(:disabled) { border-color: var(--border-hover); background: var(--opt-hover-bg); }
   .opt.correct { background: var(--green-dim); border-color: var(--green); color: var(--green); font-weight: 700; }
   .opt.wrong { background: var(--red-dim); border-color: var(--red); color: var(--red); font-weight: 700; }
   .opt:disabled { cursor: default; }
@@ -1079,7 +1092,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260912.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260912.003</div>
   </div>
 
   <!-- Katakana settings screen -->
