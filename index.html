@@ -1079,7 +1079,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260912.001</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260912.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -7066,10 +7066,16 @@ function drillVocabTileSelection() {
   drillByMeaning = cat.noMeaningMode ? false : !!vocabTileDrillMode[categoryKey];
   vocabReversed = !!vocabTileReversedMode[categoryKey];
   const items = cat.items;
+  // See BUG FIX (2026-09-12) above allVisibleVocabItems - search results can
+  // be smaller than the 3 distractors a drill card needs, unlike every real
+  // category (all 4+ items). Everywhere else, distractors staying within
+  // the category's own items is deliberate; search has no real "category"
+  // to stay within, so it draws from the full visible pool instead.
+  const distractorPool = categoryKey === VOCAB_SEARCH_KEY ? allVisibleVocabItems() : items;
   const selectedItems = [...set].sort((a, b) => a - b).map(idx => items[idx]);
   const customDeck = selectedItems.map(item => {
     const correct = item.romaji;
-    const distractorItems = pickDistractorItems(items, item, 3);
+    const distractorItems = pickDistractorItems(distractorPool, item, 3);
     const allItems = shuffle([item, ...distractorItems]);
     return {
       char: item.jp,
@@ -8053,6 +8059,33 @@ function scanVocabByTag(query) {
     const cat = VOCAB[catKey];
     (cat.items || []).forEach(item => {
       if (itemTierVisible(item) && tagQueryMatches(item.tags, query)) items.push(item);
+    });
+  });
+  return items;
+}
+
+// BUG FIX (2026-09-12): every real VOCAB category has at least 4 physical
+// items, so pickDistractorItems(cat.items, ...) always had 3 others to draw
+// from - fine for normal drilling. Search results are different: they're
+// whatever matched the query, which is very often just 1-3 words (that's
+// the point of search), and drillVocabTileSelection was handing
+// pickDistractorItems that same tiny match set as its own distractor pool.
+// Searching "mother" (one match) produced a drill card with no wrong
+// options at all - not a search bug, a distractor-pool bug that search
+// happens to expose because it's the only place a category's own item
+// pool can legitimately be smaller than 4. Confirmed identical in the
+// frozen L2 build (same code, untouched there), so this has been present
+// since before the flip - not something the Genki work introduced.
+//
+// Fix: search drilling draws distractors from every visible word instead
+// of just the match set. Normal categories are untouched - they keep using
+// their own items as the distractor pool, which is deliberately thematic
+// (see pickDistractorItems above).
+function allVisibleVocabItems() {
+  const items = [];
+  Object.keys(VOCAB).forEach(catKey => {
+    (VOCAB[catKey].items || []).forEach(item => {
+      if (itemTierVisible(item)) items.push(item);
     });
   });
   return items;
