@@ -3494,17 +3494,24 @@ const VOCAB = {
   // there's no existing convention here for one word with two readings
   // (altForm is for kanji-vs-kana switching, not this).
   //
-  // ordinalOrder:true keeps the textbook's own grouping (School/Person/
-  // Time/Others, then Occupations/Family, then Numbers/Name/Expressions)
-  // rather than alphabetising it away - same reasoning as Numbers/Days/
-  // Months above.
+  // No ordinalOrder here, deliberately (2026-09-12, corrected same day
+  // after Andrew flagged the list looked unordered) - unlike Numbers/Days/
+  // Months, this lesson's words have no real sequence of their own, just
+  // textbook page groupings, so ordinalOrder was the wrong tool. Textbook
+  // sub-grouping was considered and rejected: the 22 already-taught words
+  // above aren't physically stored in this category's own items array (see
+  // the comment above), so they'd never line up with the new words'
+  // textbook sections anyway - only the 45 new ones could group correctly,
+  // which would look more broken than plain alphabetising, not less. Falls
+  // through to resolveVocabCategory's default sortItemsAlphabetically
+  // instead - same as every other non-sequential category in this file,
+  // and it naturally interleaves the reused words with the new ones too.
   'vocab-genki-1-1': {
     level: 'genki',
     hasReference: true,
     label: 'Lesson 1-1',
     chars: 'こうこう わたし…',
     tagQuery: ['genki','genki-1-1'],
-    ordinalOrder: true,
     items: [
       {jp:'こうこう', romaji:'koukou', en:'high school', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
       {jp:'だいがくせい', romaji:'daigakusei', en:'college student', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
