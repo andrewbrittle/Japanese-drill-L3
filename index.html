@@ -863,6 +863,7 @@
   #vocab-level-filter-row.showing-theme-colours #level-pill-1:not(.active) { color: #4d88e5; border-color: rgba(77,136,229,0.4); }
   #vocab-level-filter-row.showing-theme-colours #level-pill-2:not(.active) { color: #e88a4d; border-color: rgba(232,138,77,0.4); }
   #vocab-level-filter-row.showing-theme-colours #level-pill-untaught:not(.active) { color: #9b59d0; border-color: rgba(155,89,208,0.4); }
+  #vocab-level-filter-row.showing-theme-colours #level-pill-genki:not(.active) { color: #d1568f; border-color: rgba(209,86,143,0.4); }
 
   /* "Specific time" lookup tool, under Reading times on the Vocab page */
   .time-tool-row {
@@ -919,18 +920,17 @@
   .number-tool-output .number-tool-rd { display: block; font-size: 14px; font-weight: 600; color: var(--text-muted); margin-top: 3px; }
   .number-tool-hint { font-size: 12px; color: var(--text-muted); margin-top: 0.35rem; text-align: center; }
 
-  /* "Export my scores" debug tool, Settings screen - see HTML comment there */
-  .export-scores-box {
-    width: 100%; box-sizing: border-box; margin-top: 0.5rem; min-height: 90px;
-    background: var(--surface2); color: var(--text); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 8px; font-size: 11px; font-family: monospace;
-    resize: vertical;
-  }
-  .export-scores-copied {
+  /* "Back up my progress" - Settings screen (2026-09-12, replaces the old
+     hidden copy-to-clipboard debug tool). Download saves kanaScores as a
+     dated .json file; Restore reads one back in via a hidden file input
+     triggered by a visible button. See the comment above
+     downloadScoresBackup() for the full reasoning. */
+  .backup-status-msg {
     display: none; text-align: center; font-size: 12px; font-weight: 600;
     color: var(--accent); margin-top: 0.4rem;
   }
-  .export-scores-copied.show { display: block; }
+  .backup-status-msg.show { display: block; }
+  .backup-status-msg.error { color: var(--red); }
 
   /* Katakana reference grid */
   .kana-ref-grid {
@@ -1067,20 +1067,15 @@
       <div class="toggle" id="show-andrew-mode-toggle"></div>
     </div>
 
-    <!-- Debug/troubleshooting only - not meant for everyday users. Hidden
-         again (display:none) now that Andrew's used it once to pull his
-         real score data for the category-averaging discussion - same
-         pattern as the custom-content toggle above. Box, button, and JS
-         all stay fully working underneath; just switch display back to
-         block (or remove the inline style) whenever it's needed again. -->
-    <div class="group-card" id="export-scores-card" style="cursor:default; display:none;">
+    <div class="group-card" id="backup-scores-card" style="cursor:default;">
       <div class="group-info">
-        <div class="group-name">Export my scores</div>
-        <div class="group-count">Copies your saved drill scores as text — for troubleshooting only</div>
+        <div class="group-name">Back up my progress</div>
+        <div class="group-count">Saves your drill scores to a file, so you keep them if you switch phones or browsers, or clear site data. Restore reads one back in — this replaces your current progress, so only use it if you need to</div>
       </div>
-      <textarea class="export-scores-box" id="export-scores-box" readonly onclick="this.select();"></textarea>
-      <button class="start-btn" onclick="copyExportedScores()">Copy to clipboard</button>
-      <div class="export-scores-copied" id="export-scores-copied">Copied!</div>
+      <button class="start-btn" onclick="downloadScoresBackup()">Download backup</button>
+      <button class="start-btn" onclick="triggerRestoreFilePicker()" style="margin-top:0.5rem;">Restore from backup</button>
+      <input type="file" id="restore-file-input" accept="application/json,.json" style="display:none;" onchange="handleRestoreFileSelected(event)">
+      <div class="backup-status-msg" id="backup-status-msg"></div>
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
@@ -6809,7 +6804,13 @@ const COLOUR_HUES = {
 // reasoning). Same two colours, same split (encountered was `andrew`,
 // curated was `trip`), just tag-sourced now. `1`/`2` are untouched - taught
 // levels aren't part of this change.
-const LEVEL_BORDER_COLORS = { 1: '#4d88e5', 2: '#e88a4d', curated: '#9b59d0', encountered: '#43a047' };
+// GENKI COLOUR (2026-09-12): rose/pink (#d1568f) - green was ruled out (too
+// close to both --green/confidence and 'encountered' above), teal had
+// already been tried elsewhere and rejected, red reads as "wrong answer"
+// everywhere else in the app, and yellow either crowds --accent (gold) or
+// runs too bright. Pink was the first hue in the wheel not already claimed
+// by another indicator in this app.
+const LEVEL_BORDER_COLORS = { 1: '#4d88e5', 2: '#e88a4d', curated: '#9b59d0', encountered: '#43a047', genki: '#d1568f' };
 
 // Resolves which LEVEL_BORDER_COLORS key applies to a pooled item. Untaught
 // items carry `encountered`/`curated` as a real tag now (not inferred from
@@ -7137,7 +7138,6 @@ function showScreen(id) {
   if (settingsBtn) settingsBtn.classList.toggle('active', id === 'settings');
   if (id === 'settings') {
     // Its own entry point (the gear button above), not part of the nav-pill row.
-    populateExportScoresBox();
   } else if (id === 'hiragana-selection') document.querySelectorAll('.nav-pill')[0].classList.add('active');
   else if (id === 'katakana-selection') document.querySelectorAll('.nav-pill')[1].classList.add('active');
   else if (id === 'kanji-selection') document.querySelectorAll('.nav-pill')[2].classList.add('active');
@@ -8340,6 +8340,11 @@ function saveKanaScores() {
   }
 }
 
+// BACKUP/RESTORE - SHIPPED (2026-09-12, see downloadScoresBackup() below
+// for the real implementation). Kept the original plan below as-is for the
+// reasoning trail (why Tier 1 was chosen over live sync, and what Tiers 2/3
+// would look like if this ever gets reopened).
+//
 // BACKUP/RESTORE - DIRECTION SET, NOT YET STARTED (2026-09-05): the debug
 // export box below only solves "copy the JSON off a phone for me to look
 // at" - it was never meant as a real backup path, and isn't one: it's
@@ -8386,40 +8391,85 @@ function saveKanaScores() {
 //     Settings toggle, default off, same shape as "Work offline" - changes
 //     nothing for anyone who leaves it alone.
 //
-// Debug/troubleshooting tool (Settings screen, currently hidden) - shows the
-// raw saved score data as plain text so it can be copied off a phone with no
-// dev tools or computer involved. Read-only display, doesn't touch scoring.
-function populateExportScoresBox() {
-  const box = document.getElementById('export-scores-box');
-  if (!box) return;
-  box.value = localStorage.getItem(KANA_SCORE_KEY) || '{}';
+// SHIPPED (2026-09-12) - see the BACKUP/RESTORE comment above appSettings
+// for the original plan; built now because the L3 move is a real, concrete
+// reason rather than a hypothetical one. Replaces the old hidden debug
+// export box outright rather than sitting alongside it - same underlying
+// data, this is just the real version of the same idea.
+//
+// Exports the in-memory kanaScores object, not raw localStorage - the two
+// can briefly disagree (the bare-number-to-{score,lastSeen} migration above
+// mutates kanaScores on load but only reaches localStorage on the next
+// actual score write), so reading kanaScores directly is what guarantees
+// the file always reflects the current shape.
+function downloadScoresBackup() {
+  const data = JSON.stringify(kanaScores);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `japanese-drill-backup-${today}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showBackupStatus('Backup downloaded', false);
 }
 
-function copyExportedScores() {
-  const box = document.getElementById('export-scores-box');
-  const msg = document.getElementById('export-scores-copied');
-  if (!box) return;
-  box.focus();
-  box.select();
-  box.setSelectionRange(0, box.value.length); // some mobile browsers need this explicitly
-  const showCopied = () => {
-    if (!msg) return;
-    msg.classList.add('show');
-    setTimeout(() => msg.classList.remove('show'), 2000);
-  };
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(box.value).then(showCopied).catch(() => {
-      // Clipboard API blocked/unavailable - text is already selected, so the
-      // user can still copy manually (keyboard shortcut or long-press menu).
-    });
-  } else {
+function triggerRestoreFilePicker() {
+  const input = document.getElementById('restore-file-input');
+  if (input) input.click();
+}
+
+// Deliberately a plain overwrite, not a merge - restoring is a rare,
+// explicit "I need my old data back" action (new device, cleared storage),
+// not routine two-way sync, so there's no real scenario where merging two
+// independently-progressed score sets would even make sense. The confirm()
+// is the same pattern already used for the interrupted-session prompt.
+function handleRestoreFileSelected(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = ''; // allow re-selecting the same file next time
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let parsed;
     try {
-      document.execCommand('copy');
-      showCopied();
+      parsed = JSON.parse(reader.result);
     } catch (e) {
-      // Nothing more we can do here - text is selected either way.
+      showBackupStatus("That file isn't a valid backup", true);
+      return;
     }
-  }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      showBackupStatus("That file isn't a valid backup", true);
+      return;
+    }
+    if (!window.confirm("This replaces your current progress with what's in this backup. Continue?")) return;
+    // Same bare-number -> {score,lastSeen} normalisation the app runs on
+    // load (see above KANA_SCORE_KEY) - cheap and idempotent, and protects
+    // against restoring an old-shape export without duplicating the whole
+    // migration history here too.
+    Object.keys(parsed).forEach((key) => {
+      if (typeof parsed[key] === 'number') {
+        parsed[key] = { score: parsed[key], lastSeen: Date.now() };
+      }
+    });
+    kanaScores = parsed;
+    saveKanaScores();
+    showBackupStatus('Progress restored', false);
+  };
+  reader.onerror = () => showBackupStatus("Couldn't read that file", true);
+  reader.readAsText(file);
+}
+
+function showBackupStatus(text, isError) {
+  const msg = document.getElementById('backup-status-msg');
+  if (!msg) return;
+  msg.textContent = text;
+  msg.classList.toggle('error', !!isError);
+  msg.classList.add('show');
+  clearTimeout(showBackupStatus._t);
+  showBackupStatus._t = setTimeout(() => msg.classList.remove('show'), 2500);
 }
 
 /* ---------- In-progress drill persistence (survives a killed page) ------ */
