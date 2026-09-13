@@ -148,6 +148,10 @@
      audit that turned up the pill bug. */
   .app-heading { font-size: 19px; font-weight: 700; letter-spacing: 0.02em; color: var(--text); font-family: 'BIZ UDPGothic', -apple-system, sans-serif; }
   .app-heading span { color: var(--accent); }
+  /* Cancels the rule above for this one span specifically - see the
+     easter-egg comment above triggerSpontaneousProverbs() further down for
+     why it's deliberately not gold/hinted at all. */
+  .app-heading .app-heading-tap { color: var(--text); cursor: pointer; }
 
   .nav-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 
@@ -1020,7 +1024,7 @@
 <body>
 
 <header>
-  <div class="app-heading">日本語 <span>drill</span></div>
+  <div class="app-heading"><span class="app-heading-tap" onclick="triggerSpontaneousProverbs()">日本語</span> <span>drill</span></div>
   <div class="nav-row">
     <button class="settings-btn" id="settings-btn" onclick="showSettingsScreen()" title="Settings" aria-label="Settings">⚙</button>
     <div class="nav-pills">
@@ -1121,7 +1125,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260912.006</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260912.007</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -12523,6 +12527,18 @@ function showProverbOverlay(proverbs) {
 function dismissProverbOverlay() {
   const overlay = document.getElementById('proverb-overlay');
   if (overlay) overlay.classList.remove('show');
+}
+
+// EASTER EGG (2026-09-13): tapping "日本語" in the header shows a fresh pair
+// of proverbs on demand - same overlay as the daily one, but deliberately
+// doesn't touch PROVERB_SEEN_KEY, so it neither counts as today's showing
+// nor stops the real one from still appearing normally later (or today, if
+// it already has). No visual hint beyond the cursor on desktop - the whole
+// point is that it's something to stumble on, not a labelled button. Also
+// just genuinely useful for testing this feature without waiting a day or
+// clearing localStorage by hand.
+function triggerSpontaneousProverbs() {
+  showProverbOverlay(shuffle([...PROVERBS]).slice(0, 2));
 }
 
 applyAllSettingsUI();
