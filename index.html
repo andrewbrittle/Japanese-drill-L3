@@ -1010,6 +1010,11 @@
     max-width: 420px; width: 100%; max-height: 85vh; overflow-y: auto;
   }
   .proverb-category { font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px; }
+  /* BUG FIX (2026-09-13): see the comment above .proverb-category. Solid
+     var(--text) (alpha 1) instead of the parent's var(--text-dim) (a
+     low-alpha rgba) restores the emoji to full brightness without
+     touching the label text's own dim styling. */
+  .proverb-category-emoji { color: var(--text); }
   .proverb-entry { text-align: center; margin-bottom: 1.4rem; }
   .proverb-entry:last-of-type { margin-bottom: 1.5rem; }
   .proverb-jp { font-size: 20px; font-weight: 700; font-family: 'BIZ UDPGothic', sans-serif; margin-bottom: 2px; }
@@ -1143,7 +1148,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260912.009</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260912.010</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -12531,15 +12536,20 @@ function showProverbOverlay(proverbs) {
   const list = document.getElementById('proverb-list');
   const overlay = document.getElementById('proverb-overlay');
   if (!list || !overlay) return;
-  list.innerHTML = proverbs.map(p => `
+  list.innerHTML = proverbs.map(p => {
+    const spaceIdx = p.category.indexOf(' ');
+    const catEmoji = spaceIdx === -1 ? p.category : p.category.slice(0, spaceIdx);
+    const catLabel = spaceIdx === -1 ? '' : p.category.slice(spaceIdx + 1);
+    return `
     <div class="proverb-entry">
-      <div class="proverb-category">${p.category}</div>
+      <div class="proverb-category"><span class="proverb-category-emoji">${catEmoji}</span> ${catLabel}</div>
       <div class="proverb-jp">${p.jp}</div>
       <div class="proverb-romaji">${p.romaji}</div>
       <div class="proverb-meaning">${p.meaning}</div>
       <div class="proverb-note">${p.note}</div>
     </div>
-  `).join('');
+  `;
+  }).join('');
   overlay.classList.add('show');
 }
 
