@@ -230,6 +230,11 @@
   .group-card.dimmed .group-name { opacity: 0.6; }
   .group-card.dimmed .group-count { opacity: 0.45; }
   .group-card.emphasis { border-color: var(--accent); }
+  /* BUG FIX (2026-09-13): see the comment above backup-scores-card in the
+     HTML below for the full story - this switches just that one card from
+     .group-card's default horizontal row to a column, so the two buttons
+     stack under the description instead of squeezing it. */
+  #backup-scores-card { flex-direction: column; align-items: stretch; gap: 0.6rem; }
 
   /* Select all / Random 20 side by side on the tile-selection screen - half
      the vertical space of two full-width cards. When Random 20 is hidden
@@ -1027,7 +1032,7 @@
     <div class="group-card" id="show-kanji-toggle-card" onclick="toggleShowKanji()" style="cursor:pointer;">
       <div class="group-info">
         <div class="group-name">Show Kanji content</div>
-        <div class="group-count">The Kanji section isn't part of the course — on by default so nothing's hidden unless you turn it off</div>
+        <div class="group-count">The Kanji section isn't part of the course — on by default</div>
       </div>
       <div class="toggle" id="show-kanji-toggle"></div>
     </div>
@@ -1035,7 +1040,7 @@
     <div class="group-card" id="hint-penalty-toggle-card" onclick="toggleHintPenalty()" style="cursor:pointer;">
       <div class="group-info">
         <div class="group-name">Half credit for hinted answers</div>
-        <div class="group-count">If you use the hint/speak button before answering, a correct answer only adds half as much to your confidence score — wrong answers still cost the full amount</div>
+        <div class="group-count">Using a hint before answering halves the confidence boost for a correct answer</div>
       </div>
       <div class="toggle" id="hint-penalty-toggle"></div>
     </div>
@@ -1043,7 +1048,7 @@
     <div class="group-card" id="decay-colours-toggle-card" onclick="toggleDecayAffectsColours()" style="cursor:pointer;">
       <div class="group-info">
         <div class="group-name">Fade confidence colours over time</div>
-        <div class="group-count">Confidence scores now quietly fade back toward neutral the longer a word goes unpractised — never past neutral, and never for words you've actually got wrong. By default, this only affects which words come up more often in random drills — the colours you see won't change. Turn this on to also fade the colours over time</div>
+        <div class="group-count">Also fades the colours themselves over time, not just drill odds — off by default</div>
       </div>
       <div class="toggle" id="decay-colours-toggle"></div>
     </div>
@@ -1051,7 +1056,7 @@
     <div class="group-card" id="offline-toggle-card" onclick="toggleWorkOffline()" style="cursor:pointer;">
       <div class="group-info">
         <div class="group-name">Work offline</div>
-        <div class="group-count">Caches the app so it still opens with no signal — turn this on, then browse around a little while you've still got signal, before you actually need it offline</div>
+        <div class="group-count">Caches the app so it still opens with no signal</div>
       </div>
       <div class="toggle" id="offline-toggle"></div>
     </div>
@@ -1059,7 +1064,7 @@
     <div class="group-card" id="show-untaught-toggle-card" onclick="toggleShowUntaught()" style="cursor:pointer;">
       <div class="group-info">
         <div class="group-name">Untaught vocabulary</div>
-        <div class="group-count">Everything outside the taught Level 1/2 course — trip words (food, money, directions, emergencies, tourist phrases) plus real words and phrases pulled from photos taken in Japan (signs, menus, receipts, announcements) — rather than course content. Adds an "Untaught" pill on its own row under Vocab, and unlocks two extra grammar-notes pages on the Level 2 tab. Off by default so it doesn't clutter things for anyone just doing the course</div>
+        <div class="group-count">Trip words and real Japanese from photos, outside the taught course — off by default</div>
       </div>
       <div class="toggle" id="show-untaught-toggle"></div>
     </div>
@@ -1067,7 +1072,7 @@
     <div class="group-card" id="show-genki-toggle-card" onclick="toggleShowGenki()" style="cursor:pointer;">
       <div class="group-info">
         <div class="group-name">Genki vocabulary</div>
-        <div class="group-count">Working through the Genki textbook to fill gaps and get ahead of Level 3 — starts with Lesson 1-1, more lessons added as I go. Anything already taught in the course keeps showing up in its usual place too — this just adds a second way to find it, nothing gets duplicated. Adds a "Genki" pill next to Level 1/2. Off by default</div>
+        <div class="group-count">Genki textbook vocab, working ahead of Level 3 — off by default</div>
       </div>
       <div class="toggle" id="show-genki-toggle"></div>
     </div>
@@ -1075,7 +1080,7 @@
     <div class="group-card dimmed" id="show-andrew-mode-toggle-card" onclick="toggleShowAndrewMode()" style="cursor:pointer;">
       <div class="group-info">
         <div class="group-name">Activate Andrew mode</div>
-        <div class="group-count">Personal staging area for whatever's being tried out next, before it's decided whether it becomes core or its own gated tier (like Untaught vocabulary above, where Andrew's last batch of content — "Materials" — ended up) — currently empty, adds an "Andrew" pill on its own row under Vocab when there's something to show</div>
+        <div class="group-count">Staging area for whatever's next — currently empty</div>
       </div>
       <div class="toggle" id="show-andrew-mode-toggle"></div>
     </div>
@@ -1083,16 +1088,16 @@
     <div class="group-card" id="backup-scores-card" style="cursor:default;">
       <div class="group-info">
         <div class="group-name">Back up my progress</div>
-        <div class="group-count">Saves your drill scores to a file, so you keep them if you switch phones or browsers, or clear site data. Restore reads one back in — this replaces your current progress, so only use it if you need to</div>
+        <div class="group-count">Saves your scores to a file you can restore later</div>
       </div>
       <button class="start-btn" onclick="downloadScoresBackup()">Download backup</button>
-      <button class="start-btn" onclick="triggerRestoreFilePicker()" style="margin-top:0.5rem;">Restore from backup</button>
+      <button class="start-btn" onclick="triggerRestoreFilePicker()">Restore from backup</button>
       <input type="file" id="restore-file-input" accept="application/json,.json" style="display:none;" onchange="handleRestoreFileSelected(event)">
       <div class="backup-status-msg" id="backup-status-msg"></div>
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260912.003</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260912.005</div>
   </div>
 
   <!-- Katakana settings screen -->
