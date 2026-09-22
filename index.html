@@ -1137,8 +1137,7 @@
   <div class="nav-row">
     <button class="settings-btn" id="settings-btn" onclick="showSettingsScreen()" title="Settings" aria-label="Settings">⚙</button>
     <div class="nav-pills">
-      <button class="nav-pill" onclick="showHiraganaSelection()">ひらがな</button>
-      <button class="nav-pill" id="nav-katakana" onclick="showKatakanaSelection()">カタカナ</button>
+      <button class="nav-pill" id="nav-kana" onclick="showKanaSelection()">かな</button>
       <button class="nav-pill" id="nav-kanji" onclick="tryResumeKanji()">漢字</button>
       <button class="nav-pill" id="nav-numbers" onclick="tryResumeOrNumbers()">Numbers</button>
       <button class="nav-pill active" id="nav-match" onclick="tryResumeMatch()">Vocab</button>
@@ -1234,19 +1233,51 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260922.010</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260922.012</div>
   </div>
 
   <!-- Katakana settings screen -->
   <!-- Hiragana reference screen -->
-  <div class="screen" id="screen-hiragana-selection">
-    <div class="settings-title">Hiragana</div>
-    <div class="settings-sub">Tap a row to select it for drilling.</div>
-    <div class="level-filter-row" id="hiragana-section-pills">
-      <button class="level-pill active" data-section="base" onclick="switchHiraganaSection('base')">Base</button>
-      <button class="level-pill" data-section="diacritics" onclick="switchHiraganaSection('diacritics')">Dakuten / handakuten</button>
-      <button class="level-pill" data-section="youon" onclick="switchHiraganaSection('youon')">Contracted</button>
+  <div class="screen" id="screen-kana-selection">
+    <div class="settings-title">Kana</div>
+    <div class="settings-sub">Tap a row to drill that set.</div>
+    <!-- Hiragana/Katakana merged into one index page here (2026-09-22,
+         Andrew) - one nav pill instead of two, six rows instead of two
+         in-screen pill-switchers. showHiraganaSelection/showKatakanaSelection
+         now take the section as an argument instead of always defaulting to
+         Base and switching via an in-screen pill row (see the comment on
+         those functions) - the two screens below are otherwise unchanged,
+         just entered with a fixed section instead of a switchable one. -->
+    <div class="group-card cat-tile" id="kana-hiragana-base-card" onclick="showHiraganaSelection('base')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">Hiragana</div></div>
+      <div class="cat-bar" id="kana-hiragana-base-swatch"></div>
     </div>
+    <div class="group-card cat-tile" id="kana-hiragana-diacritics-card" onclick="showHiraganaSelection('diacritics')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">Hiragana — Dakuten / handakuten</div></div>
+      <div class="cat-bar" id="kana-hiragana-diacritics-swatch"></div>
+    </div>
+    <div class="group-card cat-tile" id="kana-hiragana-youon-card" onclick="showHiraganaSelection('youon')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">Hiragana — Contracted</div></div>
+      <div class="cat-bar" id="kana-hiragana-youon-swatch"></div>
+    </div>
+    <div class="section-divider"></div>
+    <div class="group-card cat-tile" id="kana-katakana-base-card" onclick="showKatakanaSelection('base')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">Katakana</div></div>
+      <div class="cat-bar" id="kana-katakana-base-swatch"></div>
+    </div>
+    <div class="group-card cat-tile" id="kana-katakana-diacritics-card" onclick="showKatakanaSelection('diacritics')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">Katakana — Dakuten / handakuten</div></div>
+      <div class="cat-bar" id="kana-katakana-diacritics-swatch"></div>
+    </div>
+    <div class="group-card cat-tile" id="kana-katakana-youon-card" onclick="showKatakanaSelection('youon')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">Katakana — Contracted</div></div>
+      <div class="cat-bar" id="kana-katakana-youon-swatch"></div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-hiragana-selection">
+    <div class="settings-title" id="hiragana-selection-title">Hiragana</div>
+    <div class="settings-sub">Tap a row to select it for drilling.</div>
     <div class="vocab-ref-card" id="hiragana-voicing-ref-card" style="display:none;" onclick="showKanaVoicingReference('hiragana')">
       <span>Dakuten &amp; handakuten sound shifts — reference</span><span class="vocab-ref-arrow">→</span>
     </div>
@@ -1271,13 +1302,8 @@
 
   <!-- Katakana reference screen -->
   <div class="screen" id="screen-katakana-selection">
-    <div class="settings-title">Katakana</div>
+    <div class="settings-title" id="katakana-selection-title">Katakana</div>
     <div class="settings-sub">Tap a row to select it for drilling.</div>
-    <div class="level-filter-row" id="katakana-section-pills">
-      <button class="level-pill active" data-section="base" onclick="switchKatakanaSection('base')">Base</button>
-      <button class="level-pill" data-section="diacritics" onclick="switchKatakanaSection('diacritics')">Dakuten / handakuten</button>
-      <button class="level-pill" data-section="youon" onclick="switchKatakanaSection('youon')">Contracted</button>
-    </div>
     <div class="vocab-ref-card" id="katakana-voicing-ref-card" style="display:none;" onclick="showKanaVoicingReference('katakana')">
       <span>Dakuten &amp; handakuten sound shifts — reference</span><span class="vocab-ref-arrow">→</span>
     </div>
@@ -1414,6 +1440,23 @@
       <div class="group-info">
         <div class="group-name">Reverse the drill direction</div>
         <div class="group-count">See the English meaning first and pick the matching Japanese, instead of reading Japanese and picking the answer</div>
+      </div>
+      <div class="toggle"></div>
+    </div>
+
+    <!-- Added here directly (2026-09-22, Andrew) - the equivalent global
+         toggle on the L1/L2/Collections index screens already covered every
+         category's drill in practice (renderQuestion reads typeAnswerMode
+         globally, regardless of entry point - see its own comment), but
+         Andrew had no way to find or flip it from inside a category he'd
+         already opened without backing out to the index and scrolling to
+         the bottom of a long list first. Same per-category persistence and
+         mutual-exclusion treatment as the two toggles above it - see
+         syncVocabTileModeToggles. -->
+    <div class="group-card" id="vocab-tile-type-answer-card" onclick="toggleVocabTileTypeAnswerMode()" style="cursor:pointer;">
+      <div class="group-info">
+        <div class="group-name">Type the reading instead of choosing</div>
+        <div class="group-count">Type the romaji yourself instead of picking from four options. Kana → romaji only, so this has no effect while reversed or highlighting the meaning.</div>
       </div>
       <div class="toggle"></div>
     </div>
@@ -6927,6 +6970,7 @@ let vocabTileCategory = null;
 const vocabTileSelected = {};
 const vocabTileDrillMode = {}; // categoryKey -> boolean, remembered independently per category
 const vocabTileReversedMode = {}; // same idea, for the reversed-direction toggle
+const vocabTileTypeAnswerMode = {}; // same idea, for the typed-answer toggle (2026-09-22)
 // categoryKey -> boolean. When true, a "Select random 20" pick is active: the
 // real selection (used for drilling) is a genuine random 20, but every tile
 // is shown as selected and made non-interactive, so there's no visual way to
@@ -6936,17 +6980,51 @@ const vocabTileRandomMode = {};
 function toggleVocabTileDrillMode() {
   const categoryKey = vocabTileCategory;
   vocabTileDrillMode[categoryKey] = !vocabTileDrillMode[categoryKey];
-  const card = document.getElementById('vocab-tile-drill-mode-card');
-  if (card) card.classList.toggle('selected', !!vocabTileDrillMode[categoryKey]);
+  if (vocabTileDrillMode[categoryKey]) vocabTileTypeAnswerMode[categoryKey] = false;
+  syncVocabTileModeToggles(categoryKey);
 }
 
 function toggleVocabTileReversedMode() {
   const categoryKey = vocabTileCategory;
   vocabTileReversedMode[categoryKey] = !vocabTileReversedMode[categoryKey];
-  const card = document.getElementById('vocab-tile-reversed-mode-card');
-  if (card) card.classList.toggle('selected', !!vocabTileReversedMode[categoryKey]);
+  if (vocabTileReversedMode[categoryKey]) vocabTileTypeAnswerMode[categoryKey] = false;
+  syncVocabTileModeToggles(categoryKey);
+}
+
+function toggleVocabTileTypeAnswerMode() {
+  const categoryKey = vocabTileCategory;
+  vocabTileTypeAnswerMode[categoryKey] = !vocabTileTypeAnswerMode[categoryKey];
+  if (vocabTileTypeAnswerMode[categoryKey]) {
+    vocabTileDrillMode[categoryKey] = false;
+    vocabTileReversedMode[categoryKey] = false;
+  }
+  syncVocabTileModeToggles(categoryKey);
+}
+
+// Per-category twin of the global syncVocabModeToggles (see its own
+// comment) - same three-way mutual exclusion (typed answers only make sense
+// for the plain forward reading question), just reading/writing the
+// per-categoryKey objects above instead of the three bare globals, since
+// every one of these already persists independently per category.
+function syncVocabTileModeToggles(categoryKey) {
+  const meaningOn = !!vocabTileDrillMode[categoryKey];
+  const reversedOn = !!vocabTileReversedMode[categoryKey];
+  const typeOn = !!vocabTileTypeAnswerMode[categoryKey];
   const meaningCard = document.getElementById('vocab-tile-drill-mode-card');
-  if (meaningCard) meaningCard.classList.toggle('disabled', !!vocabTileReversedMode[categoryKey]);
+  if (meaningCard) {
+    meaningCard.classList.toggle('selected', meaningOn);
+    meaningCard.classList.toggle('disabled', reversedOn || typeOn);
+  }
+  const reversedCard = document.getElementById('vocab-tile-reversed-mode-card');
+  if (reversedCard) {
+    reversedCard.classList.toggle('selected', reversedOn);
+    reversedCard.classList.toggle('disabled', typeOn);
+  }
+  const typeCard = document.getElementById('vocab-tile-type-answer-card');
+  if (typeCard) {
+    typeCard.classList.toggle('selected', typeOn);
+    typeCard.classList.toggle('disabled', meaningOn || reversedOn);
+  }
 }
 
 // Maps a category key to the reference screen(s) that belong with it -
@@ -7005,14 +7083,15 @@ function showVocabTileSelection(categoryKey) {
   refreshKanaScoreShading('vocab-tile-grid');
   updateSelectAllVocabTilesLabel();
   document.getElementById('vocab-tile-drill-btn').disabled = vocabTileSelected[categoryKey].size === 0;
+  syncVocabTileModeToggles(categoryKey);
+  // noMeaningMode categories hide the meaning toggle specifically (there's
+  // no distinct "meaning" to highlight - see its own definition above) but
+  // still get the reversed/typed-answer toggles, which are both about
+  // reading, not meaning - syncVocabTileModeToggles above already set their
+  // selected/disabled state correctly, this just layers the extra display
+  // rule on top for the one card that needs it.
   const modeCard = document.getElementById('vocab-tile-drill-mode-card');
-  if (modeCard) {
-    modeCard.style.display = cat.noMeaningMode ? 'none' : 'flex';
-    modeCard.classList.toggle('selected', !!vocabTileDrillMode[categoryKey]);
-    modeCard.classList.toggle('disabled', !!vocabTileReversedMode[categoryKey]);
-  }
-  const reversedCard = document.getElementById('vocab-tile-reversed-mode-card');
-  if (reversedCard) reversedCard.classList.toggle('selected', !!vocabTileReversedMode[categoryKey]);
+  if (modeCard) modeCard.style.display = cat.noMeaningMode ? 'none' : 'flex';
   // Themes are reliably too big to make "Select all" worth offering, so it's
   // dropped there entirely rather than just being a pain to use. Everywhere
   // else keeps it, however large - see getRandomPickSize for the random-pick
@@ -7306,6 +7385,7 @@ function drillVocabTileSelection() {
   const cat = resolveVocabCategory(categoryKey);
   drillByMeaning = cat.noMeaningMode ? false : !!vocabTileDrillMode[categoryKey];
   vocabReversed = !!vocabTileReversedMode[categoryKey];
+  typeAnswerMode = !!vocabTileTypeAnswerMode[categoryKey];
   const items = cat.items;
   // See BUG FIX (2026-09-12) above allVisibleVocabItems - search results can
   // be smaller than the 3 distractors a drill card needs, unlike every real
@@ -7383,13 +7463,19 @@ function showScreen(id) {
   document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
   const settingsBtn = document.getElementById('settings-btn');
   if (settingsBtn) settingsBtn.classList.toggle('active', id === 'settings');
+  // Looked up by pill id rather than row position (2026-09-22) - the old
+  // positional indices [0]/[1]/[2]/[4] broke the moment Hiragana/Katakana
+  // merged into one "Kana" pill and shifted every pill after it along by
+  // one; id lookups can't drift out of sync with the row's order again.
   if (id === 'settings') {
     // Its own entry point (the gear button above), not part of the nav-pill row.
-  } else if (id === 'hiragana-selection') document.querySelectorAll('.nav-pill')[0].classList.add('active');
-  else if (id === 'katakana-selection') document.querySelectorAll('.nav-pill')[1].classList.add('active');
-  else if (id === 'kanji-selection') document.querySelectorAll('.nav-pill')[2].classList.add('active');
-  else if (id === 'match-settings' || id === 'vocab-reference' || id === 'vocab-tile-selection') document.querySelectorAll('.nav-pill')[4].classList.add('active');
-  else {
+  } else if (id === 'kana-selection' || id === 'hiragana-selection' || id === 'katakana-selection') {
+    const p = document.getElementById('nav-kana'); if (p) p.classList.add('active');
+  } else if (id === 'kanji-selection') {
+    const p = document.getElementById('nav-kanji'); if (p) p.classList.add('active');
+  } else if (id === 'match-settings' || id === 'vocab-reference' || id === 'vocab-tile-selection') {
+    const p = document.getElementById('nav-match'); if (p) p.classList.add('active');
+  } else {
     // Shared/downstream screens with no type of their own - drill, results,
     // counter-quiz-selection, and so on - light up whichever pill actually
     // launched them, via lastSettingsScreen, rather than defaulting straight
@@ -7397,10 +7483,10 @@ function showScreen(id) {
     // while drilling Vocab" bug (noticed first on Materials, but it applied
     // to every drill type - hiragana/katakana/kanji included - since none of
     // them are in the explicit list above either).
-    const pillIndexByOrigin = { 'hiragana-selection': 0, 'katakana-selection': 1, 'kanji-selection': 2,
-      'numbers': 3, 'match-settings': 4, 'vocab-tile-selection': 4 };
-    const pillIndex = pillIndexByOrigin[lastSettingsScreen];
-    document.querySelectorAll('.nav-pill')[pillIndex !== undefined ? pillIndex : 3].classList.add('active');
+    const pillIdByOrigin = { 'kana-selection': 'nav-kana', 'hiragana-selection': 'nav-kana', 'katakana-selection': 'nav-kana',
+      'kanji-selection': 'nav-kanji', 'numbers': 'nav-numbers', 'match-settings': 'nav-match', 'vocab-tile-selection': 'nav-match' };
+    const p = document.getElementById(pillIdByOrigin[lastSettingsScreen] || 'nav-numbers');
+    if (p) p.classList.add('active');
   }
   const navMatch = document.getElementById('nav-match');
   const inReadSubScreen = id === 'vocab-tile-selection' || id === 'vocab-reference' ||
@@ -7446,7 +7532,8 @@ function showScreen(id) {
     navNumbers.onclick = inNumbersDrill ? showNumbersScreen : tryResumeOrNumbers;
     navNumbers.classList.toggle('sub-screen', inNumbersDrill);
   }
-  if (id === 'hiragana-selection') Object.keys(HIRAGANA_SECTIONS).forEach(key => refreshKanaScoreShading('hiragana-grid-' + key));
+  if (id === 'kana-selection') refreshKanaSelectionSwatches();
+  else if (id === 'hiragana-selection') Object.keys(HIRAGANA_SECTIONS).forEach(key => refreshKanaScoreShading('hiragana-grid-' + key));
   else if (id === 'katakana-selection') Object.keys(KATAKANA_SECTIONS).forEach(key => refreshKanaScoreShading('katakana-grid-' + key));
   else if (id === 'kanji-selection') KANJI_SECTION_KEYS.forEach(key => refreshKanaScoreShading('kanji-grid-' + key));
   else if (id === 'vocab-tile-selection' && vocabTileCategory) refreshKanaScoreShading('vocab-tile-grid');
@@ -7456,6 +7543,38 @@ function showScreen(id) {
 }
 
 let lastSettingsScreen = 'match-settings';
+
+// New index page (2026-09-22) sitting in front of Hiragana/Katakana -
+// see the comment on screen-kana-selection and on showHiraganaSelection.
+function showKanaSelection() {
+  showScreen('kana-selection');
+  refreshKanaSelectionSwatches();
+}
+
+// One confidence bar per row on the Kana index page, computed the same way
+// as every other confidence display (getCategoryBandCounts/getCategoryBand
+// CountsKanji) but keyed the way kana items actually score - see
+// getScoreKey's fallback (bare q.char), matching kanaScoreClass's own
+// per-tile lookup in buildKanaSectionGrid.
+function getKanaSectionBandCounts(section) {
+  const counts = { untested: 0, neg3: 0, neg2: 0, neg1: 0, neutral: 0, pos1: 0, pos2: 0, pos3: 0, pos4: 0 };
+  DATA[section.dataKey].forEach(item => {
+    const entry = kanaScores[item.char];
+    if (!entry) { counts.untested++; return; }
+    counts[confidenceBand(displayScore(entry))]++;
+  });
+  return counts;
+}
+
+function refreshKanaSelectionSwatches() {
+  [['kana-hiragana-base-swatch', HIRAGANA_SECTIONS.base],
+   ['kana-hiragana-diacritics-swatch', HIRAGANA_SECTIONS.diacritics],
+   ['kana-hiragana-youon-swatch', HIRAGANA_SECTIONS.youon],
+   ['kana-katakana-base-swatch', KATAKANA_SECTIONS.base],
+   ['kana-katakana-diacritics-swatch', KATAKANA_SECTIONS.diacritics],
+   ['kana-katakana-youon-swatch', KATAKANA_SECTIONS.youon]]
+    .forEach(([id, section]) => setupCatBar(document.getElementById(id), getKanaSectionBandCounts(section)));
+}
 
 function tryResumeKanji() {
   if (!appSettings.showKanji) return; // backstop - pill is also hidden via CSS
@@ -10193,14 +10312,29 @@ const HIRAGANA_SECTIONS = {
 const hiraganaSelectedRows = { base: new Set(), diacritics: new Set(), youon: new Set() };
 let activeHiraganaSection = 'base';
 
-function showHiraganaSelection() {
+// Takes the section to open directly (2026-09-22) - entered from the Kana
+// index page now (one row per section) rather than always landing on Base
+// and switching via an in-screen pill row, so the section is known up
+// front. activeHiraganaSection/hiraganaSelectedRows/hira-selection-drill-btn
+// etc. are otherwise untouched - they already tracked state per section,
+// keyed off activeHiraganaSection, so nothing downstream (drillHiragana
+// Selection, goBackToSettings, ...) needed to change at all.
+function showHiraganaSelection(sectionKey) {
+  activeHiraganaSection = sectionKey || 'base';
   showScreen('hiragana-selection');
   Object.keys(HIRAGANA_SECTIONS).forEach(key => {
     buildKanaSectionGrid('hiragana-grid-' + key, HIRAGANA_SECTIONS[key]);
     refreshKanaScoreShading('hiragana-grid-' + key);
+    const el = document.getElementById('hiragana-grid-' + key);
+    if (el) el.style.display = key === activeHiraganaSection ? 'block' : 'none';
   });
+  const titleEl = document.getElementById('hiragana-selection-title');
+  if (titleEl) titleEl.textContent = activeHiraganaSection === 'base' ? 'Hiragana' : 'Hiragana — ' + HIRAGANA_SECTIONS[activeHiraganaSection].label;
+  document.getElementById('hira-selection-drill-btn').disabled = hiraganaSelectedRows[activeHiraganaSection].size === 0;
   syncDirectionCardRefHira();
   updateSelectAllHiraganaLabel();
+  const refCard = document.getElementById('hiragana-voicing-ref-card');
+  if (refCard) refCard.style.display = activeHiraganaSection === 'base' ? 'none' : 'flex';
 }
 
 // Shared by hiragana and katakana reference screens: builds a selectable,
@@ -10281,21 +10415,11 @@ function toggleKanaSectionRow(section, containerId, rowIdx, rowEl) {
   updateLabel();
 }
 
-function switchHiraganaSection(sectionKey) {
-  activeHiraganaSection = sectionKey;
-  document.querySelectorAll('#hiragana-section-pills .level-pill').forEach(p => {
-    p.classList.toggle('active', p.dataset.section === sectionKey);
-  });
-  Object.keys(HIRAGANA_SECTIONS).forEach(key => {
-    const el = document.getElementById('hiragana-grid-' + key);
-    if (el) el.style.display = key === sectionKey ? 'block' : 'none';
-  });
-  document.getElementById('hira-selection-drill-btn').disabled = hiraganaSelectedRows[sectionKey].size === 0;
-  updateSelectAllHiraganaLabel();
-  const refCard = document.getElementById('hiragana-voicing-ref-card');
-  if (refCard) refCard.style.display = sectionKey === 'base' ? 'none' : 'flex';
-}
-
+// switchHiraganaSection removed (2026-09-22) - its job (pick the section,
+// show that grid, update the drill button / Select-all label / voicing-ref
+// card visibility) is now done by showHiraganaSelection(sectionKey) above,
+// called directly from the Kana index page's rows instead of from an
+// in-screen pill row that no longer exists.
 function drillHiraganaSelection() {
   const section = HIRAGANA_SECTIONS[activeHiraganaSection];
   const selectedRows = hiraganaSelectedRows[activeHiraganaSection];
@@ -10385,16 +10509,26 @@ const KATAKANA_SECTIONS = {
 const katakanaSelectedRows = { base: new Set(), diacritics: new Set(), youon: new Set() };
 let activeKatakanaSection = 'base';
 
-function showKatakanaSelection() {
+// Takes the section to open directly (2026-09-22) - same reasoning as
+// showHiraganaSelection above, which this mirrors.
+function showKatakanaSelection(sectionKey) {
+  activeKatakanaSection = sectionKey || 'base';
   showScreen('katakana-selection');
   Object.keys(KATAKANA_SECTIONS).forEach(key => {
     buildKanaSectionGrid('katakana-grid-' + key, KATAKANA_SECTIONS[key]);
     refreshKanaScoreShading('katakana-grid-' + key);
+    const el = document.getElementById('katakana-grid-' + key);
+    if (el) el.style.display = key === activeKatakanaSection ? 'block' : 'none';
   });
+  const titleEl = document.getElementById('katakana-selection-title');
+  if (titleEl) titleEl.textContent = activeKatakanaSection === 'base' ? 'Katakana' : 'Katakana — ' + KATAKANA_SECTIONS[activeKatakanaSection].label;
+  document.getElementById('kata-selection-drill-btn').disabled = katakanaSelectedRows[activeKatakanaSection].size === 0;
   syncDirectionCardRef();
   updateSelectAllKatakanaLabel();
-  const refCard = document.getElementById('hiragana-answers-card-ref');
-  if (refCard) refCard.classList.toggle('selected', showHiraganaOnKatakana);
+  const refCard = document.getElementById('katakana-voicing-ref-card');
+  if (refCard) refCard.style.display = activeKatakanaSection === 'base' ? 'none' : 'flex';
+  const hiraRefCard = document.getElementById('hiragana-answers-card-ref');
+  if (hiraRefCard) hiraRefCard.classList.toggle('selected', showHiraganaOnKatakana);
 }
 
 function syncDirectionCardRef() {
@@ -10430,21 +10564,9 @@ function updateSelectAllKatakanaLabel() {
     (allSelected ? 'Deselect all — ' : 'Select all — ') + section.label;
 }
 
-function switchKatakanaSection(sectionKey) {
-  activeKatakanaSection = sectionKey;
-  document.querySelectorAll('#katakana-section-pills .level-pill').forEach(p => {
-    p.classList.toggle('active', p.dataset.section === sectionKey);
-  });
-  Object.keys(KATAKANA_SECTIONS).forEach(key => {
-    const el = document.getElementById('katakana-grid-' + key);
-    if (el) el.style.display = key === sectionKey ? 'block' : 'none';
-  });
-  document.getElementById('kata-selection-drill-btn').disabled = katakanaSelectedRows[sectionKey].size === 0;
-  updateSelectAllKatakanaLabel();
-  const refCard = document.getElementById('katakana-voicing-ref-card');
-  if (refCard) refCard.style.display = sectionKey === 'base' ? 'none' : 'flex';
-}
-
+// switchKatakanaSection removed (2026-09-22) - see the equivalent comment
+// by drillHiraganaSelection above; showKatakanaSelection(sectionKey) now
+// does this job directly.
 function drillKatakanaSelection() {
   const section = KATAKANA_SECTIONS[activeKatakanaSection];
   const selectedRows = katakanaSelectedRows[activeKatakanaSection];
