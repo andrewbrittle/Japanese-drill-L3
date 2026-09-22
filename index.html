@@ -1234,7 +1234,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260922.008</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260922.010</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -9211,7 +9211,7 @@ function refreshThemeCategorySwatches() {
   // All kanji moved to screen-kanji-selection (2026-09-22) and no longer
   // has a bar at all there (styled to match Select all instead - see that
   // card's own comment), so there's nothing left to refresh for it here.
-  setupCatBar(document.getElementById('theme-all-vocab-swatch'), getCategoryBandCounts(getAllVocabPool()));
+  setupCatBar(document.getElementById('theme-all-vocab-swatch'), getCategoryBandCounts(getCoreVocabPool()));
   setupCatBar(document.getElementById('theme-weakest-vocab-swatch'), getCategoryBandCounts(getWeakestVocabItems(20)));
   setupCatBar(document.getElementById('theme-untested-vocab-swatch'), getCategoryBandCounts(getUntestedVocabItems()));
 }
@@ -9699,6 +9699,11 @@ function renderQuestion() {
   // vocab-materials-* categories in VOCAB for the full reasoning). Lives in
   // its own card between the feedback text and Next (see .context-card) -
   // no separate post-answer copy needed, this one card covers both states.
+  // EXCEPT in typeAnswerMode (2026-09-22, Andrew): the card plus the
+  // on-screen keyboard that follows made for a lot of scrolling before you
+  // even reach the input, so there it's held back and revealed at the same
+  // point chooseTyped() reveals the answer instead - content is still
+  // populated here either way, just not shown yet.
   const contextCard = document.getElementById('q-context-card');
   const contextCardBody = document.getElementById('q-context-card-body');
   if (contextCard && contextCardBody) {
@@ -9710,7 +9715,7 @@ function renderQuestion() {
         if (q.source.file) html += `<div class="context-card-file">${q.source.file}</div>`;
       }
       contextCardBody.innerHTML = html;
-      contextCard.style.display = 'block';
+      contextCard.style.display = typeAnswerMode ? 'none' : 'block';
     } else {
       contextCard.style.display = 'none';
     }
@@ -10054,6 +10059,17 @@ function chooseTyped(rawInput, answer, char) {
   if (submitBtn) submitBtn.disabled = true;
   const isCorrect = canonicalizeRomaji(rawInput) === canonicalizeRomaji(answer);
   if (input) input.classList.add(isCorrect ? 'correct' : 'wrong');
+  // Reveal the materials context card that renderQuestion held back for
+  // typeAnswerMode (see the comment there) - content's already populated
+  // by renderQuestion, this just un-hides it now that answering is done
+  // and the keyboard's about to close. Guarded on the body actually having
+  // content, since renderQuestion leaves it empty (and the card hidden)
+  // for every non-Materials question.
+  const contextCard = document.getElementById('q-context-card');
+  const contextCardBody = document.getElementById('q-context-card-body');
+  if (contextCard && contextCardBody && contextCardBody.innerHTML.trim()) {
+    contextCard.style.display = 'block';
+  }
   const fb = document.getElementById('q-feedback');
   const currentQ = deck[current];
   const hint = (currentQ && currentQ.hint) ? ` (${currentQ.hint})` : '';
@@ -12796,8 +12812,36 @@ function getAllVocabPool() {
   return scanVocabByTag([]);
 }
 
+// Mirrors the optional-tier tag checks in itemTierVisible (Untaught/Genki/
+// Andrew, including the Genki-but-already-taught carve-out) but as a fixed
+// rule rather than one that moves with the live Settings toggles - kept
+// manually in sync with itemTierVisible if a new tier is ever added there.
+function isOptionalTierItem(item) {
+  const tags = item.tags || [];
+  if (tags.includes('untaught')) return true;
+  if (tags.includes('andrew')) return true;
+  if (tags.includes('genki') && !tags.includes('taught')) return true;
+  return false;
+}
+
+// "All vocabulary" on the Themes screen is meant to be exactly that - the
+// standard taught course content - regardless of whatever optional tiers
+// happen to be switched on in Settings right now (Andrew, 2026-09-22).
+// Kanji/Andrew/Genki words leaking in here whenever their toggle was on was
+// the actual problem being solved: those already have their own dedicated
+// "random from everything" cards (Kanji's, Untaught's), and a kanji word
+// turning up here is one the new "type the reading" toggle can't reasonably
+// ask for a romaji reading of. Unlike getAllVocabPool above, this doesn't
+// move with the toggles - it's always just the taught pool. (Not applied to
+// getWeakestVocabItems/getUntestedVocabItems below - those are about
+// surfacing YOUR actual weak/untested words, which should include optional-
+// tier content you've genuinely been drilling if you've switched it on.)
+function getCoreVocabPool() {
+  return getAllVocabPool().filter(item => !isOptionalTierItem(item));
+}
+
 function startRandomMatchEverything() {
-  startVocabReadingDeck(getAllVocabPool(), 'random-everything');
+  startVocabReadingDeck(getCoreVocabPool(), 'random-everything');
 }
 
 // The 20 lowest-scoring words that have actually been drilled at least
