@@ -466,6 +466,32 @@
     font-size: 10px; font-weight: 600; color: var(--text-dim);
     opacity: 0.6; pointer-events: none;
   }
+  /* Typed-answer mode (kana -> romaji only, see toggleTypeAnswerMode) - an
+     alternative to picking from four options: type the reading yourself.
+     Row spans both .options grid columns since it's the only "option" on
+     screen. 16px input font is deliberate - anything smaller triggers an
+     unwanted auto-zoom on focus in iOS Safari. */
+  .type-answer-row { grid-column: 1 / -1; display: flex; gap: 8px; align-items: stretch; }
+  .type-answer-input {
+    flex: 1; min-width: 0; padding: 13px 14px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text); font-size: 16px; font-weight: 600;
+    font-family: 'BIZ UDPGothic', -apple-system, sans-serif;
+    outline: none; transition: all 0.15s;
+  }
+  .type-answer-input:focus { border-color: var(--accent); }
+  .type-answer-input::placeholder { color: var(--text-dim); font-weight: 500; }
+  .type-answer-input.correct { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+  .type-answer-input.wrong { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+  .type-answer-input:disabled { cursor: default; opacity: 0.9; }
+  .type-answer-submit {
+    flex-shrink: 0; padding: 13px 18px; border-radius: var(--radius);
+    border: 1px solid var(--accent); background: var(--accent-dim);
+    color: var(--accent); font-size: 14px; font-weight: 700; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .type-answer-submit:hover:not(:disabled) { background: var(--accent); color: #fff; }
+  .type-answer-submit:disabled { cursor: default; opacity: 0.6; }
   .kbd-hint {
     position: absolute; top: 4px; left: 6px;
     font-size: 10px; font-weight: 500; color: var(--text-dim);
@@ -1208,7 +1234,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260922.007</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260922.008</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1722,6 +1748,13 @@
         </div>
         <div class="toggle" id="reversed-mode-toggle"></div>
       </div>
+      <div class="group-card" id="type-answer-toggle-card" onclick="toggleTypeAnswerMode()" style="cursor:pointer;">
+        <div class="group-info">
+          <div class="group-name">Type the reading instead of choosing</div>
+          <div class="group-count">Type the romaji yourself instead of picking from four options. Kana → romaji only, so this has no effect while reversed or highlighting the meaning.</div>
+        </div>
+        <div class="toggle" id="type-answer-toggle"></div>
+      </div>
 
       <div class="section-divider"></div>
 
@@ -1814,6 +1847,13 @@
         <div class="group-info">
           <div class="group-name">Reverse the drill direction</div>
           <div class="group-count">See the English meaning first and pick the matching Japanese, instead of reading Japanese and picking the answer</div>
+        </div>
+        <div class="toggle"></div>
+      </div>
+      <div class="group-card" id="type-answer-toggle-card-l" onclick="toggleTypeAnswerMode()" style="cursor:pointer;">
+        <div class="group-info">
+          <div class="group-name">Type the reading instead of choosing</div>
+          <div class="group-count">Type the romaji yourself instead of picking from four options. Kana → romaji only, so this has no effect while reversed or highlighting the meaning.</div>
         </div>
         <div class="toggle"></div>
       </div>
@@ -6508,14 +6548,6 @@ let showHiraganaOnKanji = false;
 
 let drillByMeaning = false;
 
-function toggleDrillByMeaning() {
-  drillByMeaning = !drillByMeaning;
-  const card = document.getElementById('drill-mode-toggle-card');
-  if (card) card.classList.toggle('selected', drillByMeaning);
-  const cardL = document.getElementById('drill-mode-toggle-card-l');
-  if (cardL) cardL.classList.toggle('selected', drillByMeaning);
-}
-
 // Independent of drillByMeaning (which decides whether romaji or English is
 // prominent) - this decides which SIDE is the question and which is the
 // answer options. Combined, the two give four modes for the price of two
@@ -6525,19 +6557,87 @@ function toggleDrillByMeaning() {
 // direction), which this has nothing to do with.
 let vocabReversed = false;
 
+// Alternative to picking from four options: type the romaji reading
+// yourself (see chooseTyped()). Kana -> romaji only, by design (Andrew,
+// 2026-09-22) - typing English meanings back was considered and rejected,
+// since those are free prose (commas, brackets, alternate phrasings) and
+// can't be matched reliably, unlike romaji which is a small, near-canonical
+// answer space. Only meaningful in the plain forward reading question, so
+// it's mutually exclusive with both drillByMeaning and vocabReversed -
+// turning this on switches those off (and vice versa), enforced below in
+// syncVocabModeToggles() rather than left as three independently-clickable
+// toggles that could combine into a state with no matching UI.
+let typeAnswerMode = false;
+
+function toggleDrillByMeaning() {
+  drillByMeaning = !drillByMeaning;
+  if (drillByMeaning) typeAnswerMode = false;
+  syncVocabModeToggles();
+}
+
 function toggleVocabReversed() {
   vocabReversed = !vocabReversed;
-  const card = document.getElementById('reversed-mode-toggle-card');
-  if (card) card.classList.toggle('selected', vocabReversed);
-  const cardL = document.getElementById('reversed-mode-toggle-card-l');
-  if (cardL) cardL.classList.toggle('selected', vocabReversed);
-  // "Highlight the meaning" has no effect while reversed (reversed always
-  // shows English regardless of it) - grey it out rather than leave it
-  // looking clickable-but-inert.
-  const meaningCard = document.getElementById('drill-mode-toggle-card');
-  if (meaningCard) meaningCard.classList.toggle('disabled', vocabReversed);
-  const meaningCardL = document.getElementById('drill-mode-toggle-card-l');
-  if (meaningCardL) meaningCardL.classList.toggle('disabled', vocabReversed);
+  if (vocabReversed) typeAnswerMode = false;
+  syncVocabModeToggles();
+}
+
+function toggleTypeAnswerMode() {
+  typeAnswerMode = !typeAnswerMode;
+  if (typeAnswerMode) { drillByMeaning = false; vocabReversed = false; }
+  syncVocabModeToggles();
+}
+
+// Shared by all three vocab-mode toggles above - keeps their 'selected'
+// state and their mutual-exclusion greying in one place instead of three
+// slightly-drifting copies. "Highlight the meaning" has no effect while
+// reversed (reversed always shows English regardless of it) or while typing
+// the answer (typed mode is always the plain forward reading question);
+// "Reverse the drill direction" and "Type the reading" grey each other out
+// the same way, for the same reason.
+function syncVocabModeToggles() {
+  [['drill-mode-toggle-card', 'drill-mode-toggle-card-l', drillByMeaning],
+   ['reversed-mode-toggle-card', 'reversed-mode-toggle-card-l', vocabReversed],
+   ['type-answer-toggle-card', 'type-answer-toggle-card-l', typeAnswerMode]]
+    .forEach(([id, idL, on]) => {
+      const card = document.getElementById(id);
+      if (card) card.classList.toggle('selected', on);
+      const cardL = document.getElementById(idL);
+      if (cardL) cardL.classList.toggle('selected', on);
+    });
+  ['drill-mode-toggle-card', 'drill-mode-toggle-card-l'].forEach(id => {
+    const card = document.getElementById(id);
+    if (card) card.classList.toggle('disabled', vocabReversed || typeAnswerMode);
+  });
+  ['reversed-mode-toggle-card', 'reversed-mode-toggle-card-l'].forEach(id => {
+    const card = document.getElementById(id);
+    if (card) card.classList.toggle('disabled', typeAnswerMode);
+  });
+  ['type-answer-toggle-card', 'type-answer-toggle-card-l'].forEach(id => {
+    const card = document.getElementById(id);
+    if (card) card.classList.toggle('disabled', drillByMeaning || vocabReversed);
+  });
+}
+
+// Canonicalizes a typed romaji answer (and the stored answer it's compared
+// against) so learners aren't marked wrong for reasonable spelling
+// differences that don't reflect an actual reading mistake: case, leading/
+// trailing/doubled whitespace, trailing punctuation, macrons vs doubled
+// vowels, the "oo"-for-loanwords vs "ou"-for-native-words split our own
+// data isn't consistent about (boorupen vs arigatou), and the classic
+// kunrei-shiki/Hepburn consonant pairs (si/shi, ti/chi, tu/tsu, zi/ji,
+// hu/fu). Comparison-only - never used for display, so the app's own
+// canonical spelling (e.g. "boorupen") is always what's shown back.
+function canonicalizeRomaji(str) {
+  return (str || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[.!?,]+$/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/ā/g, 'aa').replace(/ī/g, 'ii').replace(/ū/g, 'uu')
+    .replace(/ē/g, 'ee').replace(/ō/g, 'ou')
+    .replace(/oo/g, 'ou')
+    .replace(/si/g, 'shi').replace(/ti/g, 'chi').replace(/tu/g, 'tsu')
+    .replace(/zi/g, 'ji').replace(/hu/g, 'fu');
 }
 
 function toggleHiraganaOnKanji() {
@@ -9723,15 +9823,42 @@ function renderQuestion() {
     const topField = drillByMeaning ? 'en' : 'rd';
     const bottomField = drillByMeaning ? 'rd' : 'en';
     q.answer = drillByMeaning ? q.answerEn : q.answerRomaji;
-    q.options.forEach((o, idx) => {
-      const btn = document.createElement('button');
-      btn.className = 'opt';
-      btn.innerHTML = `<span class="opt-num">${idx + 1}</span><span class="opt-rd">${o[topField]}</span><span class="opt-en">(${o[bottomField]})</span>`;
-      const val = o[topField];
-      btn.dataset.value = val;
-      btn.onclick = () => choose(btn, val, q.answer, q.char);
-      container.appendChild(btn);
-    });
+    if (typeAnswerMode) {
+      // typeAnswerMode is mutually exclusive with drillByMeaning (see
+      // syncVocabModeToggles), so q.answer above is always q.answerRomaji
+      // here - this only ever asks for the reading.
+      container.innerHTML = '<div class="type-answer-row">' +
+        '<input type="text" id="type-answer-input" class="type-answer-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type the romaji…">' +
+        '<button type="button" class="type-answer-submit" id="type-answer-submit">Check</button>' +
+        '</div>';
+      const input = document.getElementById('type-answer-input');
+      const submitBtn = document.getElementById('type-answer-submit');
+      const submit = () => chooseTyped(input.value, q.answer, q.char);
+      submitBtn.onclick = submit;
+      // stopPropagation matters here: the global handleDrillKeydown listener
+      // on window also reacts to Enter (to advance past an answered
+      // question) - without it, the same keypress that submits this answer
+      // would immediately bubble up and also fire Next, skipping the
+      // feedback entirely.
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.stopPropagation();
+          submit();
+        }
+      };
+      setTimeout(() => input.focus(), 30);
+    } else {
+      q.options.forEach((o, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'opt';
+        btn.innerHTML = `<span class="opt-num">${idx + 1}</span><span class="opt-rd">${o[topField]}</span><span class="opt-en">(${o[bottomField]})</span>`;
+        const val = o[topField];
+        btn.dataset.value = val;
+        btn.onclick = () => choose(btn, val, q.answer, q.char);
+        container.appendChild(btn);
+      });
+    }
   } else if (isNumber) {
     charDisplay.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
     charDisplay.style.fontSize = '72px';
@@ -9896,6 +10023,56 @@ function choose(btn, selectedVal, answer, char) {
     // double duty across sections with different tested meanings (e.g. 火 is
     // both Tuesday and fire), so bare-char tracking would conflate them and
     // pull in the wrong one on "Drill missed only".
+    const missedKey = char + '|' + answer;
+    if (!missed.includes(missedKey)) {
+      missed.push(missedKey);
+      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter')) missedItems.push(currentQ);
+    }
+  }
+  document.getElementById('stat-correct').textContent = score;
+  document.getElementById('stat-wrong').textContent = wrong;
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.style.visibility = 'visible';
+  nextBtn.innerHTML = (current + 1 < deck.length ? 'Next →' : 'See results →') + '<span class="kbd-hint">space</span>';
+}
+
+// Alternative to choose() for typeAnswerMode (see toggleTypeAnswerMode) -
+// same scoring/state-machine shape (answered guard, recordKanaResult,
+// missed/missedItems, score/wrong, feedback text, Next button reveal) but
+// comparing a typed string via canonicalizeRomaji() instead of a clicked
+// button's dataset.value, and disabling the input/Check button instead of
+// a set of .opt buttons. Word-drill only (isWord && !vocabReversed &&
+// !drillByMeaning is enforced by the toggles' mutual exclusion, so `answer`
+// here is always q.answerRomaji) - the reversed/kanji/number/time/counter
+// question types never reach this function.
+function chooseTyped(rawInput, answer, char) {
+  if (answered) return;
+  answered = true;
+  const input = document.getElementById('type-answer-input');
+  const submitBtn = document.getElementById('type-answer-submit');
+  if (input) input.disabled = true;
+  if (submitBtn) submitBtn.disabled = true;
+  const isCorrect = canonicalizeRomaji(rawInput) === canonicalizeRomaji(answer);
+  if (input) input.classList.add(isCorrect ? 'correct' : 'wrong');
+  const fb = document.getElementById('q-feedback');
+  const currentQ = deck[current];
+  const hint = (currentQ && currentQ.hint) ? ` (${currentQ.hint})` : '';
+  const standardNote = (currentQ && currentQ.altIsStandard && currentQ.altForm)
+    ? `<div class="feedback-standard-note">Normally shown as: ${markSmallKana(currentQ.altForm)}</div>`
+    : '';
+  recordKanaResult(currentQ, isCorrect);
+  // Show the accepted spelling either way, not just on a miss - per Andrew,
+  // the point is to teach the canonical romanization, and what was typed
+  // may have matched only after canonicalizeRomaji() folded away a real
+  // spelling difference (case, long vowels, si/shi-style variants, etc).
+  if (isCorrect) {
+    score++;
+    fb.innerHTML = `Correct! — accepted spelling: "${answer}"` + hint + standardNote;
+    fb.className = 'feedback good';
+  } else {
+    wrong++;
+    fb.innerHTML = `Not quite — the answer is "${answer}"` + hint + standardNote;
+    fb.className = 'feedback bad';
     const missedKey = char + '|' + answer;
     if (!missed.includes(missedKey)) {
       missed.push(missedKey);
