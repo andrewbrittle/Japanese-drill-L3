@@ -1208,7 +1208,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260922.004</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260922.005</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1285,6 +1285,21 @@
   <div class="screen" id="screen-kanji-selection">
     <div class="settings-title">Kanji</div>
     <div class="settings-sub">Tap a character to select it for drilling.</div>
+
+    <!-- MOVED (2026-09-22) from the Vocab/Collections screen (theme-all-
+         vocab-card was always right above it there) - it only ever drew
+         from kanji data, nothing to do with vocab, so it belongs on this
+         screen instead. Also fixes a small pre-existing bug for free:
+         startRandomKanji() used to leave lastSettingsScreen pointed at
+         'match-settings' (a leftover of living on the Vocab screen), so
+         finishing this drill landed you back on Vocab instead of Kanji -
+         now set to 'kanji-selection' to match where it actually lives. -->
+    <div class="group-card cat-tile" id="kanji-all-card" onclick="startRandomKanji()" style="cursor:pointer;">
+      <div class="cat-tile-top">
+        <div class="group-name">All kanji</div>
+      </div>
+      <div class="cat-bar" id="kanji-all-swatch"></div>
+    </div>
 
     <div class="pill-grid-2row" id="kanji-section-pills">
       <button class="level-pill active" data-section="numbers-time" onclick="switchKanjiSection('numbers-time')">Numbers</button>
@@ -1660,17 +1675,28 @@
         </div>
         <div class="cat-bar" id="theme-all-vocab-swatch"></div>
       </div>
-      <!-- Only relevant if Kanji is switched on - see applyShowKanjiVisibility,
-           which toggles this alongside every other Kanji-gated element. Kept
-           directly under All vocabulary, and above the browse-first
-           collection cards below - these two go straight into drilling with
-           no selection screen first, which makes them a different kind of
-           thing from the rest of this list. -->
-      <div class="group-card cat-tile" id="theme-all-kanji-card" onclick="startRandomKanji()" style="cursor:pointer; display:none;">
+      <!-- Weakest 20 / Untested 20 (2026-09-22) - same "goes straight into
+           drilling with no selection screen" pattern as All vocabulary
+           above, just a harder/deterministic version of the same weighting
+           that already biases All vocabulary's own random 20 toward weak
+           and untested words (see WEIGHTED RANDOM SELECTION comment above
+           selectionWeight) - sort-to-bottom-20 and filter-to-untested
+           instead of a soft weighted draw across everything. Their bars
+           will read as almost solid red / almost solid grey respectively -
+           tautological (that's the whole point of the card), kept anyway
+           for visual consistency with every other card here rather than
+           special-cased away, per Andrew. -->
+      <div class="group-card cat-tile" id="theme-weakest-vocab-card" onclick="startWeakestVocab()" style="cursor:pointer;">
         <div class="cat-tile-top">
-          <div class="group-name">All kanji</div>
+          <div class="group-name">Weakest 20</div>
         </div>
-        <div class="cat-bar" id="theme-all-kanji-swatch"></div>
+        <div class="cat-bar" id="theme-weakest-vocab-swatch"></div>
+      </div>
+      <div class="group-card cat-tile" id="theme-untested-vocab-card" onclick="startUntestedVocab()" style="cursor:pointer;">
+        <div class="cat-tile-top">
+          <div class="group-name">Untested 20</div>
+        </div>
+        <div class="cat-bar" id="theme-untested-vocab-swatch"></div>
       </div>
 
       <!-- These two only affect the two "genuine random" cards above - the
@@ -7242,7 +7268,7 @@ function buildRandomKanjiPool() {
 }
 
 function startRandomKanji() {
-  lastSettingsScreen = 'match-settings';
+  lastSettingsScreen = 'kanji-selection'; // MOVED here (2026-09-22) - see the card's own comment on screen-kanji-selection
   startDrill(buildRandomKanjiPool(), buildRandomKanjiPool);
 }
 
@@ -7317,7 +7343,7 @@ function showScreen(id) {
   }
   if (id === 'hiragana-selection') Object.keys(HIRAGANA_SECTIONS).forEach(key => refreshKanaScoreShading('hiragana-grid-' + key));
   else if (id === 'katakana-selection') Object.keys(KATAKANA_SECTIONS).forEach(key => refreshKanaScoreShading('katakana-grid-' + key));
-  else if (id === 'kanji-selection') KANJI_SECTION_KEYS.forEach(key => refreshKanaScoreShading('kanji-grid-' + key));
+  else if (id === 'kanji-selection') { KANJI_SECTION_KEYS.forEach(key => refreshKanaScoreShading('kanji-grid-' + key)); refreshKanjiAllBar(); }
   else if (id === 'vocab-tile-selection' && vocabTileCategory) refreshKanaScoreShading('vocab-tile-grid');
   else if (id === 'match-settings') buildMatchCategoryList();
   else if (id === 'numbers') updateNumberTimeSwatches();
@@ -8236,8 +8262,10 @@ function applyShowKanjiVisibility() {
   const on = appSettings.showKanji;
   const kanjiPill = document.getElementById('nav-kanji');
   if (kanjiPill) kanjiPill.style.display = on ? '' : 'none';
-  const kanjiThemeCard = document.getElementById('theme-all-kanji-card');
-  if (kanjiThemeCard) kanjiThemeCard.style.display = on ? 'flex' : 'none';
+  // The old theme-all-kanji-card toggle lived here until the card itself
+  // moved to screen-kanji-selection (2026-09-22) - no longer needed, since
+  // that whole screen is already unreachable the moment nav-kanji above is
+  // hidden.
   // If Kanji gets switched off while its selection screen happens to be
   // open, there's nothing sensible left showing - fall back to Vocab.
   const kanjiScreen = document.getElementById('screen-kanji-selection');
@@ -9072,12 +9100,24 @@ function refreshThemeCategorySwatches() {
     const bar = card.querySelector('.cat-bar');
     if (bar) setupCatBar(bar, getCategoryBandCounts(getThemePool(card.dataset.themeKey)));
   });
-  // The All vocabulary / All kanji cards aren't theme-pool-backed (see the
-  // comments on those cards), so they're not covered by the data-theme-key
-  // loop above and need their own band-count call each, using the matching
-  // item shape for their pool.
+  // All vocabulary / Weakest 20 / Untested 20 aren't theme-pool-backed (see
+  // the comments on those cards), so they're not covered by the
+  // data-theme-key loop above and need their own band-count call each.
+  // All kanji moved to screen-kanji-selection (2026-09-22) - see
+  // refreshKanjiAllBar, called from showScreen's own kanji-selection branch
+  // instead of from here.
   setupCatBar(document.getElementById('theme-all-vocab-swatch'), getCategoryBandCounts(getAllVocabPool()));
-  setupCatBar(document.getElementById('theme-all-kanji-swatch'), getCategoryBandCountsKanji(getAllKanjiFlat()));
+  setupCatBar(document.getElementById('theme-weakest-vocab-swatch'), getCategoryBandCounts(getWeakestVocabItems(20)));
+  setupCatBar(document.getElementById('theme-untested-vocab-swatch'), getCategoryBandCounts(getUntestedVocabItems()));
+}
+
+// All kanji's own bar (2026-09-22, moved here from Collections - see the
+// card's own comment on screen-kanji-selection). Not folded into
+// refreshThemeCategorySwatches above since this card no longer lives on
+// that screen; called instead from showScreen's kanji-selection branch,
+// same trigger point refreshKanaScoreShading already uses for this screen.
+function refreshKanjiAllBar() {
+  setupCatBar(document.getElementById('kanji-all-swatch'), getCategoryBandCountsKanji(getAllKanjiFlat()));
 }
 
 // Reference grids are built once and cached, but scores change as drilling
@@ -12518,15 +12558,23 @@ function startRandomMatch() {
   startVocabReadingDeck(allItems, 'random-level-' + currentMatchLevel);
 }
 
-function buildVocabReadingDeck(items, groupKey) {
+function buildVocabReadingDeck(items, groupKey, distractorPool) {
   // See the WEIGHTED RANDOM SELECTION and DECAY entries above kanaScoreClass -
   // weaker, never-drilled, and stale items come up more often than
   // well-known, recently-practiced ones, rather than every item in the pool
   // having identical odds.
   const pool = weightedSampleWithoutReplacement([...items], 20, item => selectionWeight(decayedScore(kanaScores[item.jp + '|' + item.en])));
+  // distractorPool (2026-09-22) - defaults to items (unchanged behaviour
+  // for every existing caller), but Weakest 20/Untested 20 pass the WHOLE
+  // vocab pool here instead: items itself is deliberately narrowed to just
+  // the weakest/untested words, and drawing wrong-answer options from that
+  // same narrow set would be the "1 search match, no wrong options" bug
+  // from earlier this session all over again, just triggered by a small
+  // filtered pool instead of a small search result.
+  const pickFrom = distractorPool || items;
   return pool.map(item => {
     const correct = item.romaji;
-    const distractorItems = pickDistractorItems(items, item, 3);
+    const distractorItems = pickDistractorItems(pickFrom, item, 3);
     const allItems = shuffle([item, ...distractorItems]);
     return {
       char: item.jp,
@@ -12549,10 +12597,10 @@ function buildVocabReadingDeck(items, groupKey) {
   });
 }
 
-function startVocabReadingDeck(items, groupKey) {
+function startVocabReadingDeck(items, groupKey, distractorPool) {
   lastSettingsScreen = 'match-settings';
-  lastDeckBuilder = () => buildVocabReadingDeck(items, groupKey);
-  deck = buildVocabReadingDeck(items, groupKey);
+  lastDeckBuilder = () => buildVocabReadingDeck(items, groupKey, distractorPool);
+  deck = buildVocabReadingDeck(items, groupKey, distractorPool);
   current = 0; score = 0; wrong = 0; hints = 0; answered = false; missed = []; missedItems = [];
   showScreen('drill');
   renderQuestion();
@@ -12577,6 +12625,50 @@ function getAllVocabPool() {
 
 function startRandomMatchEverything() {
   startVocabReadingDeck(getAllVocabPool(), 'random-everything');
+}
+
+// The 20 lowest-scoring words that have actually been drilled at least
+// once - untested words are deliberately excluded here (they're their own
+// separate card, getUntestedVocabItems below) rather than folded in as
+// "worse than the worst tested score", so the two cards never overlap.
+// A harder, deterministic version of the same soft weighting
+// startRandomMatchEverything's own draw already applies via selectionWeight
+// - sorted-and-sliced instead of randomly biased, so "weakest" is a
+// guarantee, not just a likelihood.
+function getWeakestVocabItems(n) {
+  const scored = getAllVocabPool()
+    .map(item => {
+      const entry = kanaScores[item.jp + '|' + item.en];
+      return entry ? { item, score: displayScore(entry) } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.score - b.score);
+  return scored.slice(0, n).map(x => x.item);
+}
+
+// Every word with no kanaScores entry at all - not "worst score", genuinely
+// never answered once. Handed to buildVocabReadingDeck's own weighted
+// sampler unsliced: every item here gets the identical undrilled weight
+// (see selectionWeight's undefined-score floor), so its weighted draw is
+// already an unbiased random 20 among them - no separate sampling needed.
+function getUntestedVocabItems() {
+  return getAllVocabPool().filter(item => !(item.jp + '|' + item.en in kanaScores));
+}
+
+// Both guard against an empty pool (everything drilled at least once, for
+// Untested - or, in principle, nothing drilled yet at all, for Weakest) by
+// simply not starting a drill with nothing in it, rather than launching a
+// broken empty deck. Not expected to come up for a while on a real course,
+// but cheap to guard against either way.
+function startWeakestVocab() {
+  const items = getWeakestVocabItems(20);
+  if (!items.length) return;
+  startVocabReadingDeck(items, 'weakest-vocab', getAllVocabPool());
+}
+function startUntestedVocab() {
+  const items = getUntestedVocabItems();
+  if (!items.length) return;
+  startVocabReadingDeck(items, 'untested-vocab', getAllVocabPool());
 }
 
 // PROVERB OF THE DAY (2026-09-13): calming kotowaza/yojijukugo pulled from
