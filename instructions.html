@@ -132,26 +132,25 @@
     The score will show as a shade of red or green (or blue if it's back to zero
     again).
   </p>
+  <p>
+    Category and word-set tiles used to show one solid colour for their average
+    score. They now show a thin bar split into segments — the actual spread of
+    confidence across everything in that set, not just the average — so you can
+    tell "I'm evenly okay at this" apart from "I'm great at most of it and
+    terrible at a few". By default the bar only counts words you've actually been
+    tested on; tap it to fold in untested words too (shown as a grey segment),
+    tap again to go back. This doesn't persist between visits — it always starts
+    tested-only.
+  </p>
 
-  <h2>Hiragana drilling</h2>
-  <p>Select whether you want the base set of characters, dakuten/handakuten, or contracted.</p>
-  <p>There's a handy reference card to show the kana and corresponding dakuten kana.</p>
-  <p>You can either select the whole set for drilling, or individual rows.</p>
-  <p>There's a toggle before you start to drill that lets you decide whether to have the kana character as the big one on screen and choose from 4 romaji options, or romaji as the big character and choose from 4 hiragana.</p>
-  <p>You can click to hear an audio clip.</p>
-  <p>You'll get your score at the end of the session and an option to either drill the same overall set of characters again, or just the ones you got wrong.</p>
-
-  <h2>Katakana drilling</h2>
-  <p>Select whether you want the base set of characters, dakuten/handakuten, or contracted.</p>
-  <p>There's a handy reference card to show the kana and corresponding dakuten kana.</p>
-  <p>You can either select the whole set for drilling, or individual rows.</p>
-  <p>There's a toggle before you start to drill that lets you decide whether to have the kana character as the big one on screen and choose from 4 romaji options, or romaji as the big character and choose from 4 katakana.</p>
-  <p>There's another toggle that will replace the romaji completely and only show a comparison between katakana and hiragana. It felt like it might be a nice challenge to remove the romaji from this, if you feel brave.</p>
-  <p>You can click to hear an audio clip.</p>
-  <p>You'll get your score at the end of the session and an option to either drill the same overall set of characters again, or just the ones you got wrong.</p>
+  <h2>Kana</h2>
+  <p>Hiragana and katakana used to be two separate pills, each with its own base/dakuten/contracted picker inside. As the course has moved on from learning kana towards just reading and using them, that felt like too much screen space for content that matters less and less — so there's now one "かな" pill, leading to an index page listing six rows: Hiragana, Hiragana — Dakuten/handakuten, Hiragana — Contracted, then the same three for Katakana. Each row shows the same confidence-spread bar described under Scoring above, and tapping one takes you to that set's own selection screen.</p>
+  <p>Each selection screen works as before: there's a handy reference card to show the kana and corresponding dakuten kana (on the dakuten/handakuten rows), you can select the whole set for drilling or individual rows, and there's a toggle before you start to drill that lets you decide whether to have the kana character as the big one on screen and choose from 4 romaji options, or romaji as the big character and choose from 4 kana. Katakana also has another toggle that will replace the romaji completely and only show a comparison between katakana and hiragana — it felt like it might be a nice challenge to remove the romaji from this, if you feel brave.</p>
+  <p>You can click to hear an audio clip. You'll get your score at the end of the session and an option to either drill the same overall set of characters again, or just the ones you got wrong. There's a "← Back" link at the bottom of each selection screen to return to the Kana index.</p>
 
   <h2>Kanji drilling</h2>
   <p>This will only appear if you have kanji switched on.</p>
+  <p><strong>Random 20 from all</strong> sits right above "Select all" at the top of the screen, styled to match it - picks 20 random kanji from every set you have visible, the kanji equivalent of Collections' "All vocabulary" below. It used to live on the Vocab screen (Collections used to have an "All kanji" card), but it only ever drew from kanji data and had nothing to do with vocab, so it moved here to sit with the rest of the kanji content.</p>
   <p>Select which set you want — numbers, nature, travel, food, places, people, general, verbs.</p>
   <p>You can either select individual kanji or the whole set for drilling. Yes, you can game the system by selecting one and continuously drilling it, because there's only one right answer. But that's just letting yourself down.</p>
   <p>There's another toggle that will replace the romaji with English and only show a large kanji, with the options shown in English and hiragana — so there's no romaji to immediately match with the audio clip.</p>
@@ -190,10 +189,11 @@
   <p>There's a search pill next to the level tabs (it takes the full width unless Andrew mode is switched on, in which case the Andrew pill moves to its right). Type at least two characters and press enter — it only searches when you submit, not as you type. It matches the start of any word in the English meaning or the romaji, so partial words still work ("cred" finds "credit card") but coincidental letter runs in the middle of a word don't ("up" won't match inside "supermarket" just because the letters happen to sit next to each other). It only searches real taught or added vocabulary, never the extra background sentences shown as context on some Untaught cards. Results respect whatever you've currently got switched on — Untaught and Andrew words only turn up if those are on — and take you to the normal selection screen to drill whichever ones you pick, colour-coded by which level they're from.</p>
 
   <h3>Collections</h3>
-  <p>The normal reading challenges work on individual categories in one level of the course. Collections can go across levels and can also include words from any additional categories that you've got turned on. This pulls together combinations like "All vocabulary" and "All kanji" (if you have it turned on) as well as more specific collections of categories like "Transport and UK Places", "Around the world" (countries and cities), and so on.</p>
+  <p>The normal reading challenges work on individual categories in one level of the course. Collections can go across levels and can also include words from any additional categories that you've got turned on. This pulls together combinations like "All vocabulary" as well as more specific collections of categories like "Transport and UK Places", "Around the world" (countries and cities), and so on. Kanji has its own version of this now - see Kanji drilling above.</p>
   <p>Note that the size of the collection will depend on whether you're just using vocab from the lesson or including other categories too.</p>
-  <p><strong>All vocabulary</strong> — picks 20 random words from across all categories that are visible to you. Works the same way as everything else.</p>
-  <p><strong>All kanji</strong> — picks 20 random words from across all kanji categories, if you have kanji turned on. Works the same way as everything else.</p>
+  <p><strong>All vocabulary</strong> — picks 20 random words from across all categories that are visible to you. Works the same way as everything else. This is deliberately kept to the standard taught course content regardless of what you've got switched on in Settings - Untaught/Genki/Andrew mode each have their own dedicated random cards already, so kanji and other optional-tier words don't get mixed in here, on the basis that you should generally recognise something that turns up in "All vocabulary" if you've seen it before (a small number of taught words with a single kanji in them, like Sherwood Forest, can still slip through - that's expected, not a bug).</p>
+  <p><strong>Weakest 20</strong> — the 20 lowest-scoring words you've actually been tested on at least once. Untested words are deliberately left out of this one (see Untested 20 below), so the two never overlap.</p>
+  <p><strong>Untested 20</strong> — 20 words picked from everything you've never been tested on yet, if there are that many; otherwise all of them.</p>
   <p>Other collections include:</p>
   <ul>
     <li>Transport and UK Places</li>
@@ -206,6 +206,7 @@
   <p>And if you have Untaught vocabulary turned on you'll also see a further set of collections gathering together everything encountered on the trip so far — see "Untaught vocabulary" below.</p>
   <p><strong>Highlight the meaning instead of sound</strong> — sounds complicated but it just changes the emphasis on the four answer cards. By default you could look at the kana and think "that starts with 'mi'" and guess the word from there by looking at the four romaji alternatives and choosing the one where the it starts with 'mi'. Highlighting the meaning, in English, means you can read and recognise the word but to get it right you need to know the meaning as well – it starts with "mi", but what does it mean? The romaji is still there down below and slightly less visible so it doesn't actually stop you doing it the easy way, but it's a mild deterrent.</p>
   <p><strong>Reverse the drill direction</strong> — shows the English word as the big word and four kana words as the options.</p>
+  <p><strong>Type the reading instead of choosing</strong> — an alternative to the four multiple-choice options: type the romaji reading yourself. The scoring is lenient about how you spell it - case, spacing, long vowels (ou/oo/ō), and the usual si/shi-style kunrei-vs-Hepburn variants all count as the same answer - and shows the app's own accepted spelling either way once you've answered, so you can see if what you typed just happened to be a different valid spelling. Only works for the plain forward "read the word, type the reading" question, so it's mutually exclusive with the two toggles above - turning it on switches those off, and vice versa.</p>
 
   <h3>Level 1</h3>
   <p>Sets of words covered in Level 1 of the course. These all work in the same way.</p>
@@ -219,7 +220,7 @@
     <li>Numbers</li>
     <li>Colours</li>
   </ul>
-  <div class="note">"Highlight the meaning instead of sound" and "Reverse the drill direction" are both available here.</div>
+  <div class="note">"Highlight the meaning instead of sound", "Reverse the drill direction", and "Type the reading instead of choosing" are all available here.</div>
 
   <h3>Level 2</h3>
   <p>Sets of words covered in Level 2 of the course, so still developing. These all work in the same way.</p>
@@ -241,7 +242,7 @@
     <li>Days of the week — there's a reference page with the days of the week listed in order</li>
     <li>Horse racing — not covered in the lessons, added after a classmate asked the tutor about it</li>
   </ul>
-  <div class="note">"Highlight the meaning instead of sound" and "Reverse the drill direction" are both available here.</div>
+  <div class="note">"Highlight the meaning instead of sound", "Reverse the drill direction", and "Type the reading instead of choosing" are all available here.</div>
 
   <h3>Grammar notes</h3>
   <p>A "Grammar notes" card sits above the Level 2 category list, gathering every sentence/particle reference in one place rather than leaving them scattered near whichever category happened to be nearby when each one was added:</p>
@@ -280,7 +281,7 @@
   <p>Food, Drink, Food descriptions, Preparation & cooking, and Dining phrases used to be one single "Food and drink" card. It grew to 218 words - by far the biggest pool in the app - and mixed genuinely different kinds of word together (dish names, drink names, adjectives, cooking verbs, whole phrases), which made for a worse multiple-choice pool than five smaller, more focused ones. Nothing was deleted or re-tagged to do this split - the five sub-categories these all sort into already existed.</p>
   <p>These are genuinely two different kinds of word, sitting together under one toggle: some were curated ahead of time as generally useful for the trip, others were properly encountered and photographed on the trip itself. Each card shows which a given word is. Where a word was seen as part of a longer sentence or sign, that context shows on the drill card itself (and again after answering) since it's just background that might help it stick, not something to test on — and for words with photo evidence, roughly where and when it was photographed. Quite a few of these words only exist as kanji, with no kana form recorded — rather than leaving them undrillable, the app has a per-character reading breakdown for the ones that have been worked out, and an honest explanation on the ones that genuinely don't have a clean one yet (irregular readings, sound changes the matching script doesn't model, and so on).</p>
   <p>If you have Untaught turned on, this vocabulary will feed into the Collections above, into search, and into the "random words" tests. If it's turned off you'll never see it, in any of those places.</p>
-  <div class="note">"Highlight the meaning instead of sound" and "Reverse the drill direction" are both available here.</div>
+  <div class="note">"Highlight the meaning instead of sound", "Reverse the drill direction", and "Type the reading instead of choosing" are all available here.</div>
 
   <h3>Andrew mode</h3>
   <p>Only appears if you've got it switched on. Whatever mad scheme I'm testing at the moment, kept separate from Untaught vocabulary above since it's a genuinely different kind of thing — a workbench, not a finished tier. Its last occupant, "Materials" (the photo-sourced vocab), graduated into Untaught vocabulary, so it's currently empty. That's the expected steady state between experiments, not a bug — whatever lands here next is being tried out before it's decided whether it becomes core, or its own gated tier the way Untaught vocabulary did.</p>
