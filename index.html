@@ -330,13 +330,13 @@
      layout - a plain .cat-tile class alone can never outrank an ID
      selector, however it's ordered in the file, so this needs to match
      .match-card-select's own ID+class scoping to actually win. */
-  #match-category-list .match-card-select.cat-tile { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  #match-category-list .match-card-select.cat-tile { flex-direction: column; align-items: stretch; gap: 0.5rem; padding-top: 1.05rem; padding-bottom: 1.05rem; }
   /* Same restructure for Collections (#match-theme-view) and the
      Numbers/Times/Counters cards below - both use .group-card rather
      than .match-card-select, and .group-card's own base rule (a plain
      class, not ID-scoped) is lower specificity than .group-card.cat-tile
      here, so no ID-scoping trick is needed for this one. */
-  .group-card.cat-tile { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  .group-card.cat-tile { flex-direction: column; align-items: stretch; gap: 0.5rem; padding-top: 1.05rem; padding-bottom: 1.05rem; }
   .cat-tile-top { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
   .cat-tile-top .group-name { flex: 1; min-width: 0; }
   .cat-tile-top .group-count { flex: 0 0 auto; white-space: nowrap; }
@@ -1208,7 +1208,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260922.003</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260922.004</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1657,7 +1657,6 @@
       <div class="group-card cat-tile" id="theme-all-vocab-card" onclick="startRandomMatchEverything()" style="cursor:pointer;">
         <div class="cat-tile-top">
           <div class="group-name">All vocabulary</div>
-          <div class="group-count">20 random words, from every category you currently have visible</div>
         </div>
         <div class="cat-bar" id="theme-all-vocab-swatch"></div>
       </div>
@@ -1670,7 +1669,6 @@
       <div class="group-card cat-tile" id="theme-all-kanji-card" onclick="startRandomKanji()" style="cursor:pointer; display:none;">
         <div class="cat-tile-top">
           <div class="group-name">All kanji</div>
-          <div class="group-count">20 random kanji, from every section</div>
         </div>
         <div class="cat-bar" id="theme-all-kanji-swatch"></div>
       </div>
@@ -1689,7 +1687,7 @@
       <div class="group-card" id="reversed-mode-toggle-card" onclick="toggleVocabReversed()" style="cursor:pointer;">
         <div class="group-info">
           <div class="group-name">Reverse the drill direction</div>
-          <div class="group-count">See the English meaning first and pick the matching Japanese, instead of reading Japanese and picking the answer (word cards only)</div>
+          <div class="group-count">See the English meaning first and pick the matching Japanese, instead of reading Japanese and picking the answer</div>
         </div>
         <div class="toggle" id="reversed-mode-toggle"></div>
       </div>
@@ -1699,14 +1697,12 @@
       <div class="group-card cat-tile" data-theme-key="theme-transport-uk" onclick="showVocabTileSelection('theme-transport-uk')" style="cursor:pointer;">
         <div class="cat-tile-top">
           <div class="group-name">Transport and UK Places</div>
-          <div class="group-count">Transport + UK Places, brought together</div>
         </div>
         <div class="cat-bar"></div>
       </div>
       <div class="group-card cat-tile" data-theme-key="theme-world" onclick="showVocabTileSelection('theme-world')" style="cursor:pointer;">
         <div class="cat-tile-top">
           <div class="group-name">Around the world</div>
-          <div class="group-count">Countries + World cities, brought together</div>
         </div>
         <div class="cat-bar"></div>
       </div>
@@ -1718,14 +1714,12 @@
       <div class="group-card cat-tile" data-theme-key="theme-items-clothing-general" onclick="showVocabTileSelection('theme-items-clothing-general')" style="cursor:pointer;">
         <div class="cat-tile-top">
           <div class="group-name">Everyday items, clothing & general vocab</div>
-          <div class="group-count">Everyday items + Clothing + General vocabulary, brought together</div>
         </div>
         <div class="cat-bar"></div>
       </div>
       <div class="group-card cat-tile" data-theme-key="theme-core-grammar" onclick="showVocabTileSelection('theme-core-grammar')" style="cursor:pointer;">
         <div class="cat-tile-top">
           <div class="group-name">Core grammar words</div>
-          <div class="group-count">Verbs + Adjectives + Question & location words, brought together</div>
         </div>
         <div class="cat-bar"></div>
       </div>
@@ -1738,7 +1732,6 @@
       <div class="group-card cat-tile" data-theme-key="theme-question-words" onclick="showVocabTileSelection('theme-question-words')" style="cursor:pointer;">
         <div class="cat-tile-top">
           <div class="group-name">Question words</div>
-          <div class="group-count">Every word tagged question-word, wherever it lives</div>
         </div>
         <div class="cat-bar"></div>
       </div>
@@ -1760,7 +1753,6 @@
       <div class="group-card cat-tile" data-theme-key="theme-getting-around" onclick="showVocabTileSelection('theme-getting-around')" style="cursor:pointer;">
         <div class="cat-tile-top">
           <div class="group-name">Getting around</div>
-          <div class="group-count">Transport + Places to go + Directions, brought together</div>
         </div>
         <div class="cat-bar"></div>
       </div>
@@ -1790,7 +1782,7 @@
       <div class="group-card" id="reversed-mode-toggle-card-l" onclick="toggleVocabReversed()" style="cursor:pointer;">
         <div class="group-info">
           <div class="group-name">Reverse the drill direction</div>
-          <div class="group-count">See the English meaning first and pick the matching Japanese, instead of reading Japanese and picking the answer (word cards only)</div>
+          <div class="group-count">See the English meaning first and pick the matching Japanese, instead of reading Japanese and picking the answer</div>
         </div>
         <div class="toggle"></div>
       </div>
@@ -7302,9 +7294,26 @@ function showScreen(id) {
   // Numbers pill doubles as a resume shortcut for any in-progress drill (not
   // just a numbers one - the drill screen is shared across every type), so
   // its label reflects whichever job it's currently doing.
+  //
+  // BUG FIX (2026-09-22): while actually mid-numbers-drill, this used to
+  // still say "Resume" and call tryResumeOrNumbers(), which just re-runs
+  // showScreen('drill') - a no-op re-display of the exact screen you're
+  // already on, with no way to leave. Vocab's own pill already solved this
+  // (see inReadSubScreen/navMatch above) by switching to "Back" + a plain
+  // exit call the moment you're actually IN that section's drill, rather
+  // than treating "mid-drill" and "abandoned drill, viewing elsewhere" as
+  // the same case. Numbers needs the identical split: inNumbersDrill is
+  // true only while id is genuinely 'drill' AND that deck is a numbers/
+  // time/counter one (isPendingDrillNumbers), so this can't misfire for an
+  // abandoned kana/kanji/vocab drill sitting in `deck` while you're
+  // elsewhere - the exact case the comment on isPendingDrillNumbers itself
+  // already guards against for the "Resume" label.
   const navNumbers = document.getElementById('nav-numbers');
   if (navNumbers) {
-    navNumbers.textContent = isPendingDrillNumbers() ? 'Resume' : 'Numbers';
+    const inNumbersDrill = id === 'drill' && isPendingDrillNumbers();
+    navNumbers.textContent = inNumbersDrill ? 'Back' : (isPendingDrillNumbers() ? 'Resume' : 'Numbers');
+    navNumbers.onclick = inNumbersDrill ? showNumbersScreen : tryResumeOrNumbers;
+    navNumbers.classList.toggle('sub-screen', inNumbersDrill);
   }
   if (id === 'hiragana-selection') Object.keys(HIRAGANA_SECTIONS).forEach(key => refreshKanaScoreShading('hiragana-grid-' + key));
   else if (id === 'katakana-selection') Object.keys(KATAKANA_SECTIONS).forEach(key => refreshKanaScoreShading('katakana-grid-' + key));
