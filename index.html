@@ -970,8 +970,8 @@
      wins once a pill is the one currently selected. */
   #vocab-level-filter-row.showing-theme-colours #level-pill-1:not(.active) { color: #4d88e5; border-color: rgba(77,136,229,0.4); }
   #vocab-level-filter-row.showing-theme-colours #level-pill-2:not(.active) { color: #e88a4d; border-color: rgba(232,138,77,0.4); }
+  #vocab-level-filter-row.showing-theme-colours #level-pill-3:not(.active) { color: #a0684d; border-color: rgba(160,104,77,0.4); }
   #vocab-level-filter-row.showing-theme-colours #level-pill-untaught:not(.active) { color: #9b59d0; border-color: rgba(155,89,208,0.4); }
-  #vocab-level-filter-row.showing-theme-colours #level-pill-genki:not(.active) { color: #d1568f; border-color: rgba(209,86,143,0.4); }
 
   /* "Specific time" lookup tool, under Reading times on the Vocab page */
   .time-tool-row {
@@ -1200,17 +1200,9 @@
     <div class="group-card" id="show-untaught-toggle-card" onclick="toggleShowUntaught()" style="cursor:pointer;">
       <div class="group-info">
         <div class="group-name">Untaught vocabulary</div>
-        <div class="group-count">Trip words and real Japanese from photos, outside the taught course — off by default</div>
+        <div class="group-count">Trip words, real Japanese from photos, and Genki Lesson 1-1 — outside the taught course, off by default</div>
       </div>
       <div class="toggle" id="show-untaught-toggle"></div>
-    </div>
-
-    <div class="group-card" id="show-genki-toggle-card" onclick="toggleShowGenki()" style="cursor:pointer;">
-      <div class="group-info">
-        <div class="group-name">Genki vocabulary</div>
-        <div class="group-count">Genki textbook vocab, working ahead of Level 3 — off by default</div>
-      </div>
-      <div class="toggle" id="show-genki-toggle"></div>
     </div>
 
     <div class="group-card dimmed" id="show-andrew-mode-toggle-card" onclick="toggleShowAndrewMode()" style="cursor:pointer;">
@@ -1233,7 +1225,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260922.013</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260928.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1699,6 +1691,11 @@
       <button class="level-pill active" id="level-pill-theme" onclick="setMatchLevel('theme')">Collections</button>
       <button class="level-pill" id="level-pill-1" onclick="setMatchLevel(1)">L1</button>
       <button class="level-pill" id="level-pill-2" onclick="setMatchLevel(2)">L2</button>
+      <!-- Level 3 (2026-09-28) - the class starts tomorrow; no content yet,
+           always visible (not gated like Untaught below - this is the
+           taught course itself, same as L1/L2), just here and ready so
+           lessons can be added the same way L1/L2 always have been. -->
+      <button class="level-pill" id="level-pill-3" onclick="setMatchLevel(3)">L3</button>
       <!-- Untaught vocabulary - everything not covered in the taught course
            (Trip vocabulary and Andrew's old "Materials" content merged into
            this single tier 2026-08-31 - see applyShowUntaughtVisibility).
@@ -1706,10 +1703,10 @@
            (unlike Andrew below) since it's a real, named tier rather than a
            scratchpad - hidden via display:none until switched on. -->
       <button class="level-pill" id="level-pill-untaught" onclick="setMatchLevel('untaught')" style="display:none;">Untaught</button>
-      <!-- Genki vocabulary (2026-09-12) - working through the Genki
-           textbook to fill gaps and get ahead of Level 3. Same pattern as
-           Untaught above: hidden until switched on in Settings. -->
-      <button class="level-pill" id="level-pill-genki" onclick="setMatchLevel('genki')" style="display:none;">Genki</button>
+      <!-- Genki tier retired (2026-09-28) - Lesson 1-1 (vocab-genki-1-1)
+           is now the first tile under Untaught instead of its own pill;
+           see buildMatchCategoryList's 'untaught' branch and
+           itemTierVisible's genki check (now reads showUntaught). -->
     </div>
 
     <!-- Search + Andrew's personal staging tier, sharing one row. Search is
@@ -3730,7 +3727,7 @@ const VOCAB = {
   'vocab-genki-1-1': {
     level: 'genki',
     hasReference: true,
-    label: 'Lesson 1-1',
+    label: 'Genki Lesson 1-1',
     chars: 'こうこう わたし…',
     tagQuery: ['genki','genki-1-1'],
     items: [
@@ -7131,8 +7128,14 @@ const COLOUR_HUES = {
 // already been tried elsewhere and rejected, red reads as "wrong answer"
 // everywhere else in the app, and yellow either crowds --accent (gold) or
 // runs too bright. Pink was the first hue in the wheel not already claimed
-// by another indicator in this app.
-const LEVEL_BORDER_COLORS = { 1: '#4d88e5', 2: '#e88a4d', curated: '#9b59d0', encountered: '#43a047', genki: '#d1568f' };
+// by another indicator in this app. Genki's own pill retired 2026-09-28
+// (Lesson 1-1 folded into Untaught instead - see buildMatchCategoryList),
+// but this key stays live: its word tiles are still bordered pink inside
+// their own category screen.
+// LEVEL 3 COLOUR (2026-09-28): brown (#a0684d) - the one hue in
+// COLOUR_HUES not already claimed by another indicator (green/yellow both
+// ruled out above for the same reasons Genki's pick avoided them).
+const LEVEL_BORDER_COLORS = { 1: '#4d88e5', 2: '#e88a4d', 3: '#a0684d', curated: '#9b59d0', encountered: '#43a047', genki: '#d1568f' };
 
 // Resolves which LEVEL_BORDER_COLORS key applies to a pooled item. Untaught
 // items carry `encountered`/`curated` as a real tag now (not inferred from
@@ -8300,7 +8303,7 @@ const SETTINGS_KEY = 'jpDrillSettings';
 // than a fetch that can fail or behave differently offline. 215 was
 // approximately the mid-market GBP/JPY rate as of build time (July 2026);
 // it'll drift, which is exactly why it's an editable field, not a constant.
-let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty: false, workOffline: false, showAndrewMode: false, showUntaught: null, showGenki: false, gbpJpyRate: 215, decayAffectsColours: false, lastSeenChangelog: null };
+let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty: false, workOffline: false, showAndrewMode: false, showUntaught: null, gbpJpyRate: 215, decayAffectsColours: false, lastSeenChangelog: null };
 
 // WHAT'S NEW FLAG (2026-09-01) - HOW TO ADD AN ENTRY, so this stays
 // consistent across sessions and not just something Andrew has to remember
@@ -8362,8 +8365,20 @@ try {
       savedSettings.showAndrewMode = false;
     }
 
+    // One-time migration (2026-09-28): Genki tier folded into Untaught -
+    // same shape as the migration just above. Anyone who already had
+    // Genki switched on keeps seeing Lesson 1-1's not-yet-taught words,
+    // just via showUntaught now instead of its own showGenki toggle (see
+    // itemTierVisible). showGenki itself is dropped after this - an inert
+    // leftover key if it's still in an old saved JSON, same as
+    // showTripVocab/showCustomContent above.
+    const migratingGenkiToUntaught = 'showGenki' in savedSettings;
+    if (migratingGenkiToUntaught && savedSettings.showGenki) {
+      savedSettings.showUntaught = true;
+    }
+
     Object.assign(appSettings, savedSettings);
-    if (migratingFromCustomContent || migratingToUntaught) saveSettings();
+    if (migratingFromCustomContent || migratingToUntaught || migratingGenkiToUntaught) saveSettings();
   }
 } catch (e) {
   // localStorage unavailable or corrupt — fall back to defaults silently
@@ -8409,16 +8424,19 @@ function itemTierVisible(item) {
   const tags = item.tags || [];
   if (tags.includes('untaught')) return appSettings.showUntaught;
   if (tags.includes('andrew')) return appSettings.showAndrewMode;
-  // Genki tier (2026-09-12): gated the same way as Untaught/Andrew, but
-  // ONLY for words that don't already carry 'taught' - a word already
-  // taught in the L1/L2 course and tagged forward into Genki (e.g.
-  // gakusei, already in vocab-occupations as L1) must stay visible
-  // everywhere regardless of this toggle, exactly as it always has been.
-  // Without the !taught check here, turning Genki off would wrongly hide
-  // already-taught words from their normal L1/L2 screens too, since this
-  // function is the single shared gate every scan (Random-Everything,
-  // search, tagQuery resolution) already goes through.
-  if (tags.includes('genki') && !tags.includes('taught')) return appSettings.showGenki;
+  // Genki tier (2026-09-12), folded into Untaught (2026-09-28): gated the
+  // same way as Untaught itself now - Lesson 1-1 is the first tile under
+  // the Untaught pill (see buildMatchCategoryList) rather than its own
+  // tier, so its not-yet-taught words are gated by showUntaught, not a
+  // separate showGenki toggle (retired). ONLY for words that don't already
+  // carry 'taught' - a word already taught in the L1/L2 course and tagged
+  // forward into Genki (e.g. gakusei, already in vocab-occupations as L1)
+  // must stay visible everywhere regardless of this toggle, exactly as it
+  // always has been. Without the !taught check here, turning Untaught off
+  // would wrongly hide already-taught words from their normal L1/L2
+  // screens too, since this function is the single shared gate every scan
+  // (Random-Everything, search, tagQuery resolution) already goes through.
+  if (tags.includes('genki') && !tags.includes('taught')) return appSettings.showUntaught;
   return true;
 }
 
@@ -8603,26 +8621,14 @@ function toggleShowUntaught() {
 }
 
 // Genki vocabulary (2026-09-12) - working through the Genki textbook
-// alongside the course, to fill gaps and get ahead of Level 3. Same
-// hide-entirely, off-by-default pattern as Untaught above: its own pill,
-// its own settings toggle, gated per-item via itemTierVisible (see there
-// for why already-taught words are exempt from this gate). Starts with
-// Lesson 1-1 (vocab-genki-1-1); more lessons get added the same way,
-// each just a new VOCAB category tagged 'genki' + its own lesson tag.
-function applyShowGenkiVisibility() {
-  const on = appSettings.showGenki;
-  const genkiPill = document.getElementById('level-pill-genki');
-  if (genkiPill) genkiPill.style.display = on ? '' : 'none';
-  if (!on && currentMatchLevel === 'genki') setMatchLevel('theme');
-  const card = document.getElementById('show-genki-toggle-card');
-  if (card) card.classList.toggle('selected', on);
-}
-
-function toggleShowGenki() {
-  appSettings.showGenki = !appSettings.showGenki;
-  saveSettings();
-  applyShowGenkiVisibility();
-}
+// alongside the course, to fill gaps and get ahead of Level 3. Originally
+// its own hide-entirely tier (own pill, own settings toggle) same as
+// Untaught; retired 2026-09-28 now that Level 3 is actually starting -
+// Lesson 1-1 (vocab-genki-1-1) is folded into Untaught as its first tile
+// instead (see buildMatchCategoryList and itemTierVisible), so this no
+// longer needs its own toggle/pill functions. Future Genki lessons, if
+// any get added ahead of when their content is actually taught, join the
+// same Untaught tile list the same way.
 
 function applyWorkOfflineUI() {
   const card = document.getElementById('offline-toggle-card');
@@ -8669,7 +8675,6 @@ function applyAllSettingsUI() {
   applyWorkOfflineUI();
   applyShowAndrewModeVisibility();
   applyShowUntaughtVisibility();
-  applyShowGenkiVisibility();
   applySettingsButtonUpdateFlag();
 }
 
@@ -10617,17 +10622,15 @@ function updateNumberTimeSwatches() {
 function setMatchLevel(level) {
   if (level === 'andrew' && !appSettings.showAndrewMode) return; // backstop - pill is also hidden via CSS
   if (level === 'untaught' && !appSettings.showUntaught) return; // backstop - pill is also hidden via CSS
-  if (level === 'genki' && !appSettings.showGenki) return; // backstop - pill is also hidden via CSS
   currentMatchLevel = level;
   document.getElementById('level-pill-1').classList.toggle('active', level === 1);
   document.getElementById('level-pill-2').classList.toggle('active', level === 2);
+  document.getElementById('level-pill-3').classList.toggle('active', level === 3);
   document.getElementById('level-pill-theme').classList.toggle('active', level === 'theme');
   const andrewPill = document.getElementById('level-pill-andrew');
   if (andrewPill) andrewPill.classList.toggle('active', level === 'andrew');
   const untaughtPill = document.getElementById('level-pill-untaught');
   if (untaughtPill) untaughtPill.classList.toggle('active', level === 'untaught');
-  const genkiPill = document.getElementById('level-pill-genki');
-  if (genkiPill) genkiPill.classList.toggle('active', level === 'genki');
   document.getElementById('vocab-level-filter-row').classList.toggle('showing-theme-colours', level === 'theme');
   // Andrew mode and Untaught vocabulary both deliberately reuse the same
   // generic Level 1/2 list view (match-vocab-view + buildMatchCategoryList)
@@ -10635,7 +10638,7 @@ function setMatchLevel(level) {
   // a new category just needs level:'andrew' or level:'untaught' in VOCAB
   // and shows up automatically, no hand-built card needed. Genki (2026-09-12)
   // joins the same list for the same reason.
-  document.getElementById('match-vocab-view').style.display = (level === 1 || level === 2 || level === 'andrew' || level === 'untaught' || level === 'genki') ? 'flex' : 'none';
+  document.getElementById('match-vocab-view').style.display = (level === 1 || level === 2 || level === 3 || level === 'andrew' || level === 'untaught') ? 'flex' : 'none';
   document.getElementById('match-theme-view').style.display = level === 'theme' ? 'flex' : 'none';
   if (level === 'theme') refreshThemeCategorySwatches();
   if (level === 'theme') return;
@@ -10643,8 +10646,6 @@ function setMatchLevel(level) {
     ? '20 random words per round, from Andrew mode categories'
     : level === 'untaught'
     ? '20 random words per round, from Untaught vocabulary'
-    : level === 'genki'
-    ? '20 random words per round, from Genki vocabulary'
     : `20 random words per round, from all Level ${level} categories`;
   document.getElementById('match-start-btn').disabled = true;
   document.getElementById('random-match-card').classList.remove('selected');
@@ -10768,6 +10769,16 @@ function buildMatchCategoryList() {
   // needed, see the standaloneCard comment on vocab-reference-question-
   // words for why that's the more instructive example of the two.)
   if (currentMatchLevel === 'untaught') {
+    // GENKI LESSON 1-1 FIRST (2026-09-28) - the retired Genki tier's only
+    // category now leads this list instead of getting its own pill (see
+    // itemTierVisible and the LEVEL_BORDER_COLORS/applyShowGenkiVisibility
+    // comments for the rest of that migration). Deliberately not part of
+    // the alphabetized set below - it's one specific, currently-relevant
+    // lesson while class is starting, not one of many trip/photo
+    // categories - so it gets its own divider rather than sorting in
+    // wherever "Lesson 1-1" would alphabetically land.
+    container.appendChild(buildCategoryTile('vocab-genki-1-1'));
+    container.appendChild(document.createElement('div')).className = 'section-divider';
     // ALPHABETICAL ORDER (2026-08-31, extended same day when Trip and
     // Andrew merged into this one Untaught tier) - reads as one alphabetized
     // set rather than "promoted theme cards first, plain categories after",
@@ -12856,12 +12867,10 @@ function startRandomMatch() {
     allItems = scanVocabByTag('L' + currentMatchLevel);
   } else if (currentMatchLevel === 'untaught') {
     allItems = scanVocabByTag('untaught');
-  } else if (currentMatchLevel === 'genki') {
-    // Every Genki lesson at once, same shape as L1/L2/Untaught above - a
-    // word tagged forward into a later Genki lesson (or into L1/L2, see
-    // itemTierVisible) shows up here automatically, no extra work needed.
-    allItems = scanVocabByTag('genki');
   } else {
+    // Level 3 (empty for now, ready to go once lessons are added) falls
+    // through here too, same as it always has for a numeric level - see
+    // the comment above this function.
     allItems = [];
     Object.keys(VOCAB).forEach(key => {
       if ((VOCAB[key].level || 1) !== currentMatchLevel) return;
