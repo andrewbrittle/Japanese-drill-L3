@@ -1226,7 +1226,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260929.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260929.003</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -4532,6 +4532,7 @@ const VOCAB = {
       {jp:'あまり', romaji:'amari', en:'not often / seldom (+ negative verb)', tags:['L3','frequency-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'ぜんぜん', romaji:'zenzen', en:'never / not at all (+ negative verb)', tags:['L3','frequency-l3','taught','l3-1'], altForm:'全然', altIsStandard:true, dateAdded:'2026-09-29'},
       {jp:'それから', romaji:'sorekara', en:'and then / after that', tags:['L3','frequency-l3','taught','l3-1'], dateAdded:'2026-09-29'},
+      {jp:'そして', romaji:'soshite', en:'and / and also', tags:['L3','frequency-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'なにも', romaji:'nanimo', en:'nothing (+ negative verb)', tags:['L3','frequency-l3','taught','l3-1'], altForm:'何も', altIsStandard:true, dateAdded:'2026-09-29'},
       {jp:'まいあさ', romaji:'maiasa', en:'every morning', tags:['L3','frequency-l3','taught','l3-1'], altForm:'毎朝', altIsStandard:true, dateAdded:'2026-09-29'},
       {jp:'けさ', romaji:'kesa', en:'this morning', tags:['L3','frequency-l3','taught','l3-1'], altForm:'今朝', altIsStandard:true, dateAdded:'2026-09-29'},
@@ -12816,9 +12817,10 @@ function showGrammarNotesHubL3() {
     { label: 'Sentence order (を + object + frequency)', fn: showL3SentenceOrderReference },
     { label: 'を — Level 3 additions', fn: showObjectParticleL3Reference },
     { label: 'と vs や — "and" in a list', fn: showToYaReference },
-    { label: 'それから — "and then"', fn: showSorekaraReference },
+    { label: 'それから / そして — "and then" vs "and also"', fn: showSorekaraReference },
     { label: 'なん vs なに — two ways to say "what"', fn: showNanNaniReference },
     { label: 'Noun + します', fn: showNounShimasuReference },
+    { label: 'お / ご — the polite prefix (ごしゅみ, おなまえ…)', fn: showPolitePrefixReference },
   ];
   entries.forEach(entry => {
     const card = document.createElement('div');
@@ -13222,12 +13224,16 @@ function showToYaReference() {
 
 // --- それから ---
 function showSorekaraReference() {
-  const list = l3RefOpen('それから — "and then"');
+  const list = l3RefOpen('それから and そして');
   l3Note(list, 'それから means "and then / after that". It starts the second sentence, linking two actions in the order they happen.');
   l3Example(list, 'ともだちと えいがを みます。それから おちゃを のみます。', 'Tomodachi to eiga o mimasu. Sorekara ocha o nomimasu.', 'I watch a film with a friend. Then we have tea.');
   l3Example(list, 'べんきょうを しました。それから ほんを よみました。', 'Benkyou o shimashita. Sorekara hon o yomimashita.', 'I studied. After that I read a book.');
   l3Example(list, 'にちようびに ほんを よみました。それから ビデオを みました。', 'Nichiyoubi ni hon o yomimashita. Sorekara bideo o mimashita.', 'On Sunday I read a book. Then I watched a video.');
   l3Note(list, 'The first sentence ends with 。 as normal and それから begins the next one. It works in any tense — both sentences usually share it (both ます, or both ました). This is how to join two actions, since と and や can only join nouns.');
+  l3Heading(list, 'そして — "and (also)"');
+  l3Example(list, 'パンを たべます。そして コーヒーを のみます。', 'Pan o tabemasu. Soshite koohii o nomimasu.', 'I eat bread, and I drink coffee.');
+  l3Note(list, 'そして also starts the second sentence, but it <strong>adds</strong> rather than putting things in order: "and / and also". それから stresses order: "after that, next". If one thing clearly happens after the other, それから is the safer choice; そして sounds a little more formal or written.');
+  l3Note(list, 'They overlap a bit: in conversation それから can also mean "and also…" when you\'re adding to a list. But そして never really means "after that".');
   l3Heading(list, 'Time words from the lesson');
   l3Example(list, 'けさ', 'kesa', 'this morning');
   l3Example(list, 'おととい', 'ototoi', 'the day before yesterday');
@@ -13259,6 +13265,33 @@ function showNanNaniReference() {
   l3Example(list, 'なにを たべますか。', 'Nani o tabemasu ka.', 'What do you eat?');
   l3Example(list, 'なにも たべません。', 'Nani mo tabemasen.', "I don't eat anything.");
   l3Note(list, '<strong>Quick check:</strong> if the next sound is です, の, と or a counter → なん. Before を, も and anything else → なに.');
+  showScreen('vocab-reference');
+}
+
+// --- お / ご polite prefix (ごしゅみ on the September 2026 sheet) ---
+// Written as rules on purpose - Andrew asked for the rule behind phrases the
+// class is otherwise just expected to remember.
+function showPolitePrefixReference() {
+  const list = l3RefOpen('お / ご — the polite prefix');
+  l3Note(list, 'お and ご go on the front of a noun to make it polite. When you ask about someone else\'s things, they do the job of "your". (The September sheet calls ご a suffix, but it always goes at the front.)');
+  l3Heading(list, 'Rule 1 — their things, never yours');
+  l3Example(list, 'ごしゅみは？', 'Go-shumi wa?', 'What are your hobbies?');
+  l3Example(list, 'わたしの しゅみは カラオケです。', 'Watashi no shumi wa karaoke desu.', 'My hobby is karaoke.');
+  l3Example(list, 'おなまえは？', 'O-namae wa?', "What's your name?");
+  l3Note(list, 'Asking → add it. Answering about yourself → drop it. Putting ご on your own hobby is like calling your own name "your honourable name".');
+  l3Heading(list, 'Rule 2 — お or ご?');
+  l3Note(list, '<strong>ご</strong> goes on words that came into Japanese from Chinese — usually two kanji read the Chinese way. <strong>お</strong> goes on native Japanese words. You can\'t always tell yet, so learn each word together with its prefix.');
+  l3TwoCol(list, 'ごしゅみ', 'go-shumi — hobbies', 'ごかぞく', 'go-kazoku — family');
+  l3TwoCol(list, 'おなまえ', 'o-namae — name', 'おしごと', 'o-shigoto — job');
+  l3TwoCol(list, 'おくに', 'o-kuni — country', 'おでんわ', 'o-denwa — phone ⚠');
+  l3Note(list, '⚠ Exceptions: でんわ and べんきょう are Chinese-origin words but take お (おでんわ, おべんきょう). Very everyday words are the ones most likely to break the rule.');
+  l3Heading(list, 'Rule 3 — some words always have お');
+  l3TwoCol(list, 'おちゃ', 'o-cha — tea', 'おさけ', 'o-sake — alcohol');
+  l3TwoCol(list, 'おはなみ', 'o-hanami — flower viewing', 'おつきみ', 'o-tsukimi — moon viewing');
+  l3Note(list, 'Here お doesn\'t mean "your" at all — it\'s just part of how the word is normally said, to sound nicer. You say おちゃを のみます about your own tea. In compound words the お drops off: にほんちゃ and こうちゃ, not おにほんちゃ.');
+  l3Heading(list, 'Rule 4 — not on katakana words');
+  l3Note(list, 'Loanwords in katakana almost never take お/ご: it\'s テニス, never おテニス. The one you\'ll hear most is おトイレ, used to sound polite.');
+  l3Note(list, 'The same お/ご is fixed into greetings you already know: おはようございます, おねがいします, ごちそうさまでした.');
   showScreen('vocab-reference');
 }
 
