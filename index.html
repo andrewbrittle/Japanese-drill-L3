@@ -713,6 +713,7 @@
     border-color: var(--border); color: var(--text-dim); font-size: 20px; font-weight: 700;
   }
   .sentence-particle-badge-q { border-color: var(--blue); color: var(--blue); font-size: 15px; }
+  .sentence-particle-badge-freq { font-size: 15px; } /* L3 frequency slot - a whole word, not one particle */
   .sentence-structure-state { font-weight: 700; }
   .sentence-structure-hint {
     font-size: 14px; font-weight: 500; color: var(--accent); text-align: center;
@@ -1225,7 +1226,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260929.001</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260929.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -10840,11 +10841,13 @@ function buildMatchCategoryList() {
   // whichever category happened to be nearby when each note was added -
   // keeps the count from creeping up category-list clutter as more weeks
   // add grammar points.
-  if (currentMatchLevel === 2) {
+  // Level 3 (2026-09-29) gets its own hub too - showGrammarNotesHubL3.
+  if (currentMatchLevel === 2 || currentMatchLevel === 3) {
+    const hubLevel = currentMatchLevel;
     const grammarHubCard = document.createElement('div');
     grammarHubCard.className = 'vocab-ref-card';
     grammarHubCard.innerHTML = `<span>Grammar notes</span><span class="vocab-ref-arrow">→</span>`;
-    grammarHubCard.onclick = () => showGrammarNotesHub();
+    grammarHubCard.onclick = () => (hubLevel === 3 ? showGrammarNotesHubL3() : showGrammarNotesHub());
     container.appendChild(grammarHubCard);
     container.appendChild(document.createElement('div')).className = 'section-divider';
   }
@@ -10966,6 +10969,10 @@ function closeVocabReference() {
   // screen to show() into.
   if (vocabRefBackTarget === 'grammar-notes-hub') {
     showGrammarNotesHub();
+    return;
+  }
+  if (vocabRefBackTarget === 'grammar-notes-hub-l3') {
+    showGrammarNotesHubL3();
     return;
   }
   showScreen(vocabRefBackTarget);
@@ -12006,6 +12013,11 @@ function showObjectParticleReference() {
   exception.innerHTML = `<strong>The one exception in this batch:</strong> あいます (to meet) takes に, not を - ともだちに あいます (I meet a friend), not ともだちを あいます. Meeting someone is treated as a shared/mutual action rather than something done to an object, which is why に (the same particle used for destinations and points in time) shows up instead.`;
   list.appendChild(exception);
 
+  const l3Pointer = document.createElement('div');
+  l3Pointer.className = 'verb-conj-note';
+  l3Pointer.textContent = 'Level 3 builds on this - のみます with soup and medicine, and なにを vs なにも. See Level 3 → Grammar notes → "を — Level 3 additions".';
+  list.appendChild(l3Pointer);
+
   showScreen('vocab-reference');
 }
 
@@ -12541,6 +12553,11 @@ function showObjectSentenceOrderReference() {
   shuffleBtn.onclick = shuffleObjectSentenceExample;
   list.appendChild(shuffleBtn);
 
+  const l3Pointer = document.createElement('div');
+  l3Pointer.className = 'verb-conj-note';
+  l3Pointer.textContent = 'Level 3 has an extended version with a Frequency slot (いつも/よく/ときどき/あまり/ぜんぜん - the verb turns negative by itself for あまり and ぜんぜん) and Level 3 foods and hobbies in the shuffle. See Level 3 → Grammar notes.';
+  list.appendChild(l3Pointer);
+
   pickFreshObjectSentenceWords();
   renderObjectSentenceExampleDisplay();
   showScreen('vocab-reference');
@@ -12639,7 +12656,10 @@ const OBJECT_SENTENCE_VERB_POOLS = {
     ...VOCAB['vocab-food-drink-l2'].items.filter(hasCleanGloss),
   ],
   suimasu: [vItem('vocab-objects', 'tabako')],
-  torimasu: [vItem('vocab-general-l2', 'shashin')],
+  // Copy with a plain gloss (2026-09-29): shashin's own en became
+  // 'photograph / photography' when it was tagged into L3 Hobbies, and
+  // hasCleanGloss would otherwise filter this pool to nothing.
+  torimasu: [{ ...vItem('vocab-general-l2', 'shashin'), en: 'photograph' }],
   shimasu: [
     vItem('vocab-general-l2', 'tenisu'), vItem('vocab-general-l2', 'geemu'),
     vItem('vocab-general-l2', 'supootsu'), vItem('vocab-general-l2', 'shukudai'),
@@ -12775,6 +12795,490 @@ function renderObjectSentenceExampleDisplay() {
 function shuffleObjectSentenceExample() {
   pickFreshObjectSentenceWords();
   renderObjectSentenceExampleDisplay();
+}
+
+// ==== LEVEL 3 GRAMMAR NOTES (2026-09-29) ====
+// Level 3's own Grammar notes hub, shown above the L3 category list the same
+// way showGrammarNotesHub is for L2 (see buildMatchCategoryList). Deliberately
+// separate L3 cards rather than edits to the L2 ones, so each level's notes
+// line up with Andrew's class notes for that level: where an L3 card extends
+// an L2 one (を, Sentence order), the L2 card just gets a one-line pointer
+// here. Back from any card below returns to this hub via the
+// 'grammar-notes-hub-l3' target (see closeVocabReference).
+function showGrammarNotesHubL3() {
+  vocabRefBackTarget = 'match-settings';
+  document.getElementById('vocab-ref-title').textContent = 'Grammar notes — Level 3';
+  const list = document.getElementById('vocab-ref-list');
+  list.className = '';
+  list.innerHTML = '';
+  const entries = [
+    { label: 'Frequency words — いつも/よく/ときどき/あまり/ぜんぜん', fn: showFrequencyReference },
+    { label: 'Sentence order (を + object + frequency)', fn: showL3SentenceOrderReference },
+    { label: 'を — Level 3 additions', fn: showObjectParticleL3Reference },
+    { label: 'と vs や — "and" in a list', fn: showToYaReference },
+    { label: 'それから — "and then"', fn: showSorekaraReference },
+    { label: 'なん vs なに — two ways to say "what"', fn: showNanNaniReference },
+    { label: 'Noun + します', fn: showNounShimasuReference },
+  ];
+  entries.forEach(entry => {
+    const card = document.createElement('div');
+    card.className = 'vocab-ref-card';
+    card.innerHTML = `<span>${entry.label}</span><span class="vocab-ref-arrow">→</span>`;
+    card.onclick = entry.fn;
+    list.appendChild(card);
+  });
+  showScreen('vocab-reference');
+}
+
+// Small shared builders for the L3 cards below - same row/note styles the
+// L2 grammar cards use, just pulled into helpers since there are seven pages.
+function l3RefOpen(title) {
+  vocabRefBackTarget = 'grammar-notes-hub-l3';
+  document.getElementById('vocab-ref-title').textContent = title;
+  const list = document.getElementById('vocab-ref-list');
+  list.className = 'tight-list';
+  list.innerHTML = '';
+  return list;
+}
+function l3Note(list, html) {
+  const d = document.createElement('div');
+  d.className = 'verb-conj-note';
+  d.innerHTML = html;
+  list.appendChild(d);
+}
+function l3Heading(list, text) {
+  const d = document.createElement('div');
+  d.className = 'verb-conj-heading';
+  d.style.marginTop = '0.9rem';
+  d.textContent = text;
+  list.appendChild(d);
+}
+function l3Example(list, jp, romaji, en) {
+  const row = document.createElement('div');
+  row.className = 'vocab-ref-row minute-row';
+  row.innerHTML = `
+    <div class="vocab-ref-jp minute-jp">${markSmallKana(jp)}</div>
+    <div class="vocab-ref-romaji minute-romaji">${romaji}${en ? ' — ' + en : ''}</div>
+  `;
+  list.appendChild(row);
+}
+function l3TwoCol(list, leftJp, leftSub, rightJp, rightSub) {
+  const row = document.createElement('div');
+  row.className = 'vocab-ref-row two-col minute-row';
+  row.innerHTML = `
+    <div class="vocab-ref-col-left">
+      <div>
+        <div class="vocab-ref-jp minute-jp">${markSmallKana(leftJp)}</div>
+        <div class="vocab-ref-romaji minute-romaji">${leftSub}</div>
+      </div>
+    </div>
+    <div class="vocab-ref-col-right">
+      <div class="vocab-ref-jp minute-jp qneg-example-jp">${markSmallKana(rightJp)}</div>
+      <div class="vocab-ref-romaji minute-romaji">${rightSub}</div>
+    </div>
+  `;
+  list.appendChild(row);
+}
+
+// --- Frequency words (L3 Lesson 1) ---
+const L3_FREQ_WORDS = [
+  { jp: 'いつも', romaji: 'itsumo', en: 'always', neg: false },
+  { jp: 'よく', romaji: 'yoku', en: 'often', neg: false },
+  { jp: 'ときどき', romaji: 'tokidoki', en: 'sometimes', neg: false },
+  { jp: 'あまり', romaji: 'amari', en: 'not often / seldom', neg: true },
+  { jp: 'ぜんぜん', romaji: 'zenzen', en: 'never / not at all', neg: true },
+];
+function showFrequencyReference() {
+  const list = l3RefOpen('Frequency words');
+  l3Note(list, 'Frequency words say how often you do something. They go after the topic (and after a time word like あさ, if there is one), before the object — and they take no particle.');
+  L3_FREQ_WORDS.forEach(f => l3TwoCol(list, f.jp, `${f.romaji} — ${f.en}`, f.neg ? '…ません' : '…ます', f.neg ? 'negative verb only' : 'positive verb'));
+  l3Note(list, '<strong>The rule:</strong> いつも, よく and ときどき go with a positive verb (…ます). あまり and ぜんぜん only ever go with a negative verb (…ません) — あまり たべます is wrong. English "never" is negative on its own ("I never eat meat"), but in Japanese the verb has to be negative as well: ぜんぜん たべません.');
+  l3Heading(list, 'Examples from class');
+  l3Example(list, 'わたしは いつも パンを たべます。', 'Watashi wa itsumo pan o tabemasu.', 'I always eat bread.');
+  l3Example(list, 'わたしは よく おちゃを のみます。', 'Watashi wa yoku ocha o nomimasu.', 'I often drink green tea.');
+  l3Example(list, 'わたしは ときどき えいがを みます。', 'Watashi wa tokidoki eiga o mimasu.', 'I sometimes watch films.');
+  l3Example(list, 'わたしは あまり うみへ いきません。', 'Watashi wa amari umi e ikimasen.', "I don't often go to the sea.");
+  l3Example(list, 'わたしは ぜんぜん オペラを ききません。', 'Watashi wa zenzen opera o kikimasen.', 'I never listen to opera.');
+  l3Example(list, 'わたしは あさ いつも バナナや りんごを たべます。', 'Watashi wa asa itsumo banana ya ringo o tabemasu.', 'In the morning I always eat things like bananas and apples.');
+  l3Heading(list, 'Answering a question');
+  l3Example(list, 'おさけを のみますか。', 'Osake o nomimasu ka.', 'Do you drink alcohol?');
+  l3Example(list, 'はい、ときどき のみます。', 'Hai, tokidoki nomimasu.', 'Yes, sometimes.');
+  l3Example(list, 'いいえ、あまり のみません。', 'Iie, amari nomimasen.', 'No, not often.');
+  l3Example(list, 'いいえ、ぜんぜん のみません。', 'Iie, zenzen nomimasen.', 'No, never.');
+  l3Note(list, 'In a short answer the object is usually dropped — just はい/いいえ + frequency word + verb. はい goes with いつも/よく/ときどき, いいえ with あまり/ぜんぜん.');
+  l3Note(list, 'まいにち (every day) and まいあさ (every morning) are time words rather than frequency words — they don\'t force the verb either way, so it can be positive or negative, whichever is true.');
+  showScreen('vocab-reference');
+}
+
+// --- Sentence order, L3 version (を + object + frequency) ---
+// Extends the L2 "Sentence order (を + object)" card (showObjectSentence
+// OrderReference) with a Frequency slot. Tapping Frequency steps through
+// the five words and "skipped", and the verb flips to its ません form by
+// itself for あまり/ぜんぜん - that automatic flip is the point of the card.
+// Object pools are curated per verb (same "no drinking a photograph" idea as
+// OBJECT_SENTENCE_VERB_POOLS) and each carries its own natural English
+// phrase, since habitual English needs plurals/idioms ("eat apples", "go
+// skiing", "take medicine") that can't be derived from the vocab glosses.
+// Words are looked up by kana among TAUGHT items, wherever they live - most
+// L3 words are tagged forward from L1/L2/trip categories rather than stored
+// in the L3 ones.
+const L3_SENTENCE_VERBS = [
+  { jp: 'たべます', en: 'eat', objs: [['パン', 'eat bread'], ['ごはん', 'eat rice'], ['たまご', 'eat eggs'], ['りんご', 'eat apples'], ['バナナ', 'eat bananas'], ['くだもの', 'eat fruit'], ['シリアル', 'eat cereal'], ['ヨーグルト', 'eat yoghurt'], ['なっとう', 'eat natto'], ['パンケーキ', 'eat pancakes'], ['サンドイッチ', 'eat sandwiches'], ['サラダ', 'eat salad'], ['パスタ', 'eat pasta'], ['ピザ', 'eat pizza'], ['ラーメン', 'eat ramen'], ['カレー', 'eat curry'], ['ステーキ', 'eat steak'], ['オムレツ', 'eat omelettes'], ['ぎょうざ', 'eat gyoza'], ['てんぷら', 'eat tempura'], ['にく', 'eat meat'], ['ぶたにく', 'eat pork'], ['ぎゅうにく', 'eat beef'], ['とりにく', 'eat chicken'], ['さかな', 'eat fish'], ['えび', 'eat prawns'], ['たこ', 'eat octopus'], ['いか', 'eat squid'], ['やさい', 'eat vegetables']] },
+  { jp: 'のみます', en: 'drink', objs: [['おちゃ', 'drink green tea'], ['にほんちゃ', 'drink Japanese tea'], ['こうちゃ', 'drink black tea'], ['コーヒー', 'drink coffee'], ['ジュース', 'drink juice'], ['スポーツドリンク', 'drink sports drinks'], ['ぎゅうにゅう', 'drink milk'], ['おさけ', 'drink alcohol'], ['ビール', 'drink beer'], ['スープ', 'have soup'], ['くすり', 'take medicine']] },
+  { jp: 'みます', en: 'watch', objs: [['テレビ', 'watch TV'], ['えいが', 'watch films'], ['ニュース', 'watch the news'], ['スポーツ', 'watch sport'], ['ビデオ', 'watch videos']] },
+  { jp: 'ききます', en: 'listen to', objs: [['おんがく', 'listen to music'], ['ラジオ', 'listen to the radio']] },
+  { jp: 'よみます', en: 'read', objs: [['ほん', 'read books'], ['しんぶん', 'read the newspaper'], ['ざっし', 'read magazines']] },
+  { jp: 'かきます', en: 'write', objs: [['メール', 'write emails'], ['レポート', 'write reports']] },
+  { jp: 'かいます', en: 'buy', objs: [['たべもの', 'buy food'], ['のみもの', 'buy drinks'], ['パン', 'buy bread'], ['やさい', 'buy vegetables'], ['くだもの', 'buy fruit'], ['ざっし', 'buy magazines']] },
+  { jp: 'とります', en: 'take', objs: [['しゃしん', 'take photos'], ['セルフィー', 'take selfies']] },
+  { jp: 'します', en: 'do', objs: [['スポーツ', 'do sport'], ['テニス', 'play tennis'], ['ゴルフ', 'play golf'], ['サッカー', 'play football'], ['ゲーム', 'play games'], ['べんきょう', 'study'], ['しごと', 'work'], ['すいえい', 'go swimming'], ['スキー', 'go skiing'], ['じゅうどう', 'do judo'], ['ダンス', 'dance'], ['カラオケ', 'do karaoke'], ['りょうり', 'cook'], ['ガーデニング', 'do gardening'], ['ドライブ', 'go for a drive'], ['サイクリング', 'go cycling'], ['ウォーキング', 'go walking'], ['バーベキュー', 'have a barbecue'], ['ピクニック', 'have a picnic'], ['パーティー', 'have a party']] },
+];
+
+function l3TaughtItem(jp) {
+  for (const key of Object.keys(VOCAB)) {
+    const hit = VOCAB[key].items.find(i => i.jp === jp && (i.tags || []).includes('taught'));
+    if (hit) return hit;
+  }
+  return null;
+}
+
+let l3SentenceVerbCache = null;
+function l3SentenceVerbs() {
+  if (!l3SentenceVerbCache) {
+    l3SentenceVerbCache = L3_SENTENCE_VERBS.map(v => ({
+      item: l3TaughtItem(v.jp),
+      en: v.en,
+      objs: v.objs.map(([jp, phrase]) => ({ item: l3TaughtItem(jp), phrase })).filter(o => o.item),
+    })).filter(v => v.item && v.objs.length);
+  }
+  return l3SentenceVerbCache;
+}
+
+// Days take に; あさ/ひる/よる (the class's own examples) take no particle -
+// a real rule worth seeing, not a simplification.
+function l3TimePool() {
+  const days = VOCAB['vocab-days-l2'].items.filter(hasCleanGloss)
+    .map(d => ({ item: d, particle: 'に', particleRomaji: 'ni', en: 'on ' + d.en }));
+  const parts = [['あさ', 'in the morning'], ['ひる', 'at lunchtime'], ['よる', 'in the evening']]
+    .map(([jp, en]) => ({ item: VOCAB['vocab-time-l2'].items.find(i => i.jp === jp), particle: '', particleRomaji: '', en }))
+    .filter(p => p.item);
+  return [...days, ...parts];
+}
+
+// "eat bread" -> "eats bread" for he/she/Tanaka-san subjects.
+function l3Third(phrase) {
+  const words = phrase.split(' ');
+  const irregular = { go: 'goes', do: 'does', have: 'has', watch: 'watches', study: 'studies' };
+  words[0] = irregular[words[0]] || words[0] + 's';
+  return words.join(' ');
+}
+
+const L3_SENTENCE_SLOTS = [
+  { num: 1, role: 'Topic (who)', particle: 'は', questionBadge: 'だれが', note: 'who is doing it' },
+  { num: 2, role: 'Time (when)', questionBadge: 'いつ', note: 'に after a day (にちようびに) — but no particle after あさ / ひる / よる' },
+  { num: 3, role: 'Frequency (how often)', note: 'no particle — あまり and ぜんぜん turn the verb negative' },
+  { num: 4, role: 'Location of action (where)', particle: 'で', questionBadge: 'どこで', note: 'where it happens' },
+  { num: 5, role: 'Object (what)', particle: 'を', questionBadge: 'なにを', note: 'the thing being eaten, drunk, watched, done…' },
+  { num: 6, role: 'Verb (+か for a question)', note: 'positive or negative, depending on the frequency word' },
+];
+
+// Index 2 (Frequency) is 'on'/'off' with the word itself in l3FreqIdx;
+// Location starts off because none of the class examples use one.
+let l3SentStates = ['on', 'on', 'on', 'off', 'on', 'stmt'];
+let l3FreqIdx = 0;
+let l3SentWords = null;
+
+function showL3SentenceOrderReference() {
+  const list = l3RefOpen('Sentence order (を + object + frequency)');
+  l3SentStates = ['on', 'on', 'on', 'off', 'on', 'stmt'];
+  l3FreqIdx = 0;
+
+  const hint = document.createElement('div');
+  hint.className = 'sentence-structure-hint';
+  hint.textContent = 'Tap a slot to cycle it. Frequency steps through いつも → よく → ときどき → あまり → ぜんぜん → skipped.';
+  list.appendChild(hint);
+
+  const rowsWrap = document.createElement('div');
+  rowsWrap.id = 'sentence-structure-rows';
+  list.appendChild(rowsWrap);
+
+  const example = document.createElement('div');
+  example.className = 'sentence-structure-example';
+  example.innerHTML = `
+    <div class="sentence-structure-example-jp" id="sentence-structure-example-jp"></div>
+    <div class="sentence-structure-example-romaji" id="sentence-structure-example-romaji"></div>
+    <div class="sentence-structure-example-en" id="sentence-structure-example-en"></div>
+  `;
+  list.appendChild(example);
+
+  const shuffleBtn = document.createElement('button');
+  shuffleBtn.className = 'sentence-shuffle-btn';
+  shuffleBtn.textContent = '🔀 Try another example';
+  shuffleBtn.onclick = shuffleL3SentenceExample;
+  list.appendChild(shuffleBtn);
+
+  l3Note(list, 'This is the Level 2 "Sentence order (を + object)" card with a Frequency slot added, and Level 3 foods, drinks and hobbies in the shuffle. Location starts switched off because the class examples don\'t use one — tap it to bring it in.');
+
+  pickFreshL3SentenceWords();
+  renderL3SentenceRows();
+  renderL3SentenceExample();
+  showScreen('vocab-reference');
+}
+
+function pickFreshL3SentenceWords() {
+  const verb = pickRandomItem(l3SentenceVerbs());
+  l3SentWords = {
+    topic: pickRandomItem(sentenceStructurePeoplePool()),
+    time: pickRandomItem(l3TimePool()),
+    loc: pickRandomItem(VOCAB['vocab-places-to-go'].items.filter(hasCleanGloss)),
+    verb,
+    obj: pickRandomItem(verb.objs),
+  };
+}
+
+function renderL3SentenceRows() {
+  const wrap = document.getElementById('sentence-structure-rows');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  L3_SENTENCE_SLOTS.forEach((slot, idx) => {
+    const state = l3SentStates[idx];
+    const row = document.createElement('div');
+    row.className = 'vocab-ref-row minute-row sentence-slot-row' + (state === 'off' ? ' sentence-slot-off' : '');
+    row.onclick = () => cycleL3SentenceSlot(idx);
+
+    let badgeText, badgeClass = 'sentence-particle-badge', stateLabel = '';
+    if (idx === 5) {
+      badgeText = state === 'q' ? 'か' : '。';
+      stateLabel = state === 'q' ? '(question)' : '(statement)';
+    } else if (state === 'off') {
+      badgeText = '–';
+      badgeClass += ' sentence-particle-badge-off';
+      stateLabel = '(skipped)';
+    } else if (idx === 2) {
+      const f = L3_FREQ_WORDS[l3FreqIdx];
+      badgeText = f.jp;
+      badgeClass += ' sentence-particle-badge-freq';
+      stateLabel = `(${f.en}${f.neg ? ' — verb goes negative' : ''})`;
+    } else if (state === 'q') {
+      badgeText = slot.questionBadge;
+      badgeClass += ' sentence-particle-badge-q';
+      stateLabel = '(asked as a question)';
+    } else if (idx === 1) {
+      badgeText = l3SentWords && l3SentWords.time.particle ? 'に' : '∅';
+    } else {
+      badgeText = slot.particle;
+    }
+
+    row.innerHTML = `
+      <div class="sentence-structure-inner">
+        <div class="vocab-ref-num-big">${slot.num}</div>
+        <div class="sentence-structure-text">
+          <div class="sentence-structure-role">${slot.role}</div>
+          <div class="sentence-structure-note">${slot.note}${stateLabel ? ` <span class="sentence-structure-state">${stateLabel}</span>` : ''}</div>
+        </div>
+        <div class="${badgeClass}">${markSmallKana(badgeText)}</div>
+      </div>
+    `;
+    wrap.appendChild(row);
+  });
+}
+
+function cycleL3SentenceSlot(idx) {
+  if (idx === 5) {
+    l3SentStates[5] = l3SentStates[5] === 'q' ? 'stmt' : 'q';
+  } else if (idx === 2) {
+    if (l3SentStates[2] === 'off') { l3SentStates[2] = 'on'; l3FreqIdx = 0; }
+    else if (l3FreqIdx < L3_FREQ_WORDS.length - 1) { l3FreqIdx++; }
+    else { l3SentStates[2] = 'off'; }
+  } else {
+    const order = ['on', 'off', 'q'];
+    l3SentStates[idx] = order[(order.indexOf(l3SentStates[idx]) + 1) % order.length];
+  }
+  renderL3SentenceRows();
+  renderL3SentenceExample();
+}
+
+function buildL3SentenceExample() {
+  const { topic, time, loc, verb, obj } = l3SentWords;
+  const st = l3SentStates;
+  const f = st[2] === 'on' ? L3_FREQ_WORDS[l3FreqIdx] : null;
+  const neg = !!(f && f.neg);
+  const isAmari = !!(f && l3FreqIdx === 3);
+  const isQ = st[5] === 'q';
+
+  const jp = [], ro = [];
+  if (st[0] === 'on') { jp.push(topic.jp + 'は'); ro.push(topic.romaji + ' wa'); }
+  else if (st[0] === 'q') { jp.push('だれが'); ro.push('dare ga'); }
+  if (st[1] === 'on') { jp.push(time.item.jp + time.particle); ro.push((time.item.romaji + ' ' + time.particleRomaji).trim()); }
+  else if (st[1] === 'q') { jp.push('いつ'); ro.push('itsu'); }
+  if (f) { jp.push(f.jp); ro.push(f.romaji); }
+  if (st[3] === 'on') { jp.push(loc.jp + 'で'); ro.push(loc.romaji + ' de'); }
+  else if (st[3] === 'q') { jp.push('どこで'); ro.push('doko de'); }
+  if (st[4] === 'on') { jp.push(obj.item.jp + 'を'); ro.push(obj.item.romaji + ' o'); }
+  else if (st[4] === 'q') { jp.push('なにを'); ro.push('nani o'); }
+  const vJp = neg ? verb.item.jp.replace(/ます$/, 'ません') : verb.item.jp;
+  const vRo = neg ? verb.item.romaji.replace(/masu$/, 'masen') : verb.item.romaji;
+  jp.push(vJp + (isQ ? 'か' : ''));
+  ro.push(vRo + (isQ ? ' ka' : ''));
+
+  // English - habitual present ("always eats"), not L2's progressive.
+  const whoQ = st[0] === 'q', qTime = st[1] === 'q', qLoc = st[3] === 'q', qObj = st[4] === 'q';
+  const qCount = [whoQ, qTime, qLoc, qObj].filter(Boolean).length;
+  const single = isQ && qCount === 1 && !whoQ;
+  let P;
+  if (st[4] === 'on') P = obj.phrase;
+  else if (qObj) P = single ? verb.en : verb.en + ' [what]';
+  else P = verb.en;
+  const tail = [];
+  if (st[3] === 'on') tail.push('at the ' + loc.en.toLowerCase());
+  else if (qLoc && !single) tail.push('at [where]');
+  if (st[1] === 'on') tail.push(time.en);
+  else if (qTime && !single) tail.push('[when]');
+  const tailS = tail.length ? ' ' + tail.join(' ') : '';
+
+  let subj, third;
+  if (st[0] === 'on') { subj = sentencePersonEnglish(topic); third = true; }
+  else { subj = isQ ? 'you' : 'I'; third = false; }
+  const conj = p => (third ? l3Third(p) : p);
+
+  let en;
+  if (whoQ) {
+    const vp = !f ? l3Third(P) : !neg ? f.en + ' ' + l3Third(P) : isAmari ? "doesn't often " + P : 'never ' + l3Third(P);
+    en = 'Who ' + vp + tailS + '?';
+  } else if (isQ) {
+    let aux = third ? 'does' : 'do', mid;
+    if (!f) mid = P;
+    else if (!neg) mid = f.en + ' ' + P;
+    else if (isAmari) { aux = third ? "doesn't" : "don't"; mid = 'often ' + P; }
+    else mid = 'never ' + P;
+    if (single) {
+      const wh = qTime ? 'When' : qLoc ? 'Where' : 'What';
+      en = `${wh} ${aux} ${subj} ${mid}${tailS}?`;
+    } else {
+      en = `${sentenceCapitalize(aux)} ${subj} ${mid}${tailS}?`;
+    }
+  } else {
+    let vp;
+    if (!f) vp = conj(P);
+    else if (!neg) vp = f.en + ' ' + conj(P);
+    else if (isAmari) vp = (third ? "doesn't" : "don't") + ' often ' + P;
+    else vp = 'never ' + conj(P);
+    en = sentenceCapitalize(`${subj} ${vp}${tailS}.`);
+  }
+  return { jp: jp.join(' ') + '。', romaji: ro.join(' ') + '.', en };
+}
+
+function renderL3SentenceExample() {
+  const { jp, romaji, en } = buildL3SentenceExample();
+  const jpEl = document.getElementById('sentence-structure-example-jp');
+  const romajiEl = document.getElementById('sentence-structure-example-romaji');
+  const enEl = document.getElementById('sentence-structure-example-en');
+  if (jpEl) jpEl.innerHTML = markSmallKana(jp);
+  if (romajiEl) romajiEl.textContent = romaji;
+  if (enEl) enEl.textContent = `"${en}"`;
+}
+
+function shuffleL3SentenceExample() {
+  pickFreshL3SentenceWords();
+  renderL3SentenceRows(); // time badge (に vs none) depends on the word picked
+  renderL3SentenceExample();
+}
+
+// --- を, Level 3 additions ---
+function showObjectParticleL3Reference() {
+  const list = l3RefOpen('を — Level 3 additions');
+  l3Note(list, 'Everything on the Level 2 を card still applies. Lesson 1 added these.');
+  l3Heading(list, 'のみます is wider than "drink"');
+  l3Example(list, 'スープを のみます。', 'Suupu o nomimasu.', 'I have soup.');
+  l3Example(list, 'くすりを のみます。', 'Kusuri o nomimasu.', 'I take medicine.');
+  l3Note(list, 'Medicine is "drunk" in Japanese — くすりを のみます, never とります. Soup can take either verb: the class sheet notes たべます is also used for soup.');
+  l3Heading(list, 'なにを vs なにも');
+  l3Example(list, 'なにを たべますか。', 'Nani o tabemasu ka.', 'What do you eat?');
+  l3Example(list, 'なにも たべません。', 'Nani mo tabemasen.', "I don't eat anything.");
+  l3Note(list, 'も replaces を — it\'s なにも, never なにをも — and the verb must be negative. The Level 2 "だれも/どこも/なにも + negative" card has the full pattern.');
+  l3Heading(list, 'Past tense question and answers');
+  l3Example(list, 'あさごはんを たべましたか。', 'Asagohan o tabemashita ka.', 'Did you eat breakfast?');
+  l3Example(list, 'はい、たべました。', 'Hai, tabemashita.', 'Yes, I did.');
+  l3Example(list, 'いいえ、たべませんでした。', 'Iie, tabemasen deshita.', "No, I didn't.");
+  l3Note(list, 'All four forms of every verb are on the Level 2 verb tense cards.');
+  showScreen('vocab-reference');
+}
+
+// --- と vs や ---
+function showToYaReference() {
+  const list = l3RefOpen('と vs や — "and" in a list');
+  l3Note(list, 'Both join nouns in a list, like "and" — but they say different things about the list.');
+  l3Example(list, 'パンと バナナ', 'pan to banana', 'と = the complete list: bread and bananas — that\'s all');
+  l3Example(list, 'パンや バナナ', 'pan ya banana', 'や = examples from a longer list: things like bread and bananas (and yoghurt, apples…)');
+  l3Heading(list, 'Examples');
+  l3Example(list, 'あさ パンと バナナを たべます。', 'Asa pan to banana o tabemasu.', 'In the morning I eat bread and bananas.');
+  l3Example(list, 'あさ パンや バナナを たべます。', 'Asa pan ya banana o tabemasu.', 'In the morning I eat things like bread and bananas.');
+  l3Example(list, 'ひるは サラダや パスタを たべます。', 'Hiru wa sarada ya pasuta o tabemasu.', 'At lunch I eat things like salad and pasta.');
+  l3Example(list, 'ごしゅみは カラオケと ドライブです。', 'Go-shumi wa karaoke to doraibu desu.', 'My hobbies are karaoke and driving.');
+  l3Note(list, 'You can chain more than two: ゲームと ピアノと すいえい. Neither と nor や can join two sentences — to say "and then" between two actions, use それから (see its card).');
+  l3Note(list, 'Don\'t mix up this と ("and") with the と from Level 2\'s motion sentences, which means "with": ともだちと いきます — I go with a friend.');
+  showScreen('vocab-reference');
+}
+
+// --- それから ---
+function showSorekaraReference() {
+  const list = l3RefOpen('それから — "and then"');
+  l3Note(list, 'それから means "and then / after that". It starts the second sentence, linking two actions in the order they happen.');
+  l3Example(list, 'ともだちと えいがを みます。それから おちゃを のみます。', 'Tomodachi to eiga o mimasu. Sorekara ocha o nomimasu.', 'I watch a film with a friend. Then we have tea.');
+  l3Example(list, 'べんきょうを しました。それから ほんを よみました。', 'Benkyou o shimashita. Sorekara hon o yomimashita.', 'I studied. After that I read a book.');
+  l3Example(list, 'にちようびに ほんを よみました。それから ビデオを みました。', 'Nichiyoubi ni hon o yomimashita. Sorekara bideo o mimashita.', 'On Sunday I read a book. Then I watched a video.');
+  l3Note(list, 'The first sentence ends with 。 as normal and それから begins the next one. It works in any tense — both sentences usually share it (both ます, or both ました). This is how to join two actions, since と and や can only join nouns.');
+  l3Heading(list, 'Time words from the lesson');
+  l3Example(list, 'けさ', 'kesa', 'this morning');
+  l3Example(list, 'おととい', 'ototoi', 'the day before yesterday');
+  l3Example(list, 'しゅうまつ', 'shuumatsu', 'the weekend');
+  l3Example(list, 'よる', 'yoru', 'evening / night');
+  l3Example(list, 'にちようび', 'nichiyoubi', 'Sunday');
+  l3Example(list, 'あさって', 'asatte', 'the day after tomorrow');
+  l3Note(list, 'The time word decides the tense: a past one (けさ, おととい) needs ました, a future one (あさって) needs ます, and しゅうまつ, よる and にちようび can go either way depending on which one you mean.');
+  showScreen('vocab-reference');
+}
+
+// --- なん vs なに ---
+function showNanNaniReference() {
+  const list = l3RefOpen('なん vs なに');
+  l3Note(list, 'Both mean "what". Which one you use depends on what comes straight after it.');
+  l3Heading(list, 'なん (1) — before た/だ/な-row sounds');
+  l3Note(list, 'That\'s た ち つ て と, だ ぢ づ で ど, な に ぬ ね の — in practice, before です, の and と.');
+  l3Example(list, 'それは なんですか。', 'Sore wa nan desu ka.', 'What is that?');
+  l3Example(list, 'なんの ざっしですか。', 'Nan no zasshi desu ka.', 'What magazine is it?');
+  l3Example(list, 'にほんごで なんと いいますか。', 'Nihongo de nan to iimasu ka.', 'How do you say it in Japanese?');
+  l3Heading(list, 'なん (2) — before a counter');
+  l3Example(list, 'なんじ', 'nanji', 'what time');
+  l3Example(list, 'なんさい', 'nansai', 'how old');
+  l3Example(list, 'なんがい', 'nangai', 'which floor');
+  l3Example(list, 'なんがつ', 'nangatsu', 'which month');
+  l3Example(list, 'なんにち', 'nannichi', 'which day of the month');
+  l3Heading(list, 'なに — everything else');
+  l3Example(list, 'なにを かいますか。', 'Nani o kaimasu ka.', 'What will you buy?');
+  l3Example(list, 'なにを たべますか。', 'Nani o tabemasu ka.', 'What do you eat?');
+  l3Example(list, 'なにも たべません。', 'Nani mo tabemasen.', "I don't eat anything.");
+  l3Note(list, '<strong>Quick check:</strong> if the next sound is です, の, と or a counter → なん. Before を, も and anything else → なに.');
+  showScreen('vocab-reference');
+}
+
+// --- Noun + します ---
+function showNounShimasuReference() {
+  const list = l3RefOpen('Noun + します');
+  l3Note(list, 'します means "do". Put a noun in front with を and it becomes "do [that thing]" — sport, study, work, and lots of activities.');
+  l3Example(list, 'スポーツを します。', 'Supootsu o shimasu.', 'I do sport.');
+  l3Example(list, 'べんきょうを します。', 'Benkyou o shimasu.', 'I study.');
+  l3Example(list, 'しごとを します。', 'Shigoto o shimasu.', 'I work.');
+  l3Example(list, 'テニスを します。', 'Tenisu o shimasu.', 'I play tennis.');
+  l3Heading(list, 'Two ways to say "I study Japanese"');
+  l3Example(list, 'にほんごを べんきょうします。', 'Nihongo o benkyou shimasu.', 'object にほんご + verb べんきょうします');
+  l3Example(list, 'にほんごの べんきょうを します。', 'Nihongo no benkyou o shimasu.', '"Japanese study" as one noun + を します');
+  l3Note(list, 'Same meaning. In the first, べんきょうします is one verb and にほんご is its object. In the second, べんきょう is a noun, にほんごの describes it, and the whole thing is the object of します. What you can\'t do is put two を in one sentence: にほんごを べんきょうを します ✗.');
+  l3Heading(list, 'Activities used with します');
+  [['バーベキュー', 'baabekyuu', 'have a barbecue'], ['ピクニック', 'pikunikku', 'have a picnic'], ['アフタヌーンティー', 'afutanuun tii', 'have afternoon tea'], ['パーティー', 'paatii', 'have a party'], ['ドライブ', 'doraibu', 'go for a drive'], ['サイクリング', 'saikuringu', 'go cycling'], ['ウォーキング', 'wookingu', 'go walking'], ['すいえい', 'suiei', 'go swimming'], ['スキー', 'sukii', 'go skiing'], ['ゴルフ', 'gorufu', 'play golf'], ['サッカー', 'sakkaa', 'play football'], ['ゲーム', 'geemu', 'play games'], ['じゅうどう', 'juudou', 'do judo'], ['ダンス', 'dansu', 'dance'], ['カラオケ', 'karaoke', 'do karaoke'], ['ガーデニング', 'gaadeningu', 'do gardening'], ['りょうり', 'ryouri', 'cook']]
+    .forEach(([jp, ro, en]) => l3Example(list, jp + 'を します', ro + ' o shimasu', en));
+  l3Note(list, 'Not every hobby word works this way — えいが and おんがく use their own verbs: えいがを みます, おんがくを ききます.');
+  showScreen('vocab-reference');
 }
 
 function showVocabReference(categoryKey) {
@@ -12974,14 +13478,14 @@ function startRandomMatch() {
   // whatever L3 content lands here next, until that content gets a proper
   // tag of its own the way Untaught just did.
   let allItems;
-  if (currentMatchLevel === 1 || currentMatchLevel === 2) {
+  if (currentMatchLevel === 1 || currentMatchLevel === 2 || currentMatchLevel === 3) {
     allItems = scanVocabByTag('L' + currentMatchLevel);
   } else if (currentMatchLevel === 'untaught') {
     allItems = scanVocabByTag('untaught');
   } else {
-    // Level 3 (empty for now, ready to go once lessons are added) falls
-    // through here too, same as it always has for a numeric level - see
-    // the comment above this function.
+    // Level 3 moved to the tag scan above (2026-09-29) once it had content -
+    // most L3 words are tagged forward from other categories, so walking
+    // level:3 categories' own items would miss them.
     allItems = [];
     Object.keys(VOCAB).forEach(key => {
       if ((VOCAB[key].level || 1) !== currentMatchLevel) return;
