@@ -1226,7 +1226,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v260929.003</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261001.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1860,6 +1860,13 @@
       <div class="group-card cat-tile" data-theme-key="theme-getting-around" onclick="showVocabTileSelection('theme-getting-around')" style="cursor:pointer;">
         <div class="cat-tile-top">
           <div class="group-name">Getting around</div>
+        </div>
+        <div class="cat-bar"></div>
+      </div>
+      <!-- Time words (2026-10-01) - see theme-time-words in THEMES. -->
+      <div class="group-card cat-tile" data-theme-key="theme-time-words" onclick="showVocabTileSelection('theme-time-words')" style="cursor:pointer;">
+        <div class="cat-tile-top">
+          <div class="group-name">Time words</div>
         </div>
         <div class="cat-bar"></div>
       </div>
@@ -3759,7 +3766,7 @@ const VOCAB = {
       {jp:'ばんごう', romaji:'bangou', en:'number', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
       {jp:'なまえ', romaji:'namae', en:'name', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
       {jp:'なん', romaji:'nan', en:'what (before です/だ, or counters like 何時)', tags:['genki','genki-1-1','taught','L3','frequency-l3','l3-1'], dateAdded:'2026-09-12'},
-      {jp:'なに', romaji:'nani', en:'what (elsewhere — before を/が, standalone)', tags:['genki','genki-1-1','taught','L3','frequency-l3','l3-1'], dateAdded:'2026-09-12'},
+      {jp:'なに', romaji:'nani', en:'what (elsewhere — before を/が, standalone)', tags:['genki','genki-1-1','taught','L3','frequency-l3','l3-1','question-word'], dateAdded:'2026-09-12'},
       {jp:'あのう', romaji:'anou', en:'um...', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
       {jp:'はい', romaji:'hai', en:'yes', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
       {jp:'そうです', romaji:'sou desu', en:'That\'s right.', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
@@ -4044,7 +4051,7 @@ const VOCAB = {
       // なん (nan) is a distinct reading of 何 from なに (nani) used in the
       // Reference - Question words category - not the same word, kept
       // separate rather than tagged together.
-      {jp:'なん', romaji:'nan', en:'what', tags:['L2','question-location','taught'], dateAdded:'2026-08-01'},
+      {jp:'なん', romaji:'nan', en:'what', tags:['question-word','L2','question-location','taught'], dateAdded:'2026-08-01'},
       {jp:'いつ', romaji:'itsu', en:'when', tags:['question-word','L2','question-location','taught'], dateAdded:'2026-08-01'},
       {jp:'どこ', romaji:'doko', en:'where', tags:['question-word','L2','question-location','taught'], dateAdded:'2026-08-01'},
       {jp:'だれ', romaji:'dare', en:'who', tags:['question-word','L2','question-location','taught'], dateAdded:'2026-08-01'},
@@ -4534,10 +4541,10 @@ const VOCAB = {
       {jp:'それから', romaji:'sorekara', en:'and then / after that', tags:['L3','frequency-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'そして', romaji:'soshite', en:'and / and also', tags:['L3','frequency-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'なにも', romaji:'nanimo', en:'nothing (+ negative verb)', tags:['L3','frequency-l3','taught','l3-1'], altForm:'何も', altIsStandard:true, dateAdded:'2026-09-29'},
-      {jp:'まいあさ', romaji:'maiasa', en:'every morning', tags:['L3','frequency-l3','taught','l3-1'], altForm:'毎朝', altIsStandard:true, dateAdded:'2026-09-29'},
-      {jp:'けさ', romaji:'kesa', en:'this morning', tags:['L3','frequency-l3','taught','l3-1'], altForm:'今朝', altIsStandard:true, dateAdded:'2026-09-29'},
-      {jp:'こんばん', romaji:'konban', en:'tonight / this evening', tags:['L3','frequency-l3','taught','l3-1'], altForm:'今晩', altIsStandard:true, dateAdded:'2026-09-29'},
-      {jp:'やすみのひ', romaji:'yasumi no hi', en:'day off', tags:['L3','frequency-l3','taught','l3-1'], altForm:'休みの日', altIsStandard:true, dateAdded:'2026-09-29'},
+      {jp:'まいあさ', romaji:'maiasa', en:'every morning', tags:['L3','frequency-l3','taught','l3-1','time-l3'], altForm:'毎朝', altIsStandard:true, dateAdded:'2026-09-29'},
+      {jp:'けさ', romaji:'kesa', en:'this morning', tags:['L3','frequency-l3','taught','l3-1','time-l3'], altForm:'今朝', altIsStandard:true, dateAdded:'2026-09-29'},
+      {jp:'こんばん', romaji:'konban', en:'tonight / this evening', tags:['L3','frequency-l3','taught','l3-1','time-l3'], altForm:'今晩', altIsStandard:true, dateAdded:'2026-09-29'},
+      {jp:'やすみのひ', romaji:'yasumi no hi', en:'day off', tags:['L3','frequency-l3','taught','l3-1','time-l3'], altForm:'休みの日', altIsStandard:true, dateAdded:'2026-09-29'},
     ],
   },
   'vocab-general-l3': {
@@ -6014,7 +6021,7 @@ const THEMES = {
   'theme-items-clothing-general': {
     label: 'Everyday items, clothing & general vocab',
     chars: 'かさ くつ かぞく…',
-    tagQuery: { any: ['objects', 'clothing', 'general-l2'] },
+    tagQuery: { any: ['objects', 'clothing', 'general-l2', 'general-l3'] }, // general-l3 added 2026-10-01
   },
   // New - Verbs/Adjectives/Question words are all "functional" categories
   // (the words a sentence is built FROM) rather than themed nouns, and none
@@ -6028,10 +6035,25 @@ const THEMES = {
   // (not the level-agnostic 'adjectives' tag) deliberately, so this stays
   // exactly the same 5 L2 adjectives it always was rather than also
   // pulling in Trip prep's adjectives.
+  // Time words (2026-10-01) - L2 Time vocabulary + L3's time expressions
+  // (けさ/こんばん/まいあさ/やすみのひ, tagged time-l3; they stay in L3's
+  // Frequency & linking category too). Deliberately NOT a revival of the
+  // retired Calendar & time: days/months/days-of-month stay out, so the
+  // text-shape distractor problem that sank that one doesn't apply - these
+  // are all same-slot time expressions that genuinely get confused.
+  'theme-time-words': {
+    label: 'Time words',
+    chars: 'きのう けさ こんばん…',
+    tagQuery: { any: ['time-l2', 'time-l3'] },
+  },
   'theme-core-grammar': {
     label: 'Core grammar words',
     chars: 'きます あたらしい ここ…',
-    tagQuery: { any: ['verbs-l2', 'adjectives-l2', 'question-location'] },
+    // + frequency-l3 (2026-10-01): いつも/よく/ぜんぜん/それから/そして/なにも
+    // are sentence-building words in exactly this sense. L3 verbs need no
+    // tag of their own here - all are L2 verbs tagged forward, so verbs-l2
+    // already covers them.
+    tagQuery: { any: ['verbs-l2', 'adjectives-l2', 'question-location', 'frequency-l3'] },
   },
   // BUG FIX (2026-08-31) - this card used to be hidden entirely unless Trip
   // vocabulary was switched on (applyShowTripVocabVisibility), even though
