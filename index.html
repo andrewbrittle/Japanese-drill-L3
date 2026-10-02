@@ -1245,7 +1245,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.004</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.005</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -8671,6 +8671,31 @@ const SPEECH_SUPPORTED = ('speechSynthesis' in window);
 function soundAllowed() {
   return SPEECH_SUPPORTED && appSettings.soundOn !== false;
 }
+// iPad/iPhone (2026-10-02): Safari ignores speech that doesn't start inside a
+// tap, and hold-to-peek speaks from a timer. Speaking one silent utterance
+// during the first real tap/click "unlocks" speech for the rest of the
+// visit, so timer-started speech works afterwards. Also: Safari can drop an
+// utterance queued straight after cancel(), so only cancel when something
+// is actually speaking or queued.
+let speechUnlocked = false;
+function unlockSpeech() {
+  if (speechUnlocked || !soundAllowed()) return;
+  speechUnlocked = true;
+  try {
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    window.speechSynthesis.speak(u);
+  } catch (e) { /* speech unavailable - nothing to unlock */ }
+}
+if (SPEECH_SUPPORTED) {
+  ['touchend', 'click', 'keydown'].forEach(t =>
+    document.addEventListener(t, unlockSpeech, { capture: true, passive: true }));
+}
+function cancelSpeechIfBusy() {
+  if (!SPEECH_SUPPORTED) return;
+  const ss = window.speechSynthesis;
+  if (ss.speaking || ss.pending) ss.cancel();
+}
 const SOUND_ICON_ON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 9 8 9 12 5 12 19 8 15 3 15" fill="currentColor"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>';
 const SOUND_ICON_OFF = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 9 8 9 12 5 12 19 8 15 3 15" fill="currentColor"></polygon><line x1="16" y1="9" x2="22" y2="15"></line><line x1="22" y1="9" x2="16" y2="15"></line></svg>';
 function updateSoundButton() {
@@ -8702,7 +8727,8 @@ function toggleSoundOn() {
 // settings as the drill's speakCurrent().
 function speakJapanese(text) {
   if (!soundAllowed()) return null;
-  window.speechSynthesis.cancel();
+  unlockSpeech();
+  cancelSpeechIfBusy();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'ja-JP';
   utter.rate = 0.85;
@@ -10145,7 +10171,7 @@ function speakCurrent() {
     document.getElementById('stat-hints').textContent = hints;
   }
   const text = getSpeechText(q);
-  window.speechSynthesis.cancel();
+  cancelSpeechIfBusy();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'ja-JP';
   utter.rate = 0.85;
