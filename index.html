@@ -1226,7 +1226,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261001.007</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.001</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1404,6 +1404,16 @@
          position in the list by hand. Empty (no children) for categories
          with no reference screen, which collapses to no visible gap. -->
     <div id="vocab-tile-selection-ref-links"></div>
+    <!-- Romaji view (2026-10-01) - quick-reference mode for someone who
+         doesn't read kana yet. Only shown for ROMAJI_VIEW_CATEGORIES (see
+         buildVocabTileGrid); changes the word grid only, never the drills. -->
+    <div class="group-card" id="vocab-tile-romaji-card" onclick="toggleTileShowRomaji()" style="cursor:pointer; display:none;">
+      <div class="group-info">
+        <div class="group-name">Show romaji instead of kana</div>
+        <div class="group-count">Turns this page into a quick phrasebook you can read without kana. Drills still use kana.</div>
+      </div>
+      <div class="toggle"></div>
+    </div>
     <div class="settings-sub">Tap a word to select it for drilling.</div>
 
     <div class="tile-select-actions-row">
@@ -7247,6 +7257,11 @@ function showVocabTileSelection(categoryKey) {
       refLinks.appendChild(card);
     });
   }
+  const romajiCard = document.getElementById('vocab-tile-romaji-card');
+  if (romajiCard) {
+    romajiCard.style.display = ROMAJI_VIEW_CATEGORIES.includes(categoryKey) ? 'flex' : 'none';
+    romajiCard.classList.toggle('selected', !!appSettings.tileShowRomaji);
+  }
   buildVocabTileGrid(categoryKey);
   refreshKanaScoreShading('vocab-tile-grid');
   updateSelectAllVocabTilesLabel();
@@ -7368,6 +7383,19 @@ function colourBorderStyle(en, score) {
 // core drilling loop is already keyboard-usable. Revisit if it actually
 // comes up (a classmate on a laptop/screen-reader, say), rather than before.
 //
+// Categories whose word screen offers "Show romaji instead of kana"
+// (2026-10-01) - Tourist essentials, so a classmate going to Japan with
+// little kana can use the page as a phrasebook. Grid display only.
+const ROMAJI_VIEW_CATEGORIES = ['theme-tourist-essentials'];
+function toggleTileShowRomaji() {
+  appSettings.tileShowRomaji = !appSettings.tileShowRomaji;
+  saveSettings();
+  const card = document.getElementById('vocab-tile-romaji-card');
+  if (card) card.classList.toggle('selected', appSettings.tileShowRomaji);
+  buildVocabTileGrid(vocabTileCategory);
+  refreshKanaScoreShading('vocab-tile-grid');
+}
+
 function buildVocabTileGrid(categoryKey) {
   const container = document.getElementById('vocab-tile-grid');
   container.innerHTML = ''; // rebuilt each time - this one container is shared across categories
@@ -7376,6 +7404,7 @@ function buildVocabTileGrid(categoryKey) {
   const items = resolveVocabCategory(categoryKey).items;
   const selected = vocabTileSelected[categoryKey];
   const randomMode = !!vocabTileRandomMode[categoryKey];
+  const romajiView = !!appSettings.tileShowRomaji && ROMAJI_VIEW_CATEGORIES.includes(categoryKey);
   items.forEach((item, idx) => {
     // Grouped themes (see getThemePool) tag each item with dividerGroup - a
     // gold divider marks the boundary between one source category's
@@ -7389,9 +7418,19 @@ function buildVocabTileGrid(categoryKey) {
     }
     const tile = document.createElement('div');
     tile.className = 'kana-ref-card';
-    const len = [...item.jp].length;
-    const charSize = len <= 4 ? '28px' : len <= 8 ? '20px' : len <= 12 ? '16px' : '13px';
-    tile.innerHTML = `<span class="kana-ref-char" style="font-size:${charSize};">${item.jp}</span><span class="kana-ref-rom">${item.en}</span>`;
+    let charSize, mainText;
+    if (romajiView) {
+      // Latin text runs wider per word than kana runs per character, so
+      // its own size steps; romaji is a quick-reference aid here, not drilled.
+      const rlen = item.romaji.length;
+      charSize = rlen <= 10 ? '22px' : rlen <= 18 ? '17px' : rlen <= 26 ? '14px' : '12px';
+      mainText = item.romaji;
+    } else {
+      const len = [...item.jp].length;
+      charSize = len <= 4 ? '28px' : len <= 8 ? '20px' : len <= 12 ? '16px' : '13px';
+      mainText = item.jp;
+    }
+    tile.innerHTML = `<span class="kana-ref-char" style="font-size:${charSize};">${mainText}</span><span class="kana-ref-rom">${item.en}</span>`;
     const scoreKey = item.jp + '|' + item.en;
     tile.dataset.scoreKey = scoreKey;
     const scoreClass = kanaScoreClass(scoreKey);
@@ -8473,7 +8512,7 @@ const SETTINGS_KEY = 'jpDrillSettings';
 // than a fetch that can fail or behave differently offline. 215 was
 // approximately the mid-market GBP/JPY rate as of build time (July 2026);
 // it'll drift, which is exactly why it's an editable field, not a constant.
-let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty: false, workOffline: false, showAndrewMode: false, showUntaught: null, gbpJpyRate: 215, decayAffectsColours: false, lastSeenChangelog: null };
+let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty: false, workOffline: false, showAndrewMode: false, showUntaught: null, gbpJpyRate: 215, decayAffectsColours: false, lastSeenChangelog: null, tileShowRomaji: false };
 
 // WHAT'S NEW FLAG (2026-09-01) - HOW TO ADD AN ENTRY, so this stays
 // consistent across sessions and not just something Andrew has to remember
