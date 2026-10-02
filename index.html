@@ -196,7 +196,18 @@
   /* Hold-to-peek on word tiles (2026-10-02): no iOS copy/Look Up bubble or
      text selection while a card is held. */
   #vocab-tile-grid .kana-ref-card { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
-  #vocab-tile-grid .kana-ref-card.tile-peeking { border-color: var(--accent); overflow: hidden; }
+  #vocab-tile-grid .kana-ref-card.tile-peeking { border-color: var(--accent); }
+  /* Peek bubble - floats above (or beside) the held card, since a finger
+     covers the card itself. Never intercepts touches. */
+  .tile-peek-bubble {
+    position: fixed; z-index: 1000; pointer-events: none;
+    background: var(--surface); border: 2px solid var(--accent); border-radius: 12px;
+    padding: 10px 14px; text-align: center; max-width: min(78vw, 320px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+  }
+  .tile-peek-bubble .peek-jp { font-family: 'BIZ UDPGothic', sans-serif; font-size: 26px; font-weight: 700; color: var(--text); line-height: 1.25; }
+  .tile-peek-bubble .peek-romaji { font-size: 17px; font-weight: 700; color: var(--accent); margin-top: 4px; }
+  .tile-peek-bubble .peek-en { font-size: 14px; color: var(--text-muted); margin-top: 3px; }
   /* WHAT'S NEW FLAG (2026-09-01) - green instead of the usual gold .active
      colour, deliberately reusing the same green already used for a correct
      answer elsewhere, so it reads as "something to notice", not an error
@@ -1234,7 +1245,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.003</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.004</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -7431,8 +7442,7 @@ function syncTileSoundControls(categoryKey) {
 function updateTileSelectionSubText(categoryKey) {
   const sub = document.getElementById('vocab-tile-selection-sub');
   if (!sub) return;
-  const romajiView = !!appSettings.tileShowRomaji && ROMAJI_VIEW_CATEGORIES.includes(categoryKey);
-  const peek = romajiView ? 'Hold a card to peek at the kana.' : 'Hold a card to peek at the romaji.';
+  const peek = 'Hold a card to see its reading.';
   sub.textContent = (tileSpeakModeActive(categoryKey) ? 'Tap a card to hear it. ' : 'Tap a word to select it for drilling. ') + peek;
 }
 function toggleTileTapToSpeak() {
@@ -7468,34 +7478,57 @@ function tileRomajiFontSize(romaji) {
   const rlen = romaji.length;
   return rlen <= 10 ? '22px' : rlen <= 18 ? '17px' : rlen <= 26 ? '14px' : '12px';
 }
-// HOLD TO PEEK (2026-10-02) - hold any word card ~half a second to see the
-// other script (romaji, or kana when the romaji view is on) and, if sound
-// is on, hear it; let go and it flips back. A peek, not a toggle, so the
-// list keeps testing you on the kana. The card's height is locked while
-// peeking (and the text shrunk to fit) so nothing around it moves. A finger
-// that starts moving is a scroll, which cancels the hold; the click that
-// follows a peek is swallowed so it doesn't also select the card.
+// HOLD TO PEEK (2026-10-02) - hold any word card ~half a second and a
+// bubble shows its kana, romaji and English (and, if sound is on, says it);
+// let go and it disappears. A bubble rather than changing the card text,
+// because the holding finger covers the card. A peek, not a toggle, so the
+// list keeps testing you on the kana. A finger that starts moving is a
+// scroll, which cancels the hold; the click that follows a peek is
+// swallowed so it doesn't also select the card.
 const TILE_PEEK_HOLD_MS = 450;
+// Placement: above the card if it fits, else beside it on the roomier
+// side (away from the finger), else below - always clamped on-screen.
+function showTilePeekBubble(tile, item) {
+  hideTilePeekBubble();
+  const b = document.createElement('div');
+  b.className = 'tile-peek-bubble';
+  b.id = 'tile-peek-bubble';
+  b.innerHTML = `<div class="peek-jp">${markSmallKana(item.jp)}</div><div class="peek-romaji">${item.romaji}</div><div class="peek-en">${item.en}</div>`;
+  document.body.appendChild(b);
+  const r = tile.getBoundingClientRect();
+  const bw = b.offsetWidth, bh = b.offsetHeight;
+  const vw = window.innerWidth, vh = window.innerHeight, gap = 10, m = 8;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  let left, top;
+  if (r.top - gap - bh >= m) {
+    top = r.top - gap - bh;
+    left = clamp(r.left + r.width / 2 - bw / 2, m, vw - bw - m);
+  } else {
+    const roomRight = vw - r.right - gap - m, roomLeft = r.left - gap - m;
+    if (Math.max(roomRight, roomLeft) >= Math.min(bw, 160)) {
+      left = roomRight >= roomLeft ? r.right + gap : r.left - gap - bw;
+      left = clamp(left, m, vw - bw - m);
+      top = clamp(r.top, m, vh - bh - m);
+    } else {
+      top = clamp(r.bottom + gap, m, vh - bh - m);
+      left = clamp(r.left + r.width / 2 - bw / 2, m, vw - bw - m);
+    }
+  }
+  b.style.left = left + 'px';
+  b.style.top = top + 'px';
+}
+function hideTilePeekBubble() {
+  const old = document.getElementById('tile-peek-bubble');
+  if (old) old.remove();
+}
 let tilePeekSuppressClickUntil = 0;
-function attachTilePeek(tile, item, showingRomaji) {
+function attachTilePeek(tile, item) {
   let timer = null, peeking = false, startX = 0, startY = 0;
-  const charEl = () => tile.querySelector('.kana-ref-char');
   const begin = () => {
     timer = null;
-    const el = charEl();
-    if (!el) return;
     peeking = true;
-    tile.style.height = tile.offsetHeight + 'px';
-    el.dataset.peekText = el.textContent;
-    el.dataset.peekSize = el.style.fontSize;
-    el.textContent = showingRomaji ? item.jp : item.romaji;
-    let size = parseFloat(showingRomaji ? tileKanaFontSize(item.jp) : tileRomajiFontSize(item.romaji));
-    el.style.fontSize = size + 'px';
     tile.classList.add('tile-peeking');
-    while (tile.scrollHeight > tile.clientHeight + 1 && size > 10) {
-      size -= 1;
-      el.style.fontSize = size + 'px';
-    }
+    showTilePeekBubble(tile, item);
     tilePeekSuppressClickUntil = Date.now() + 1000;
     speakJapanese(item.speakAs || item.jp);
   };
@@ -7503,13 +7536,8 @@ function attachTilePeek(tile, item, showingRomaji) {
     if (timer) { clearTimeout(timer); timer = null; }
     if (!peeking) return;
     peeking = false;
-    const el = charEl();
-    if (el) {
-      el.textContent = el.dataset.peekText;
-      el.style.fontSize = el.dataset.peekSize;
-    }
-    tile.style.height = '';
     tile.classList.remove('tile-peeking');
+    hideTilePeekBubble();
     tilePeekSuppressClickUntil = Date.now() + 400;
   };
   tile.addEventListener('pointerdown', e => {
@@ -7592,7 +7620,7 @@ function buildVocabTileGrid(categoryKey) {
     } else {
       tile.onclick = () => { if (Date.now() < tilePeekSuppressClickUntil) return; toggleVocabTile(categoryKey, idx, tile); };
     }
-    if (speakMode || !randomMode) attachTilePeek(tile, item, romajiView);
+    if (speakMode || !randomMode) attachTilePeek(tile, item);
     grid.appendChild(tile);
   });
   container.appendChild(grid);
