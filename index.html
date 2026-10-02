@@ -1220,7 +1220,7 @@
     <div class="group-card" id="show-untaught-toggle-card" onclick="toggleShowUntaught()" style="cursor:pointer;">
       <div class="group-info">
         <div class="group-name">Untaught vocabulary</div>
-        <div class="group-count">Trip words, real Japanese from photos, and Genki Lesson 1-1 — outside the taught course, off by default</div>
+        <div class="group-count">Trip words and phrases (start with Tourist essentials), real Japanese from photos, and any private word lists — outside the taught course, off by default</div>
       </div>
       <div class="toggle" id="show-untaught-toggle"></div>
     </div>
@@ -1257,7 +1257,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.007</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.009</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1755,10 +1755,10 @@
            (unlike Andrew below) since it's a real, named tier rather than a
            scratchpad - hidden via display:none until switched on. -->
       <button class="level-pill" id="level-pill-untaught" onclick="setMatchLevel('untaught')" style="display:none;">Untaught</button>
-      <!-- Genki tier retired (2026-09-28) - Lesson 1-1 (vocab-genki-1-1)
-           is now the first tile under Untaught instead of its own pill;
-           see buildMatchCategoryList's 'untaught' branch and
-           itemTierVisible's genki check (now reads showUntaught). -->
+      <!-- Genki tier retired (2026-09-28), then moved out of the app
+           entirely (2026-10-02) into a private vocab pack - its categories
+           lead the Untaught list only on a device where the pack is loaded
+           (see PRIVATE VOCAB PACKS and buildMatchCategoryList). -->
     </div>
 
     <!-- Search + Andrew's personal staging tier, sharing one row. Search is
@@ -4488,7 +4488,7 @@ const VOCAB = {
       {jp:'ドライブ', romaji:'doraibu', en:'drive (for pleasure)', tags:['L3','hobbies-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'ダンス', romaji:'dansu', en:'dance / dancing', tags:['L3','hobbies-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'ウォーキング', romaji:'wookingu', en:'walking', tags:['L3','hobbies-l3','taught','l3-1'], dateAdded:'2026-09-29'},
-      {jp:'ディーアイワイ', romaji:'dii ai wai', en:'DIY', tags:['L3','hobbies-l3','taught','l3-1'], dateAdded:'2026-09-29'},
+      {jp:'DIY', romaji:'dii ai wai', en:'DIY (do-it-yourself)', tags:['L3','hobbies-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'りょこう', romaji:'ryokou', en:'travel', tags:['L3','hobbies-l3','taught','l3-1'], altForm:'旅行', altIsStandard:true, dateAdded:'2026-09-29'},
       {jp:'バーベキュー', romaji:'baabekyuu', en:'barbecue', tags:['L3','hobbies-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'ピクニック', romaji:'pikunikku', en:'picnic', tags:['L3','hobbies-l3','taught','l3-1'], dateAdded:'2026-09-29'},
@@ -5973,6 +5973,12 @@ const VOCAB = {
 // with categories shaped exactly like VOCAB entries.
 const PRIVATE_VOCAB_KEY = 'jpDrillPrivateVocab';
 const PRIVATE_VOCAB_KEYS = [];
+// About the loaded file, for the Settings status line: its own "updated"
+// date, and how many of its words the app already has. Those are skipped
+// (2026-10-02) - a word that's moved from the private file into the taught
+// course would otherwise show twice - and a non-zero count means the file
+// on this device is out of date, so Settings flags "check your file".
+const PRIVATE_VOCAB_INFO = { updated: null, skipped: 0 };
 function validatePrivateVocabPack(pack) {
   if (!pack || typeof pack !== 'object' || pack.format !== 'jp-drill-private-vocab') return "That file isn't a private vocab file";
   const cats = pack.categories;
@@ -5992,9 +5998,15 @@ function validatePrivateVocabPack(pack) {
     if (!raw) return;
     const pack = JSON.parse(raw);
     if (validatePrivateVocabPack(pack)) return;
+    PRIVATE_VOCAB_INFO.updated = typeof pack.updated === 'string' ? pack.updated : null;
+    const appWords = new Set();
+    Object.keys(VOCAB).forEach(k => VOCAB[k].items.forEach(i => appWords.add(i.jp + '|' + i.en)));
     Object.keys(pack.categories).forEach(key => {
       if (VOCAB[key]) return; // never override the app's own data
-      VOCAB[key] = Object.assign({}, pack.categories[key], { privatePack: true });
+      const cat = pack.categories[key];
+      const items = cat.items.filter(i => !appWords.has(i.jp + '|' + i.en));
+      PRIVATE_VOCAB_INFO.skipped += cat.items.length - items.length;
+      VOCAB[key] = Object.assign({}, cat, { items, privatePack: true });
       PRIVATE_VOCAB_KEYS.push(key);
     });
   } catch (e) { /* storage unavailable or corrupt - app runs without the pack */ }
@@ -8767,7 +8779,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-09-12';
+const LATEST_CHANGELOG_ENTRY = '2026-10-02';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -9066,11 +9078,11 @@ function toggleShowUntaught() {
 // alongside the course, to fill gaps and get ahead of Level 3. Originally
 // its own hide-entirely tier (own pill, own settings toggle) same as
 // Untaught; retired 2026-09-28 now that Level 3 is actually starting -
-// Lesson 1-1 (vocab-genki-1-1) is folded into Untaught as its first tile
-// instead (see buildMatchCategoryList and itemTierVisible), so this no
-// longer needs its own toggle/pill functions. Future Genki lessons, if
-// any get added ahead of when their content is actually taught, join the
-// same Untaught tile list the same way.
+// Lesson 1-1 was folded into Untaught as its first tile instead, and on
+// 2026-10-02 moved out of the published app altogether into a private
+// vocab pack (see PRIVATE VOCAB PACKS) - future Genki lessons go in that
+// file, never in index.html. A Genki word that gets taught in class moves
+// into the app (keeping its genki tags) and out of the file.
 
 function applyWorkOfflineUI() {
   const card = document.getElementById('offline-toggle-card');
@@ -9342,7 +9354,19 @@ function updatePrivateVocabStatus() {
   if (!status) return;
   if (PRIVATE_VOCAB_KEYS.length) {
     const parts = PRIVATE_VOCAB_KEYS.map(k => `${VOCAB[k].label} (${VOCAB[k].items.length} words)`);
-    status.textContent = 'Loaded on this device: ' + parts.join(', ') + '. Load a newer file to replace it.';
+    let dated = '';
+    if (PRIVATE_VOCAB_INFO.updated) {
+      const d = new Date(PRIVATE_VOCAB_INFO.updated + 'T12:00:00');
+      if (!isNaN(d)) dated = ' — file dated ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    status.textContent = 'Loaded on this device: ' + parts.join(', ') + dated + '. Load a newer file to replace it.';
+    const n = PRIVATE_VOCAB_INFO.skipped;
+    if (n) {
+      const warn = document.createElement('div');
+      warn.style.cssText = 'color: var(--accent); font-weight: 600; margin-top: 4px;';
+      warn.textContent = `Check your file: ${n} word${n === 1 ? ' in it is' : 's in it are'} now part of the course itself, so this looks like an older version. Load the latest file.`;
+      status.appendChild(warn);
+    }
     if (removeBtn) removeBtn.style.display = '';
   } else {
     if (removeBtn) removeBtn.style.display = 'none';
