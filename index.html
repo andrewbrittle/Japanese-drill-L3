@@ -1226,7 +1226,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.001</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1414,7 +1414,17 @@
       </div>
       <div class="toggle"></div>
     </div>
-    <div class="settings-sub">Tap a word to select it for drilling.</div>
+    <!-- Tap to hear (2026-10-02) - same categories as the romaji view: a
+         panic-button phrasebook where tapping a card speaks it instead of
+         selecting it. Hidden where speech isn't supported. -->
+    <div class="group-card" id="vocab-tile-speak-card" onclick="toggleTileTapToSpeak()" style="cursor:pointer; display:none;">
+      <div class="group-info">
+        <div class="group-name">Tap a card to hear it</div>
+        <div class="group-count" id="vocab-tile-speak-desc">Reads the Japanese out loud when you tap a card, instead of picking it for a drill. Turn off to choose words to drill.</div>
+      </div>
+      <div class="toggle"></div>
+    </div>
+    <div class="settings-sub" id="vocab-tile-selection-sub">Tap a word to select it for drilling.</div>
 
     <div class="tile-select-actions-row">
       <div class="group-card" id="vocab-tile-select-all-card" onclick="toggleSelectAllVocabTiles()" style="cursor:pointer;">
@@ -7262,6 +7272,12 @@ function showVocabTileSelection(categoryKey) {
     romajiCard.style.display = ROMAJI_VIEW_CATEGORIES.includes(categoryKey) ? 'flex' : 'none';
     romajiCard.classList.toggle('selected', !!appSettings.tileShowRomaji);
   }
+  const speakCard = document.getElementById('vocab-tile-speak-card');
+  if (speakCard) {
+    speakCard.style.display = (SPEECH_SUPPORTED && ROMAJI_VIEW_CATEGORIES.includes(categoryKey)) ? 'flex' : 'none';
+    speakCard.classList.toggle('selected', !!appSettings.tileTapToSpeak);
+  }
+  updateTileSelectionSubText(categoryKey);
   buildVocabTileGrid(categoryKey);
   refreshKanaScoreShading('vocab-tile-grid');
   updateSelectAllVocabTilesLabel();
@@ -7396,6 +7412,49 @@ function toggleTileShowRomaji() {
   refreshKanaScoreShading('vocab-tile-grid');
 }
 
+function tileSpeakModeActive(categoryKey) {
+  return SPEECH_SUPPORTED && !!appSettings.tileTapToSpeak && ROMAJI_VIEW_CATEGORIES.includes(categoryKey);
+}
+function updateTileSelectionSubText(categoryKey) {
+  const sub = document.getElementById('vocab-tile-selection-sub');
+  if (sub) sub.textContent = tileSpeakModeActive(categoryKey) ? 'Tap a card to hear it.' : 'Tap a word to select it for drilling.';
+}
+function toggleTileTapToSpeak() {
+  appSettings.tileTapToSpeak = !appSettings.tileTapToSpeak;
+  saveSettings();
+  const card = document.getElementById('vocab-tile-speak-card');
+  if (card) card.classList.toggle('selected', appSettings.tileTapToSpeak);
+  updateTileSelectionSubText(vocabTileCategory);
+  buildVocabTileGrid(vocabTileCategory);
+  refreshKanaScoreShading('vocab-tile-grid');
+}
+// Speaks the card's kana (or its speakAs override) with a Japanese voice -
+// same settings as the drill's hint button (speakCurrent). Picks a ja voice
+// explicitly where one is listed, since some Android browsers ignore
+// utter.lang alone; if the device has none, says so on the toggle card
+// rather than reading Japanese in an English voice without explanation.
+function speakVocabTile(item, tileEl) {
+  if (!SPEECH_SUPPORTED) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(item.speakAs || item.jp);
+  utter.lang = 'ja-JP';
+  utter.rate = 0.85;
+  const voices = window.speechSynthesis.getVoices();
+  const jaVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('ja'));
+  if (jaVoice) utter.voice = jaVoice;
+  else if (voices.length) {
+    const desc = document.getElementById('vocab-tile-speak-desc');
+    if (desc) desc.textContent = "This device doesn't seem to have a Japanese voice installed - add one in your phone's text-to-speech / spoken content settings.";
+  }
+  if (tileEl) {
+    tileEl.style.borderColor = 'var(--accent)';
+    const clear = () => { tileEl.style.borderColor = ''; };
+    utter.onend = clear; utter.onerror = clear;
+    setTimeout(clear, 4000);
+  }
+  window.speechSynthesis.speak(utter);
+}
+
 function buildVocabTileGrid(categoryKey) {
   const container = document.getElementById('vocab-tile-grid');
   container.innerHTML = ''; // rebuilt each time - this one container is shared across categories
@@ -7405,6 +7464,7 @@ function buildVocabTileGrid(categoryKey) {
   const selected = vocabTileSelected[categoryKey];
   const randomMode = !!vocabTileRandomMode[categoryKey];
   const romajiView = !!appSettings.tileShowRomaji && ROMAJI_VIEW_CATEGORIES.includes(categoryKey);
+  const speakMode = tileSpeakModeActive(categoryKey);
   items.forEach((item, idx) => {
     // Grouped themes (see getThemePool) tag each item with dividerGroup - a
     // gold divider marks the boundary between one source category's
@@ -7453,7 +7513,11 @@ function buildVocabTileGrid(categoryKey) {
       if (!isSelected) tile.style.borderColor = LEVEL_BORDER_COLORS[itemColorKey(item)] || '';
     }
     if (isSelected) tile.classList.add('selected');
-    if (randomMode) {
+    if (speakMode) {
+      // Tap to hear: speaks instead of selecting, and stays tappable even
+      // while Random 20's disguise is on.
+      tile.onclick = () => speakVocabTile(item, tile);
+    } else if (randomMode) {
       tile.style.pointerEvents = 'none'; // disguise is only meaningful if nothing can be tapped to break it
     } else {
       tile.onclick = () => toggleVocabTile(categoryKey, idx, tile);
@@ -8512,7 +8576,7 @@ const SETTINGS_KEY = 'jpDrillSettings';
 // than a fetch that can fail or behave differently offline. 215 was
 // approximately the mid-market GBP/JPY rate as of build time (July 2026);
 // it'll drift, which is exactly why it's an editable field, not a constant.
-let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty: false, workOffline: false, showAndrewMode: false, showUntaught: null, gbpJpyRate: 215, decayAffectsColours: false, lastSeenChangelog: null, tileShowRomaji: false };
+let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty: false, workOffline: false, showAndrewMode: false, showUntaught: null, gbpJpyRate: 215, decayAffectsColours: false, lastSeenChangelog: null, tileShowRomaji: false, tileTapToSpeak: false };
 
 // WHAT'S NEW FLAG (2026-09-01) - HOW TO ADD AN ENTRY, so this stays
 // consistent across sessions and not just something Andrew has to remember
