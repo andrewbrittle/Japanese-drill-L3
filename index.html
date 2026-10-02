@@ -192,6 +192,11 @@
   }
   .settings-btn:hover { border-color: var(--border-hover); color: var(--text); }
   .settings-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .settings-btn.muted { color: var(--text-dim); }
+  /* Hold-to-peek on word tiles (2026-10-02): no iOS copy/Look Up bubble or
+     text selection while a card is held. */
+  #vocab-tile-grid .kana-ref-card { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  #vocab-tile-grid .kana-ref-card.tile-peeking { border-color: var(--accent); overflow: hidden; }
   /* WHAT'S NEW FLAG (2026-09-01) - green instead of the usual gold .active
      colour, deliberately reusing the same green already used for a correct
      answer elsewhere, so it reads as "something to notice", not an error
@@ -1137,6 +1142,9 @@
   <div class="app-heading"><span class="app-heading-tap" onclick="triggerSpontaneousProverbs()">日本語</span> <span>drill</span></div>
   <div class="nav-row">
     <button class="settings-btn" id="settings-btn" onclick="showSettingsScreen()" title="Settings" aria-label="Settings">⚙</button>
+    <!-- Global sound switch (2026-10-02) - off = the app makes no sound at
+         all (see soundAllowed), so it never cuts into music. -->
+    <button class="settings-btn" id="sound-btn" onclick="toggleSoundOn()" title="Sound on" aria-label="Sound on"></button>
     <div class="nav-pills">
       <button class="nav-pill" id="nav-kana" onclick="showKanaSelection()">かな</button>
       <button class="nav-pill" id="nav-kanji" onclick="tryResumeKanji()">漢字</button>
@@ -1226,7 +1234,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.003</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -7272,12 +7280,7 @@ function showVocabTileSelection(categoryKey) {
     romajiCard.style.display = ROMAJI_VIEW_CATEGORIES.includes(categoryKey) ? 'flex' : 'none';
     romajiCard.classList.toggle('selected', !!appSettings.tileShowRomaji);
   }
-  const speakCard = document.getElementById('vocab-tile-speak-card');
-  if (speakCard) {
-    speakCard.style.display = (SPEECH_SUPPORTED && ROMAJI_VIEW_CATEGORIES.includes(categoryKey)) ? 'flex' : 'none';
-    speakCard.classList.toggle('selected', !!appSettings.tileTapToSpeak);
-  }
-  updateTileSelectionSubText(categoryKey);
+  syncTileSoundControls(categoryKey);
   buildVocabTileGrid(categoryKey);
   refreshKanaScoreShading('vocab-tile-grid');
   updateSelectAllVocabTilesLabel();
@@ -7408,16 +7411,29 @@ function toggleTileShowRomaji() {
   saveSettings();
   const card = document.getElementById('vocab-tile-romaji-card');
   if (card) card.classList.toggle('selected', appSettings.tileShowRomaji);
+  updateTileSelectionSubText(vocabTileCategory);
   buildVocabTileGrid(vocabTileCategory);
   refreshKanaScoreShading('vocab-tile-grid');
 }
 
 function tileSpeakModeActive(categoryKey) {
-  return SPEECH_SUPPORTED && !!appSettings.tileTapToSpeak && ROMAJI_VIEW_CATEGORIES.includes(categoryKey);
+  return soundAllowed() && !!appSettings.tileTapToSpeak && ROMAJI_VIEW_CATEGORIES.includes(categoryKey);
+}
+function syncTileSoundControls(categoryKey) {
+  const speakCard = document.getElementById('vocab-tile-speak-card');
+  if (speakCard) {
+    speakCard.style.display = (SPEECH_SUPPORTED && ROMAJI_VIEW_CATEGORIES.includes(categoryKey)) ? 'flex' : 'none';
+    speakCard.classList.toggle('selected', !!appSettings.tileTapToSpeak);
+    speakCard.classList.toggle('disabled', !soundAllowed()); // muted: greyed out
+  }
+  updateTileSelectionSubText(categoryKey);
 }
 function updateTileSelectionSubText(categoryKey) {
   const sub = document.getElementById('vocab-tile-selection-sub');
-  if (sub) sub.textContent = tileSpeakModeActive(categoryKey) ? 'Tap a card to hear it.' : 'Tap a word to select it for drilling.';
+  if (!sub) return;
+  const romajiView = !!appSettings.tileShowRomaji && ROMAJI_VIEW_CATEGORIES.includes(categoryKey);
+  const peek = romajiView ? 'Hold a card to peek at the kana.' : 'Hold a card to peek at the romaji.';
+  sub.textContent = (tileSpeakModeActive(categoryKey) ? 'Tap a card to hear it. ' : 'Tap a word to select it for drilling. ') + peek;
 }
 function toggleTileTapToSpeak() {
   appSettings.tileTapToSpeak = !appSettings.tileTapToSpeak;
@@ -7434,25 +7450,81 @@ function toggleTileTapToSpeak() {
 // utter.lang alone; if the device has none, says so on the toggle card
 // rather than reading Japanese in an English voice without explanation.
 function speakVocabTile(item, tileEl) {
-  if (!SPEECH_SUPPORTED) return;
-  window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(item.speakAs || item.jp);
-  utter.lang = 'ja-JP';
-  utter.rate = 0.85;
-  const voices = window.speechSynthesis.getVoices();
-  const jaVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('ja'));
-  if (jaVoice) utter.voice = jaVoice;
-  else if (voices.length) {
-    const desc = document.getElementById('vocab-tile-speak-desc');
-    if (desc) desc.textContent = "This device doesn't seem to have a Japanese voice installed - add one in your phone's text-to-speech / spoken content settings.";
-  }
+  if (!soundAllowed()) return;
+  if (tileEl) tileEl.style.borderColor = 'var(--accent)';
+  const utter = speakJapanese(item.speakAs || item.jp);
   if (tileEl) {
-    tileEl.style.borderColor = 'var(--accent)';
     const clear = () => { tileEl.style.borderColor = ''; };
-    utter.onend = clear; utter.onerror = clear;
+    if (utter) { utter.onend = clear; utter.onerror = clear; }
     setTimeout(clear, 4000);
   }
-  window.speechSynthesis.speak(utter);
+}
+
+function tileKanaFontSize(jp) {
+  const len = [...jp].length;
+  return len <= 4 ? '28px' : len <= 8 ? '20px' : len <= 12 ? '16px' : '13px';
+}
+function tileRomajiFontSize(romaji) {
+  const rlen = romaji.length;
+  return rlen <= 10 ? '22px' : rlen <= 18 ? '17px' : rlen <= 26 ? '14px' : '12px';
+}
+// HOLD TO PEEK (2026-10-02) - hold any word card ~half a second to see the
+// other script (romaji, or kana when the romaji view is on) and, if sound
+// is on, hear it; let go and it flips back. A peek, not a toggle, so the
+// list keeps testing you on the kana. The card's height is locked while
+// peeking (and the text shrunk to fit) so nothing around it moves. A finger
+// that starts moving is a scroll, which cancels the hold; the click that
+// follows a peek is swallowed so it doesn't also select the card.
+const TILE_PEEK_HOLD_MS = 450;
+let tilePeekSuppressClickUntil = 0;
+function attachTilePeek(tile, item, showingRomaji) {
+  let timer = null, peeking = false, startX = 0, startY = 0;
+  const charEl = () => tile.querySelector('.kana-ref-char');
+  const begin = () => {
+    timer = null;
+    const el = charEl();
+    if (!el) return;
+    peeking = true;
+    tile.style.height = tile.offsetHeight + 'px';
+    el.dataset.peekText = el.textContent;
+    el.dataset.peekSize = el.style.fontSize;
+    el.textContent = showingRomaji ? item.jp : item.romaji;
+    let size = parseFloat(showingRomaji ? tileKanaFontSize(item.jp) : tileRomajiFontSize(item.romaji));
+    el.style.fontSize = size + 'px';
+    tile.classList.add('tile-peeking');
+    while (tile.scrollHeight > tile.clientHeight + 1 && size > 10) {
+      size -= 1;
+      el.style.fontSize = size + 'px';
+    }
+    tilePeekSuppressClickUntil = Date.now() + 1000;
+    speakJapanese(item.speakAs || item.jp);
+  };
+  const end = () => {
+    if (timer) { clearTimeout(timer); timer = null; }
+    if (!peeking) return;
+    peeking = false;
+    const el = charEl();
+    if (el) {
+      el.textContent = el.dataset.peekText;
+      el.style.fontSize = el.dataset.peekSize;
+    }
+    tile.style.height = '';
+    tile.classList.remove('tile-peeking');
+    tilePeekSuppressClickUntil = Date.now() + 400;
+  };
+  tile.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    startX = e.clientX; startY = e.clientY;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(begin, TILE_PEEK_HOLD_MS);
+  });
+  tile.addEventListener('pointermove', e => {
+    if (timer && (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10)) {
+      clearTimeout(timer); timer = null;
+    }
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => tile.addEventListener(t, end));
+  tile.addEventListener('contextmenu', e => e.preventDefault());
 }
 
 function buildVocabTileGrid(categoryKey) {
@@ -7482,12 +7554,10 @@ function buildVocabTileGrid(categoryKey) {
     if (romajiView) {
       // Latin text runs wider per word than kana runs per character, so
       // its own size steps; romaji is a quick-reference aid here, not drilled.
-      const rlen = item.romaji.length;
-      charSize = rlen <= 10 ? '22px' : rlen <= 18 ? '17px' : rlen <= 26 ? '14px' : '12px';
+      charSize = tileRomajiFontSize(item.romaji);
       mainText = item.romaji;
     } else {
-      const len = [...item.jp].length;
-      charSize = len <= 4 ? '28px' : len <= 8 ? '20px' : len <= 12 ? '16px' : '13px';
+      charSize = tileKanaFontSize(item.jp);
       mainText = item.jp;
     }
     tile.innerHTML = `<span class="kana-ref-char" style="font-size:${charSize};">${mainText}</span><span class="kana-ref-rom">${item.en}</span>`;
@@ -7516,12 +7586,13 @@ function buildVocabTileGrid(categoryKey) {
     if (speakMode) {
       // Tap to hear: speaks instead of selecting, and stays tappable even
       // while Random 20's disguise is on.
-      tile.onclick = () => speakVocabTile(item, tile);
+      tile.onclick = () => { if (Date.now() < tilePeekSuppressClickUntil) return; speakVocabTile(item, tile); };
     } else if (randomMode) {
       tile.style.pointerEvents = 'none'; // disguise is only meaningful if nothing can be tapped to break it
     } else {
-      tile.onclick = () => toggleVocabTile(categoryKey, idx, tile);
+      tile.onclick = () => { if (Date.now() < tilePeekSuppressClickUntil) return; toggleVocabTile(categoryKey, idx, tile); };
     }
+    if (speakMode || !randomMode) attachTilePeek(tile, item, romajiView);
     grid.appendChild(tile);
   });
   container.appendChild(grid);
@@ -8564,6 +8635,60 @@ function drillMissed() {
 
 const SPEECH_SUPPORTED = ('speechSynthesis' in window);
 
+// GLOBAL SOUND SWITCH (2026-10-02) - the header's speaker button. Every
+// sound the app makes goes through soundAllowed(): the drill's speak button,
+// "Tap a card to hear it", hold-to-peek, and even the silent warm-up
+// utterance on page load (some phones pause music for any speech at all).
+// Muted also greys out the controls that would otherwise make a sound.
+function soundAllowed() {
+  return SPEECH_SUPPORTED && appSettings.soundOn !== false;
+}
+const SOUND_ICON_ON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 9 8 9 12 5 12 19 8 15 3 15" fill="currentColor"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>';
+const SOUND_ICON_OFF = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 9 8 9 12 5 12 19 8 15 3 15" fill="currentColor"></polygon><line x1="16" y1="9" x2="22" y2="15"></line><line x1="22" y1="9" x2="16" y2="15"></line></svg>';
+function updateSoundButton() {
+  const btn = document.getElementById('sound-btn');
+  if (!btn) return;
+  if (!SPEECH_SUPPORTED) { btn.style.display = 'none'; return; }
+  const on = soundAllowed();
+  btn.innerHTML = on ? SOUND_ICON_ON : SOUND_ICON_OFF;
+  btn.classList.toggle('muted', !on);
+  btn.title = on ? 'Sound on - tap to mute' : 'Sound off - tap to turn on';
+  btn.setAttribute('aria-label', btn.title);
+}
+function toggleSoundOn() {
+  appSettings.soundOn = appSettings.soundOn === false;
+  saveSettings();
+  if (!appSettings.soundOn && SPEECH_SUPPORTED) window.speechSynthesis.cancel();
+  updateSoundButton();
+  const speakBtn = document.getElementById('speak-btn');
+  if (speakBtn) speakBtn.disabled = !soundAllowed();
+  // Word-tile screen: tap-to-hear card and grid behaviour depend on sound.
+  const tileScreen = document.getElementById('screen-vocab-tile-selection');
+  if (tileScreen && tileScreen.classList.contains('active') && vocabTileCategory) {
+    syncTileSoundControls(vocabTileCategory);
+    buildVocabTileGrid(vocabTileCategory);
+    refreshKanaScoreShading('vocab-tile-grid');
+  }
+}
+// Shared Japanese speech (tap-to-hear and hold-to-peek) - same voice
+// settings as the drill's speakCurrent().
+function speakJapanese(text) {
+  if (!soundAllowed()) return null;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'ja-JP';
+  utter.rate = 0.85;
+  const voices = window.speechSynthesis.getVoices();
+  const jaVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('ja'));
+  if (jaVoice) utter.voice = jaVoice;
+  else if (voices.length) {
+    const desc = document.getElementById('vocab-tile-speak-desc');
+    if (desc) desc.textContent = "This device doesn't seem to have a Japanese voice installed - add one in your phone's text-to-speech / spoken content settings.";
+  }
+  window.speechSynthesis.speak(utter);
+  return utter;
+}
+
 /* ---------- App settings (on-device only, no sync) ----------------------- */
 // Defaults are chosen to exactly match the app's behaviour before this
 // existed, so installing this doesn't change anything for anyone until they
@@ -8576,7 +8701,7 @@ const SETTINGS_KEY = 'jpDrillSettings';
 // than a fetch that can fail or behave differently offline. 215 was
 // approximately the mid-market GBP/JPY rate as of build time (July 2026);
 // it'll drift, which is exactly why it's an editable field, not a constant.
-let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty: false, workOffline: false, showAndrewMode: false, showUntaught: null, gbpJpyRate: 215, decayAffectsColours: false, lastSeenChangelog: null, tileShowRomaji: false, tileTapToSpeak: false };
+let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty: false, workOffline: false, showAndrewMode: false, showUntaught: null, gbpJpyRate: 215, decayAffectsColours: false, lastSeenChangelog: null, tileShowRomaji: false, tileTapToSpeak: false, soundOn: true };
 
 // WHAT'S NEW FLAG (2026-09-01) - HOW TO ADD AN ENTRY, so this stays
 // consistent across sessions and not just something Andrew has to remember
@@ -9631,7 +9756,8 @@ function refreshKanaScoreShading(containerId) {
 // Chrome/Safari sometimes clip the very start of the first utterance while the
 // speech engine "warms up". Priming it silently as soon as the page loads
 // means it's already warm by the time the hint button is actually tapped.
-if (SPEECH_SUPPORTED) {
+updateSoundButton();
+if (soundAllowed()) {
   const primer = new SpeechSynthesisUtterance(' ');
   primer.volume = 0;
   window.speechSynthesis.speak(primer);
@@ -9982,7 +10108,7 @@ function getSpeechText(q) {
 }
 
 function speakCurrent() {
-  if (!SPEECH_SUPPORTED) return;
+  if (!soundAllowed()) return;
   const q = deck[current];
   if (!q) return;
   if (!answered && !hintUsedThisQuestion) {
@@ -10132,7 +10258,7 @@ function renderQuestion() {
   const speakBtn = document.getElementById('speak-btn');
   if (speakBtn) {
     speakBtn.style.display = SPEECH_SUPPORTED ? 'inline-flex' : 'none';
-    speakBtn.disabled = false;
+    speakBtn.disabled = !soundAllowed();
   }
   if (SPEECH_SUPPORTED) window.speechSynthesis.cancel();
 
