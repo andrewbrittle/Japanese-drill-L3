@@ -281,7 +281,7 @@
      HTML below for the full story - this switches just that one card from
      .group-card's default horizontal row to a column, so the two buttons
      stack under the description instead of squeezing it. */
-  #backup-scores-card { flex-direction: column; align-items: stretch; gap: 0.6rem; }
+  #backup-scores-card, #private-vocab-card { flex-direction: column; align-items: stretch; gap: 0.6rem; }
 
   /* Select all / Random 20 side by side on the tile-selection screen - half
      the vertical space of two full-width cards. When Random 20 is hidden
@@ -1244,8 +1244,20 @@
       <div class="backup-status-msg" id="backup-status-msg"></div>
     </div>
 
+    <!-- Private vocab (2026-10-02) - see PRIVATE VOCAB PACKS in the script. -->
+    <div class="group-card" id="private-vocab-card" style="cursor:default;">
+      <div class="group-info">
+        <div class="group-name">Private vocab</div>
+        <div class="group-count" id="private-vocab-status">Add extra word lists from a file, kept on this device only (e.g. textbook vocab that isn't part of the shared app).</div>
+      </div>
+      <button class="start-btn" onclick="triggerPrivateVocabPicker()">Load file</button>
+      <button class="start-btn" id="private-vocab-remove-btn" onclick="removePrivateVocab()" style="display:none;">Remove</button>
+      <input type="file" id="private-vocab-input" accept="application/json,.json" style="display:none;" onchange="handlePrivateVocabSelected(event)">
+      <div class="backup-status-msg" id="private-vocab-msg"></div>
+    </div>
+
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.006</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.007</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -3735,90 +3747,13 @@ const VOCAB = {
       {jp:'せんせい', romaji:'sensei', en:'teacher / instructor', tags:['L1','occupations','taught','genki','genki-1-1'], dateAdded:'2026-08-01'},
     ],
   },
-  // GENKI LESSON 1-1 (2026-09-12): first Genki-textbook category, and the
-  // first new content since Level 1/2 closed off. Physically stores every
-  // word from this lesson that wasn't already in the app; words already
-  // taught in L1/L2 (daigaku, gakusei, sensei, tomodachi, the family-l2
-  // set, the three country names, computer, history, now/AM/PM) stay in
-  // their real home category and were only tagged forward with
-  // 'genki'+'genki-1-1' there - see itemTierVisible for why that tag never
-  // hides already-taught words. tagQuery below is what actually resolves
-  // the display, so both groups show up here together without anything
-  // being duplicated - same mechanism every L1/L2 category already uses.
-  //
-  // Three genuine homographs found while checking this lesson against the
-  // existing 1293 words, worth remembering if a future lesson does the
-  // same check: san/go/ban here are the same kana as existing words
-  // meaning '3'/'5'/'evening' respectively, but different words (Mr./Ms.
-  // suffix / ...language suffix / number... suffix) - each got its own
-  // new entry rather than a tag added to the unrelated existing one.
-  //
-  // Also: nan/nani (何, "what") is one word with two readings depending
-  // on what follows it (nan before desu/da and before t/d/n-sound words
-  // like counters; nani otherwise) - stored as two separate entries since
-  // there's no existing convention here for one word with two readings
-  // (altForm is for kanji-vs-kana switching, not this).
-  //
-  // No ordinalOrder here, deliberately (2026-09-12, corrected same day
-  // after Andrew flagged the list looked unordered) - unlike Numbers/Days/
-  // Months, this lesson's words have no real sequence of their own, just
-  // textbook page groupings, so ordinalOrder was the wrong tool. Textbook
-  // sub-grouping was considered and rejected: the 22 already-taught words
-  // above aren't physically stored in this category's own items array (see
-  // the comment above), so they'd never line up with the new words'
-  // textbook sections anyway - only the 45 new ones could group correctly,
-  // which would look more broken than plain alphabetising, not less. Falls
-  // through to resolveVocabCategory's default sortItemsAlphabetically
-  // instead - same as every other non-sequential category in this file,
-  // and it naturally interleaves the reused words with the new ones too.
-  'vocab-genki-1-1': {
-    level: 'genki',
-    hasReference: true,
-    label: 'Genki Lesson 1-1',
-    chars: 'こうこう わたし…',
-    tagQuery: ['genki','genki-1-1'],
-    items: [
-      {jp:'こうこう', romaji:'koukou', en:'high school', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'だいがくせい', romaji:'daigakusei', en:'college student', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'りゅうがくせい', romaji:'ryuugakusei', en:'international student', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'ねんせい', romaji:'nensei', en:'...year student (suffix)', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'いちねんせい', romaji:'ichinensei', en:'first-year student', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'せんこう', romaji:'senkou', en:'major (field of study)', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'わたし', romaji:'watashi', en:'I', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'さん', romaji:'san', en:'Mr./Ms. ... (suffix)', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'じん', romaji:'jin', en:'...people (suffix)', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'にほんじん', romaji:'nihonjin', en:'Japanese people', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'じ', romaji:'ji', en:'o\'clock (suffix)', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'いちじ', romaji:'ichiji', en:'one o\'clock', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'はん', romaji:'han', en:'half', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'にじはん', romaji:'nijihan', en:'half past two', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'ご', romaji:'go', en:'...language (suffix)', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'にほんご', romaji:'nihongo', en:'Japanese language', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'さい', romaji:'sai', en:'...years old (suffix)', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'でんわ', romaji:'denwa', en:'telephone', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'ばん', romaji:'ban', en:'number ... (suffix)', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'かんごし', romaji:'kangoshi', en:'nurse', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'こうこうせい', romaji:'koukousei', en:'high school student', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'しゅふ', romaji:'shufu', en:'housewife', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'だいがくいんせい', romaji:'daigakuinsei', en:'graduate student', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'ばんごう', romaji:'bangou', en:'number', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'なまえ', romaji:'namae', en:'name', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'なん', romaji:'nan', en:'what (before です/だ, or counters like 何時)', tags:['genki','genki-1-1','taught','L3','frequency-l3','l3-1'], dateAdded:'2026-09-12'},
-      {jp:'なに', romaji:'nani', en:'what (elsewhere — before を/が, standalone)', tags:['genki','genki-1-1','taught','L3','frequency-l3','l3-1','question-word'], dateAdded:'2026-09-12'},
-      {jp:'あのう', romaji:'anou', en:'um...', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'はい', romaji:'hai', en:'yes', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'そうです', romaji:'sou desu', en:'That\'s right.', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'そうですか', romaji:'sou desu ka', en:'I see.; Is that so?', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'アジアけんきゅう', romaji:'ajia kenkyuu', en:'Asian studies', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'けいざい', romaji:'keizai', en:'economics', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'こうがく', romaji:'kougaku', en:'engineering', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'こくさいかんけい', romaji:'kokusaikankei', en:'international relations', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'せいじ', romaji:'seiji', en:'politics', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'せいぶつがく', romaji:'seibutsugaku', en:'biology', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'ビジネス', romaji:'bijinesu', en:'business', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-      {jp:'ぶんがく', romaji:'bungaku', en:'literature', tags:['genki','genki-1-1'], dateAdded:'2026-09-12'},
-    ],
-  },
+  // GENKI LESSON 1-1 moved out (2026-10-02) into a private vocab pack
+  // (genki-vocab.json, loaded per device via Settings > Private vocab - see
+  // PRIVATE VOCAB PACKS below VOCAB) so textbook lists never ship in the
+  // published app. Words already taught in the course keep their
+  // 'genki'+'genki-1-1' tags where they live, so the Genki tile still shows
+  // them alongside the pack's own words when the pack is loaded. なに/なん,
+  // now taught in Level 3, moved to vocab-frequency-l3 at the same time.
   'vocab-objects': {
     level: 1,
     hasReference: true,
@@ -4579,6 +4514,9 @@ const VOCAB = {
       {jp:'けさ', romaji:'kesa', en:'this morning', tags:['L3','frequency-l3','taught','l3-1','time-l3'], altForm:'今朝', altIsStandard:true, dateAdded:'2026-09-29'},
       {jp:'こんばん', romaji:'konban', en:'tonight / this evening', tags:['L3','frequency-l3','taught','l3-1','time-l3'], altForm:'今晩', altIsStandard:true, dateAdded:'2026-09-29'},
       {jp:'やすみのひ', romaji:'yasumi no hi', en:'day off', tags:['L3','frequency-l3','taught','l3-1','time-l3'], altForm:'休みの日', altIsStandard:true, dateAdded:'2026-09-29'},
+      // moved from the Genki category (now a private pack) 2026-10-02:
+      {jp:'なん', romaji:'nan', en:'what (before です/だ, or counters like 何時)', tags:['genki','genki-1-1','taught','L3','frequency-l3','l3-1'], dateAdded:'2026-09-12'},
+      {jp:'なに', romaji:'nani', en:'what (elsewhere — before を/が, standalone)', tags:['genki','genki-1-1','taught','L3','frequency-l3','l3-1','question-word'], dateAdded:'2026-09-12'},
     ],
   },
   'vocab-general-l3': {
@@ -6021,6 +5959,46 @@ const VOCAB = {
     ],
   },
 };
+
+// PRIVATE VOCAB PACKS (2026-10-02) - extra categories kept OUT of the
+// published app (e.g. textbook word lists, which shouldn't sit on a public
+// site) and loaded per device from a JSON file via Settings > Private vocab.
+// The file is stored in this browser's localStorage and merged into VOCAB
+// here, before anything else reads VOCAB. A pack can only ADD categories -
+// a key that already exists in the app's own data is skipped, never
+// overwritten. Pack categories get privatePack:true and lead the Untaught
+// list (see buildMatchCategoryList). File format:
+//   {"format":"jp-drill-private-vocab","version":1,"name":"…",
+//    "categories":{"vocab-…":{level,label,chars,tagQuery,items:[…]}}}
+// with categories shaped exactly like VOCAB entries.
+const PRIVATE_VOCAB_KEY = 'jpDrillPrivateVocab';
+const PRIVATE_VOCAB_KEYS = [];
+function validatePrivateVocabPack(pack) {
+  if (!pack || typeof pack !== 'object' || pack.format !== 'jp-drill-private-vocab') return "That file isn't a private vocab file";
+  const cats = pack.categories;
+  if (!cats || typeof cats !== 'object' || Array.isArray(cats) || !Object.keys(cats).length) return 'That file has no word lists in it';
+  for (const key of Object.keys(cats)) {
+    const c = cats[key];
+    if (!c || typeof c.label !== 'string' || !Array.isArray(c.items)) return 'A word list in that file is damaged';
+    for (const it of c.items) {
+      if (!it || typeof it.jp !== 'string' || typeof it.romaji !== 'string' || typeof it.en !== 'string' || !Array.isArray(it.tags)) return 'A word in that file is damaged';
+    }
+  }
+  return null;
+}
+(function loadPrivateVocab() {
+  try {
+    const raw = localStorage.getItem(PRIVATE_VOCAB_KEY);
+    if (!raw) return;
+    const pack = JSON.parse(raw);
+    if (validatePrivateVocabPack(pack)) return;
+    Object.keys(pack.categories).forEach(key => {
+      if (VOCAB[key]) return; // never override the app's own data
+      VOCAB[key] = Object.assign({}, pack.categories[key], { privatePack: true });
+      PRIVATE_VOCAB_KEYS.push(key);
+    });
+  } catch (e) { /* storage unavailable or corrupt - app runs without the pack */ }
+})();
 
 // Themes bring together items from several existing VOCAB categories into one
 // selectable/drillable screen, without touching or duplicating the source
@@ -9355,6 +9333,60 @@ function showBackupStatus(text, isError) {
   showBackupStatus._t = setTimeout(() => msg.classList.remove('show'), 2500);
 }
 
+// Private vocab file: load (replaces any pack already on this device),
+// remove, and the status line in Settings. Both reload the page so every
+// list, collection and search picks the change up cleanly.
+function updatePrivateVocabStatus() {
+  const status = document.getElementById('private-vocab-status');
+  const removeBtn = document.getElementById('private-vocab-remove-btn');
+  if (!status) return;
+  if (PRIVATE_VOCAB_KEYS.length) {
+    const parts = PRIVATE_VOCAB_KEYS.map(k => `${VOCAB[k].label} (${VOCAB[k].items.length} words)`);
+    status.textContent = 'Loaded on this device: ' + parts.join(', ') + '. Load a newer file to replace it.';
+    if (removeBtn) removeBtn.style.display = '';
+  } else {
+    if (removeBtn) removeBtn.style.display = 'none';
+  }
+}
+function showPrivateVocabMsg(text, isError) {
+  const msg = document.getElementById('private-vocab-msg');
+  if (!msg) return;
+  msg.textContent = text;
+  msg.classList.toggle('error', !!isError);
+  msg.classList.add('show');
+  clearTimeout(showPrivateVocabMsg._t);
+  showPrivateVocabMsg._t = setTimeout(() => msg.classList.remove('show'), 3000);
+}
+function triggerPrivateVocabPicker() {
+  const input = document.getElementById('private-vocab-input');
+  if (input) input.click();
+}
+function handlePrivateVocabSelected(event) {
+  const file = event.target.files && event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let pack;
+    try { pack = JSON.parse(reader.result); } catch (e) { showPrivateVocabMsg("That file isn't a private vocab file", true); return; }
+    const problem = validatePrivateVocabPack(pack);
+    if (problem) { showPrivateVocabMsg(problem, true); return; }
+    try {
+      localStorage.setItem(PRIVATE_VOCAB_KEY, JSON.stringify(pack));
+    } catch (e) { showPrivateVocabMsg("Couldn't save it on this device", true); return; }
+    showPrivateVocabMsg('Loaded - reloading…', false);
+    setTimeout(() => location.reload(), 700);
+  };
+  reader.onerror = () => showPrivateVocabMsg("Couldn't read that file", true);
+  reader.readAsText(file);
+}
+function removePrivateVocab() {
+  if (!window.confirm('Remove the private word lists from this device? Your scores for those words are kept, and you can load the file again any time.')) return;
+  try { localStorage.removeItem(PRIVATE_VOCAB_KEY); } catch (e) { /* nothing stored */ }
+  location.reload();
+}
+updatePrivateVocabStatus();
+
 /* ---------- In-progress drill persistence (survives a killed page) ------ */
 // On mobile, a second "back" press doesn't just background the app - it ends
 // the browsing session outright (tab/WebView context genuinely closes), and
@@ -11255,7 +11287,9 @@ function buildMatchCategoryList() {
     // switching Untaught on just to prepare for a trip (see
     // theme-tourist-essentials in THEMES).
     container.appendChild(buildCategoryTile('theme-tourist-essentials'));
-    container.appendChild(buildCategoryTile('vocab-genki-1-1'));
+    // Private vocab pack categories (e.g. Genki) - only present on a device
+    // where the pack file has been loaded (see PRIVATE VOCAB PACKS).
+    PRIVATE_VOCAB_KEYS.forEach(key => container.appendChild(buildCategoryTile(key)));
     container.appendChild(document.createElement('div')).className = 'section-divider';
     // ALPHABETICAL ORDER (2026-08-31, extended same day when Trip and
     // Andrew merged into this one Untaught tier) - reads as one alphabetized
@@ -13258,16 +13292,16 @@ function showFrequencyReference() {
   l3Note(list, 'Frequency words say how often you do something. They go after the topic (and after a time word like あさ, if there is one), before the object — and they take no particle.');
   L3_FREQ_WORDS.forEach(f => l3TwoCol(list, f.jp, `${f.romaji} — ${f.en}`, f.neg ? '…ません' : '…ます', f.neg ? 'negative verb only' : 'positive verb'));
   l3Note(list, '<strong>The rule:</strong> いつも, よく and ときどき go with a positive verb (…ます). あまり and ぜんぜん only ever go with a negative verb (…ません) — あまり たべます is wrong. English "never" is negative on its own ("I never eat meat"), but in Japanese the verb has to be negative as well: ぜんぜん たべません.');
-  l3Heading(list, 'Examples from class');
-  l3Example(list, 'わたしは いつも パンを たべます。', 'Watashi wa itsumo pan o tabemasu.', 'I always eat bread.');
-  l3Example(list, 'わたしは よく おちゃを のみます。', 'Watashi wa yoku ocha o nomimasu.', 'I often drink green tea.');
-  l3Example(list, 'わたしは ときどき えいがを みます。', 'Watashi wa tokidoki eiga o mimasu.', 'I sometimes watch films.');
-  l3Example(list, 'わたしは あまり うみへ いきません。', 'Watashi wa amari umi e ikimasen.', "I don't often go to the sea.");
-  l3Example(list, 'わたしは ぜんぜん オペラを ききません。', 'Watashi wa zenzen opera o kikimasen.', 'I never listen to opera.');
-  l3Example(list, 'わたしは あさ いつも バナナや りんごを たべます。', 'Watashi wa asa itsumo banana ya ringo o tabemasu.', 'In the morning I always eat things like bananas and apples.');
+  l3Heading(list, 'Examples');
+  l3Example(list, 'わたしは いつも コーヒーを のみます。', 'Watashi wa itsumo koohii o nomimasu.', 'I always drink coffee.');
+  l3Example(list, 'わたしは よく パスタを たべます。', 'Watashi wa yoku pasuta o tabemasu.', 'I often eat pasta.');
+  l3Example(list, 'わたしは ときどき ざっしを よみます。', 'Watashi wa tokidoki zasshi o yomimasu.', 'I sometimes read magazines.');
+  l3Example(list, 'わたしは あまり にくを たべません。', 'Watashi wa amari niku o tabemasen.', "I don't eat meat much.");
+  l3Example(list, 'わたしは ぜんぜん ゴルフを しません。', 'Watashi wa zenzen gorufu o shimasen.', 'I never play golf.');
+  l3Example(list, 'わたしは あさ いつも ヨーグルトや くだものを たべます。', 'Watashi wa asa itsumo yooguruto ya kudamono o tabemasu.', 'In the morning I always eat things like yoghurt and fruit.');
   l3Heading(list, 'Answering a question');
-  l3Example(list, 'おさけを のみますか。', 'Osake o nomimasu ka.', 'Do you drink alcohol?');
-  l3Example(list, 'はい、ときどき のみます。', 'Hai, tokidoki nomimasu.', 'Yes, sometimes.');
+  l3Example(list, 'コーヒーを のみますか。', 'Koohii o nomimasu ka.', 'Do you drink coffee?');
+  l3Example(list, 'はい、よく のみます。', 'Hai, yoku nomimasu.', 'Yes, often.');
   l3Example(list, 'いいえ、あまり のみません。', 'Iie, amari nomimasen.', 'No, not often.');
   l3Example(list, 'いいえ、ぜんぜん のみません。', 'Iie, zenzen nomimasen.', 'No, never.');
   l3Note(list, 'In a short answer the object is usually dropped — just はい/いいえ + frequency word + verb. はい goes with いつも/よく/ときどき, いいえ with あまり/ぜんぜん.');
@@ -13554,17 +13588,17 @@ function showObjectParticleL3Reference() {
   const list = l3RefOpen('を — Level 3 additions');
   l3Note(list, 'Everything on the Level 2 を card still applies. Lesson 1 added these.');
   l3Heading(list, 'のみます is wider than "drink"');
-  l3Example(list, 'スープを のみます。', 'Suupu o nomimasu.', 'I have soup.');
-  l3Example(list, 'くすりを のみます。', 'Kusuri o nomimasu.', 'I take medicine.');
-  l3Note(list, 'Medicine is "drunk" in Japanese — くすりを のみます, never とります. Soup can take either verb: the class sheet notes たべます is also used for soup.');
+  l3Example(list, 'よる スープを のみます。', 'Yoru suupu o nomimasu.', 'I have soup in the evening.');
+  l3Example(list, 'まいあさ くすりを のみます。', 'Maiasa kusuri o nomimasu.', 'I take medicine every morning.');
+  l3Note(list, 'Medicine is "drunk" in Japanese — くすりを のみます, never とります. Soup can take either verb: のみます or たべます.');
   l3Heading(list, 'なにを vs なにも');
-  l3Example(list, 'なにを たべますか。', 'Nani o tabemasu ka.', 'What do you eat?');
-  l3Example(list, 'なにも たべません。', 'Nani mo tabemasen.', "I don't eat anything.");
+  l3Example(list, 'なにを のみますか。', 'Nani o nomimasu ka.', 'What do you drink?');
+  l3Example(list, 'なにも のみません。', 'Nani mo nomimasen.', "I don't drink anything.");
   l3Note(list, 'も replaces を — it\'s なにも, never なにをも — and the verb must be negative. The Level 2 "だれも/どこも/なにも + negative" card has the full pattern.');
   l3Heading(list, 'Past tense question and answers');
-  l3Example(list, 'あさごはんを たべましたか。', 'Asagohan o tabemashita ka.', 'Did you eat breakfast?');
-  l3Example(list, 'はい、たべました。', 'Hai, tabemashita.', 'Yes, I did.');
-  l3Example(list, 'いいえ、たべませんでした。', 'Iie, tabemasen deshita.', "No, I didn't.");
+  l3Example(list, 'けさ コーヒーを のみましたか。', 'Kesa koohii o nomimashita ka.', 'Did you drink coffee this morning?');
+  l3Example(list, 'はい、のみました。', 'Hai, nomimashita.', 'Yes, I did.');
+  l3Example(list, 'いいえ、のみませんでした。', 'Iie, nomimasen deshita.', "No, I didn't.");
   l3Note(list, 'All four forms of every verb are on the Level 2 verb tense cards.');
   showScreen('vocab-reference');
 }
@@ -13573,14 +13607,14 @@ function showObjectParticleL3Reference() {
 function showToYaReference() {
   const list = l3RefOpen('と vs や — "and" in a list');
   l3Note(list, 'Both join nouns in a list, like "and" — but they say different things about the list.');
-  l3Example(list, 'パンと バナナ', 'pan to banana', 'と = the complete list: bread and bananas — that\'s all');
-  l3Example(list, 'パンや バナナ', 'pan ya banana', 'や = examples from a longer list: things like bread and bananas (and yoghurt, apples…)');
+  l3Example(list, 'ピザと サラダ', 'piza to sarada', 'と = the complete list: pizza and salad — that\'s all');
+  l3Example(list, 'ピザや サラダ', 'piza ya sarada', 'や = examples from a longer list: things like pizza and salad (and pasta, soup…)');
   l3Heading(list, 'Examples');
-  l3Example(list, 'あさ パンと バナナを たべます。', 'Asa pan to banana o tabemasu.', 'In the morning I eat bread and bananas.');
-  l3Example(list, 'あさ パンや バナナを たべます。', 'Asa pan ya banana o tabemasu.', 'In the morning I eat things like bread and bananas.');
-  l3Example(list, 'ひるは サラダや パスタを たべます。', 'Hiru wa sarada ya pasuta o tabemasu.', 'At lunch I eat things like salad and pasta.');
-  l3Example(list, 'ごしゅみは カラオケと ドライブです。', 'Go-shumi wa karaoke to doraibu desu.', 'My hobbies are karaoke and driving.');
-  l3Note(list, 'You can chain more than two: ゲームと ピアノと すいえい. Neither と nor や can join two sentences — to say "and then" between two actions, use それから (see its card).');
+  l3Example(list, 'よる ピザと サラダを たべます。', 'Yoru piza to sarada o tabemasu.', 'In the evening I eat pizza and salad.');
+  l3Example(list, 'よる ピザや サラダを たべます。', 'Yoru piza ya sarada o tabemasu.', 'In the evening I eat things like pizza and salad.');
+  l3Example(list, 'しゅうまつは テニスや ゴルフを します。', 'Shuumatsu wa tenisu ya gorufu o shimasu.', 'At weekends I play things like tennis and golf.');
+  l3Example(list, 'しゅみは どくしょと りょこうです。', 'Shumi wa dokusho to ryokou desu.', 'My hobbies are reading and travel.');
+  l3Note(list, 'You can chain more than two: カラオケと ダンスと ガーデニング. Neither と nor や can join two sentences — to say "and then" between two actions, use それから (see its card).');
   l3Note(list, 'Don\'t mix up this と ("and") with the と from Level 2\'s motion sentences, which means "with": ともだちと いきます — I go with a friend.');
   showScreen('vocab-reference');
 }
@@ -13589,14 +13623,14 @@ function showToYaReference() {
 function showSorekaraReference() {
   const list = l3RefOpen('それから and そして');
   l3Note(list, 'それから means "and then / after that". It starts the second sentence, linking two actions in the order they happen.');
-  l3Example(list, 'ともだちと えいがを みます。それから おちゃを のみます。', 'Tomodachi to eiga o mimasu. Sorekara ocha o nomimasu.', 'I watch a film with a friend. Then we have tea.');
-  l3Example(list, 'べんきょうを しました。それから ほんを よみました。', 'Benkyou o shimashita. Sorekara hon o yomimashita.', 'I studied. After that I read a book.');
-  l3Example(list, 'にちようびに ほんを よみました。それから ビデオを みました。', 'Nichiyoubi ni hon o yomimashita. Sorekara bideo o mimashita.', 'On Sunday I read a book. Then I watched a video.');
+  l3Example(list, 'しごとを します。それから ジムへ いきます。', 'Shigoto o shimasu. Sorekara jimu e ikimasu.', 'I work. Then I go to the gym.');
+  l3Example(list, 'ばんごはんを たべました。それから ニュースを みました。', 'Bangohan o tabemashita. Sorekara nyuusu o mimashita.', 'I had dinner. After that I watched the news.');
+  l3Example(list, 'どようびに こうえんへ いきました。それから カフェで コーヒーを のみました。', 'Doyoubi ni kouen e ikimashita. Sorekara kafe de koohii o nomimashita.', 'On Saturday I went to the park. Then I had a coffee at a café.');
   l3Note(list, 'The first sentence ends with 。 as normal and それから begins the next one. It works in any tense — both sentences usually share it (both ます, or both ました). This is how to join two actions, since と and や can only join nouns.');
   l3Heading(list, 'そして — "and (also)"');
   l3Example(list, 'パンを たべます。そして コーヒーを のみます。', 'Pan o tabemasu. Soshite koohii o nomimasu.', 'I eat bread, and I drink coffee.');
   l3Note(list, 'そして also starts the second sentence, but it <strong>adds</strong> rather than putting things in order: "and / and also". それから stresses order: "after that, next". If one thing clearly happens after the other, それから is the safer choice; そして sounds a little more formal or written.');
-  l3Note(list, 'They overlap a bit: in conversation それから can also mean "and also…" when you\'re adding to a list. But そして never really means "after that".');
+  l3Note(list, 'They overlap a bit: in conversation それから can also mean "and also…" when you\'re adding to a list. そして can show order too, especially in writing, but its core idea is adding.');
   l3Heading(list, 'Time words from the lesson');
   l3Example(list, 'けさ', 'kesa', 'this morning');
   l3Example(list, 'おととい', 'ototoi', 'the day before yesterday');
@@ -13614,9 +13648,9 @@ function showNanNaniReference() {
   l3Note(list, 'Both mean "what". Which one you use depends on what comes straight after it.');
   l3Heading(list, 'なん (1) — before た/だ/な-row sounds');
   l3Note(list, 'That\'s た ち つ て と, だ ぢ づ で ど, な に ぬ ね の — in practice, before です, の and と.');
-  l3Example(list, 'それは なんですか。', 'Sore wa nan desu ka.', 'What is that?');
-  l3Example(list, 'なんの ざっしですか。', 'Nan no zasshi desu ka.', 'What magazine is it?');
-  l3Example(list, 'にほんごで なんと いいますか。', 'Nihongo de nan to iimasu ka.', 'How do you say it in Japanese?');
+  l3Example(list, 'これは なんですか。', 'Kore wa nan desu ka.', 'What is this?');
+  l3Example(list, 'なんの ほんですか。', 'Nan no hon desu ka.', 'What book is it?');
+  l3Example(list, 'これは えいごで なんと いいますか。', 'Kore wa eigo de nan to iimasu ka.', 'What is this called in English?');
   l3Heading(list, 'なん (2) — before a counter');
   l3Example(list, 'なんじ', 'nanji', 'what time');
   l3Example(list, 'なんさい', 'nansai', 'how old');
@@ -13624,9 +13658,9 @@ function showNanNaniReference() {
   l3Example(list, 'なんがつ', 'nangatsu', 'which month');
   l3Example(list, 'なんにち', 'nannichi', 'which day of the month');
   l3Heading(list, 'なに — everything else');
-  l3Example(list, 'なにを かいますか。', 'Nani o kaimasu ka.', 'What will you buy?');
-  l3Example(list, 'なにを たべますか。', 'Nani o tabemasu ka.', 'What do you eat?');
-  l3Example(list, 'なにも たべません。', 'Nani mo tabemasen.', "I don't eat anything.");
+  l3Example(list, 'なにを よみますか。', 'Nani o yomimasu ka.', 'What do you read?');
+  l3Example(list, 'なにを しますか。', 'Nani o shimasu ka.', 'What will you do?');
+  l3Example(list, 'なにも かいません。', 'Nani mo kaimasen.', "I'm not buying anything.");
   l3Note(list, '<strong>Quick check:</strong> if the next sound is です, の, と or a counter → なん. Before を, も and anything else → なに.');
   showScreen('vocab-reference');
 }
@@ -13662,14 +13696,14 @@ function showPolitePrefixReference() {
 function showNounShimasuReference() {
   const list = l3RefOpen('Noun + します');
   l3Note(list, 'します means "do". Put a noun in front with を and it becomes "do [that thing]" — sport, study, work, and lots of activities.');
-  l3Example(list, 'スポーツを します。', 'Supootsu o shimasu.', 'I do sport.');
-  l3Example(list, 'べんきょうを します。', 'Benkyou o shimasu.', 'I study.');
-  l3Example(list, 'しごとを します。', 'Shigoto o shimasu.', 'I work.');
-  l3Example(list, 'テニスを します。', 'Tenisu o shimasu.', 'I play tennis.');
-  l3Heading(list, 'Two ways to say "I study Japanese"');
-  l3Example(list, 'にほんごを べんきょうします。', 'Nihongo o benkyou shimasu.', 'object にほんご + verb べんきょうします');
-  l3Example(list, 'にほんごの べんきょうを します。', 'Nihongo no benkyou o shimasu.', '"Japanese study" as one noun + を します');
-  l3Note(list, 'Same meaning. In the first, べんきょうします is one verb and にほんご is its object. In the second, べんきょう is a noun, にほんごの describes it, and the whole thing is the object of します. What you can\'t do is put two を in one sentence: にほんごを べんきょうを します ✗.');
+  l3Example(list, 'しゅうまつに サッカーを します。', 'Shuumatsu ni sakkaa o shimasu.', 'I play football at the weekend.');
+  l3Example(list, 'よる べんきょうを します。', 'Yoru benkyou o shimasu.', 'I study in the evening.');
+  l3Example(list, 'あした しごとを します。', 'Ashita shigoto o shimasu.', "I'm working tomorrow.");
+  l3Example(list, 'ときどき ゲームを します。', 'Tokidoki geemu o shimasu.', 'I sometimes play games.');
+  l3Heading(list, 'Two ways to say "I study English"');
+  l3Example(list, 'えいごを べんきょうします。', 'Eigo o benkyou shimasu.', 'object えいご + verb べんきょうします');
+  l3Example(list, 'えいごの べんきょうを します。', 'Eigo no benkyou o shimasu.', '"English study" as one noun + を します');
+  l3Note(list, 'Same meaning. In the first, べんきょうします is one verb and えいご is its object. In the second, べんきょう is a noun, えいごの describes it, and the whole thing is the object of します. What you can\'t do is put two を in one sentence: えいごを べんきょうを します ✗.');
   l3Heading(list, 'Activities used with します');
   [['バーベキュー', 'baabekyuu', 'have a barbecue'], ['ピクニック', 'pikunikku', 'have a picnic'], ['アフタヌーンティー', 'afutanuun tii', 'have afternoon tea'], ['パーティー', 'paatii', 'have a party'], ['ドライブ', 'doraibu', 'go for a drive'], ['サイクリング', 'saikuringu', 'go cycling'], ['ウォーキング', 'wookingu', 'go walking'], ['すいえい', 'suiei', 'go swimming'], ['スキー', 'sukii', 'go skiing'], ['ゴルフ', 'gorufu', 'play golf'], ['サッカー', 'sakkaa', 'play football'], ['ゲーム', 'geemu', 'play games'], ['じゅうどう', 'juudou', 'do judo'], ['ダンス', 'dansu', 'dance'], ['カラオケ', 'karaoke', 'do karaoke'], ['ガーデニング', 'gaadeningu', 'do gardening'], ['りょうり', 'ryouri', 'cook']]
     .forEach(([jp, ro, en]) => l3Example(list, jp + 'を します', ro + ' o shimasu', en));
