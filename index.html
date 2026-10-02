@@ -1245,7 +1245,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.005</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.006</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -7486,6 +7486,7 @@ function tileRomajiFontSize(romaji) {
 // scroll, which cancels the hold; the click that follows a peek is
 // swallowed so it doesn't also select the card.
 const TILE_PEEK_HOLD_MS = 450;
+const TILE_PEEK_MOVE_TOLERANCE = 16; // px of finger wobble allowed before the bubble appears
 // Placement: above the card if it fits, else beside it on the roomier
 // side (away from the finger), else below - always clamped on-screen.
 function showTilePeekBubble(tile, item) {
@@ -7523,7 +7524,7 @@ function hideTilePeekBubble() {
 }
 let tilePeekSuppressClickUntil = 0;
 function attachTilePeek(tile, item) {
-  let timer = null, peeking = false, startX = 0, startY = 0;
+  let timer = null, peeking = false, startX = 0, startY = 0, pointerId = null;
   const begin = () => {
     timer = null;
     peeking = true;
@@ -7540,18 +7541,29 @@ function attachTilePeek(tile, item) {
     hideTilePeekBubble();
     tilePeekSuppressClickUntil = Date.now() + 400;
   };
+  // Tolerance (2026-10-02): a little wobble before the bubble appears is
+  // allowed (TILE_PEEK_MOVE_TOLERANCE); once it's showing, only lifting the
+  // finger closes it - the pointer is captured (so drifting off the card's
+  // edge doesn't count) and touchmove is blocked (so the page can't start
+  // scrolling, which would otherwise cancel the hold).
   tile.addEventListener('pointerdown', e => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     startX = e.clientX; startY = e.clientY;
+    pointerId = e.pointerId;
     if (timer) clearTimeout(timer);
-    timer = setTimeout(begin, TILE_PEEK_HOLD_MS);
+    timer = setTimeout(() => {
+      try { tile.setPointerCapture(pointerId); } catch (err) { /* pointer already gone */ }
+      begin();
+    }, TILE_PEEK_HOLD_MS);
   });
   tile.addEventListener('pointermove', e => {
-    if (timer && (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10)) {
+    if (timer && (Math.abs(e.clientX - startX) > TILE_PEEK_MOVE_TOLERANCE || Math.abs(e.clientY - startY) > TILE_PEEK_MOVE_TOLERANCE)) {
       clearTimeout(timer); timer = null;
     }
   });
-  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => tile.addEventListener(t, end));
+  tile.addEventListener('touchmove', e => { if (peeking && e.cancelable) e.preventDefault(); }, { passive: false });
+  ['pointerup', 'pointercancel'].forEach(t => tile.addEventListener(t, end));
+  tile.addEventListener('pointerleave', () => { if (!peeking) end(); });
   tile.addEventListener('contextmenu', e => e.preventDefault());
 }
 
