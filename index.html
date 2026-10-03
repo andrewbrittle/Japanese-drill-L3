@@ -49,6 +49,8 @@
   html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
   :root {
+    /* Proverb category colours (2026-10-03) - same palette as the Japan trip app's proverb cards. */
+    --cat-rose:#D98BA5; --cat-teal:#4FB3A9; --cat-wood:#B98553; --cat-sky:#6FC3D9; --cat-lavender:#B79AE0;
     --bg: #0f0f0f;
     --surface: #1a1a1a;
     --surface2: #242424;
@@ -118,6 +120,7 @@
   /* Light theme - opt-in only via Settings, dark (the :root values above)
      stays the default for everyone unless they switch this on themselves. */
   :root[data-theme="light"] {
+    --cat-rose:#B23E63; --cat-teal:#1E7F73; --cat-wood:#8A5A2E; --cat-sky:#2C7A94; --cat-lavender:#6A4FA0;
     --bg: #f7f5f0;
     --surface: #ffffff;
     --surface2: #efece4;
@@ -1112,14 +1115,29 @@
     border-radius: var(--radius-lg); padding: 1.5rem;
     max-width: 420px; width: 100%; max-height: 85vh; overflow-y: auto;
   }
-  .proverb-category { font-size: 11px; font-weight: 700; color: var(--text-dim); margin-bottom: 4px; }
+  .proverb-category { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--pc, var(--text-dim)); margin-bottom: 6px; }
   /* BUG FIX (2026-09-13): see the comment above .proverb-category. Solid
      var(--text) (alpha 1) instead of the parent's var(--text-dim) (a
      low-alpha rgba) restores the emoji to full brightness without
      touching the label text's own dim styling. */
   .proverb-category-emoji { color: var(--text); }
-  .proverb-entry { text-align: center; margin-bottom: 1.4rem; }
-  .proverb-entry:last-of-type { margin-bottom: 1.5rem; }
+  /* Category-coloured cards with a faint corner motif (2026-10-03), ported
+     from the Japan trip app: --pc comes from the cat-* class, the tint and
+     border derive from it, and the SVG shape carries the category. */
+  .proverb-entry {
+    position: relative; overflow: hidden; text-align: center;
+    background: color-mix(in srgb, var(--pc, var(--border)) 10%, var(--surface));
+    border: 1px solid var(--pc, var(--border)); border-radius: 12px;
+    padding: 0.9rem 1rem; margin-bottom: 0.9rem;
+  }
+  .proverb-entry:last-of-type { margin-bottom: 1.2rem; }
+  .proverb-entry > *:not(.proverb-motif) { position: relative; z-index: 1; }
+  .proverb-entry.cat-rose { --pc: var(--cat-rose); }
+  .proverb-entry.cat-teal { --pc: var(--cat-teal); }
+  .proverb-entry.cat-wood { --pc: var(--cat-wood); }
+  .proverb-entry.cat-sky { --pc: var(--cat-sky); }
+  .proverb-entry.cat-lavender { --pc: var(--cat-lavender); }
+  .proverb-motif { position: absolute; z-index: 0; right: -10px; bottom: -14px; width: 72px; height: 72px; color: var(--pc); opacity: .16; pointer-events: none; }
   .proverb-jp { font-size: 20px; font-weight: 700; font-family: 'BIZ UDPGothic', sans-serif; margin-bottom: 2px; }
   .proverb-romaji { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
   .proverb-meaning { font-size: 12px; color: var(--text-dim); font-style: italic; margin-bottom: 8px; }
@@ -1257,7 +1275,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261002.009</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261003.001</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -14097,9 +14115,13 @@ function startUntestedVocab() {
 // aren't taught, drilled, or scored, just flavour shown once per day, so
 // they live in their own flat array rather than getting tagged into the
 // vocab/tier system that everything else in this file goes through.
-// Sourced and cross-checked by Andrew against multiple proverb references
-// before export, not generated from memory (two entries had garbled
-// romaji/kanji in the trip app and were corrected at the source first).
+// CORRECTED 2026-10-03: an earlier note here said these had been
+// cross-checked; they hadn't been, properly. A real check against Japanese
+// proverb dictionaries found 10 entries that aren't genuine sayings
+// (replaced with verified ones in the same categories), a reversed meaning
+// (巧遅は拙速に如かず), a wrong kanji (山紫水明) and several romaji errors -
+// all fixed. Any new proverb gets verified against a dictionary source
+// before it goes in, never added from memory.
 //
 // Triggered once per calendar date, from the init sequence below (see
 // maybeShowDailyProverbs call next to tryRestoreDrillSession) - not tied to
@@ -14113,14 +14135,14 @@ function startUntestedVocab() {
 const PROVERBS = [
   {category:'🌸 Acceptance & Letting Go', jp:'仕方がない', romaji:'Shikata ga nai', meaning:'It cannot be helped.', note:'Focus your energy on what you can change, not what you cannot.'},
   {category:'🌸 Acceptance & Letting Go', jp:'七転び八起き', romaji:'Nana korobi ya oki', meaning:'Fall seven times, stand up eight.', note:'True peace comes from knowing you can always rebuild.'},
-  {category:'🌸 Acceptance & Letting Go', jp:'去る者は追わず、来る者は拒まず', romaji:'Sarumono wa ozu, kitarmono wa kobamazu', meaning:'Do not chase those who leave, do not reject those who arrive.', note:'Flow with life\'s social currents without resistance.'},
-  {category:'🌸 Acceptance & Letting Go', jp:'冥土の土産', romaji:'Meido no miyage', meaning:'A souvenir from life.', note:'View your current struggles as just another interesting story for the future.'},
-  {category:'🌸 Acceptance & Letting Go', jp:'諦めは肝心', romaji:'Akirame wa kanjin', meaning:'Acceptance is vital.', note:'Giving up on the unchangeable brings immediate peace.'},
-  {category:'🌸 Acceptance & Letting Go', jp:'思い立ったが吉日', romaji:'Omoitatta ga kikitsujitsu', meaning:'The day you decide to do it is your lucky day.', note:'Don\'t stress about the past or the perfect timing.'},
+  {category:'🌸 Acceptance & Letting Go', jp:'去る者は追わず、来る者は拒まず', romaji:'Saru mono wa owazu, kitaru mono wa kobamazu', meaning:'Do not chase those who leave, do not reject those who arrive.', note:'Flow with life\'s social currents without resistance.'},
+  {category:'🌸 Acceptance & Letting Go', jp:'冥土の土産', romaji:'Meido no miyage', meaning:'A souvenir to take to the next world.', note:'View your current struggles as just another interesting story for the future.'},
+  {category:'🌸 Acceptance & Letting Go', jp:'諦めが肝心', romaji:'Akirame ga kanjin', meaning:'Acceptance is vital.', note:'Giving up on the unchangeable brings immediate peace.'},
+  {category:'🌸 Acceptance & Letting Go', jp:'思い立ったが吉日', romaji:'Omoitatta ga kichijitsu', meaning:'The day you decide to do it is your lucky day.', note:'Don\'t stress about the past or the perfect timing.'},
   {category:'🌸 Acceptance & Letting Go', jp:'水に流す', romaji:'Mizu ni nagasu', meaning:'Let it flow in the water.', note:'Forgive, forget, and let past grievances wash away.'},
-  {category:'🌸 Acceptance & Letting Go', jp:'朝日は西から昇らない', romaji:'Asahi wa nishi kara noboranai', meaning:'The morning sun does not rise in the west.', note:'Accept the natural, unchangeable laws of reality.'},
-  {category:'🌸 Acceptance & Letting Go', jp:'巧遅は拙速に如かず', romaji:'Kouka fukutsure', meaning:'Better to be slow and deliberate than fast and sloppy.', note:'Remind yourself to breathe and slow down.'},
-  {category:'🌸 Acceptance & Letting Go', jp:'運を天に任せる', romaji:'Un wo ten ni makaceru', meaning:'Leave your fate to heaven.', note:'Do your best, then let go of the outcome entirely.'},
+  {category:'🌸 Acceptance & Letting Go', jp:'明日は明日の風が吹く', romaji:'Ashita wa ashita no kaze ga fuku', meaning:'Tomorrow, tomorrow\'s wind will blow.', note:'Tomorrow will take care of itself - let today be enough.'},
+  {category:'🌸 Acceptance & Letting Go', jp:'巧遅は拙速に如かず', romaji:'Kouchi wa sessoku ni shikazu', meaning:'Quick and imperfect beats slow and perfect.', note:'Done is better than perfect - don\'t let perfectionism hold you back.'},
+  {category:'🌸 Acceptance & Letting Go', jp:'運を天に任せる', romaji:'Un wo ten ni makaseru', meaning:'Leave your fate to heaven.', note:'Do your best, then let go of the outcome entirely.'},
   {category:'🌸 Acceptance & Letting Go', jp:'しょうがない', romaji:'Shouganai', meaning:'There is no use crying over it.', note:'Accept the current reality as it is to reclaim your peace.'},
   {category:'🌸 Acceptance & Letting Go', jp:'覆水盆に返らず', romaji:'Fukusui bon ni kaerazu', meaning:'Spilt water will not return to the tray.', note:'Stop replaying what can\'t be reversed; put that energy toward what\'s still in front of you.'},
   {category:'🌸 Acceptance & Letting Go', jp:'案ずるより産むが易し', romaji:'Anzuru yori umu ga yasushi', meaning:'Giving birth is easier than worrying about it.', note:'Let yourself begin before you feel ready — most fears shrink once you\'re actually inside the moment.'},
@@ -14130,14 +14152,14 @@ const PROVERBS = [
   {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'物の哀れ', romaji:'Mono no aware', meaning:'The beautiful pathos of things.', note:'Finding deep peace in the fleeting nature of life and beauty.'},
   {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'花鳥風月', romaji:'Kachou fugetsu', meaning:'Flower, bird, wind, moon.', note:'Experience the peace of the universe by immersing yourself in nature.'},
   {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'浮世', romaji:'Ukiyo', meaning:'The floating world.', note:'Live detached from life\'s anxieties, drifting calmly through its changes.'},
-  {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'山華水明', romaji:'Sanka suimei', meaning:'Purple mountains, clear streams.', note:'A reminder of the pristine, untouched quiet of the natural world.'},
+  {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'山紫水明', romaji:'Sanshi suimei', meaning:'Purple mountains, clear streams.', note:'A reminder of the pristine, untouched quiet of the natural world.'},
   {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'清風明月', romaji:'Seifu meigetsu', meaning:'Pure wind and a bright moon.', note:'True peace requires zero wealth or material possessions.'},
   {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'四季折々', romaji:'Shiki oriori', meaning:'Season by season.', note:'Trust that your current emotional winter will naturally shift into spring.'},
-  {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'大器晩成', romaji:'Taika bansei', meaning:'Great talents mature late.', note:'Do not rush your growth; nature never rushes, yet everything gets done.'},
+  {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'大器晩成', romaji:'Taiki bansei', meaning:'Great talents mature late.', note:'Do not rush your growth; nature never rushes, yet everything gets done.'},
   {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'ちりもつもればやまとなる', romaji:'Chiri mo tsumoreba yama to naru', meaning:'Even dust, when piled up, becomes a mountain.', note:'Calmly make small daily progress.'},
   {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'花鳥風月に遊ぶ', romaji:'Kachou fugetsu ni asobu', meaning:'Play with the flowers, birds, wind, and moon.', note:'Find tranquility by becoming a spectator of nature.'},
-  {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'桂長風微', romaji:'Keichou fubi', meaning:'The cassia tree grows tall while the wind blows gently.', note:'Trust that peaceful environments nurture deep growth.'},
-  {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'水は方円に随う', romaji:'Mizu wa hounen ni shitagau', meaning:'Water shapes itself to any container.', note:'Be like water and adapt effortlessly to your surroundings.'},
+  {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'雪月花', romaji:'Setsugekka', meaning:'Snow, moon and flowers.', note:'The beauty of each season, there to be noticed as it passes.'},
+  {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'水は方円に随う', romaji:'Mizu wa houen ni shitagau', meaning:'Water shapes itself to any container.', note:'Be like water and adapt effortlessly to your surroundings.'},
   {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'生者必滅、会者定離', romaji:'Shousha hitsumetsu, esha jouri', meaning:'All who are born must die; all who meet must part.', note:'Let that truth deepen your appreciation of this specific moment, rather than sadden you.'},
   {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'秋の日は釣瓶落とし', romaji:'Aki no hi wa tsurube otoshi', meaning:'Autumn daylight falls like a well-bucket.', note:'A good day can turn to evening quickly — that\'s a reason to notice it, not to rush it.'},
   {category:'🌿 Nature & Impermanence (Mono no Aware)', jp:'実るほど頭を垂れる稲穂かな', romaji:'Minoru hodo atama wo tareru inaho kana', meaning:'The riper the rice ear, the lower it bows.', note:'Let real growth soften you rather than harden you.'},
@@ -14151,22 +14173,22 @@ const PROVERBS = [
   {category:'🍵 Mindset & Inner Stillness', jp:'明鏡止水', romaji:'Meikyo shisui', meaning:'Clear mirror, still water.', note:'A mind kept so calm and clear that it perfectly reflects reality.'},
   {category:'🍵 Mindset & Inner Stillness', jp:'知足', romaji:'Chisoku', meaning:'Know what is enough.', note:'True wealth and tranquility belong to those who are content with what they have.'},
   {category:'🍵 Mindset & Inner Stillness', jp:'ゆとり', romaji:'Yutori', meaning:'Living with spaciousness.', note:'Leaving breathing room in your schedule, mind, and life.'},
-  {category:'🍵 Mindset & Inner Stillness', jp:'精進潔斎', romaji:'Shoujin ketsujou', meaning:'Purification of the mind and body.', note:'Intentionally clearing away mental clutter to restore your inner sanctuary.'},
+  {category:'🍵 Mindset & Inner Stillness', jp:'精進潔斎', romaji:'Shoujin kessai', meaning:'Purification of the mind and body.', note:'Intentionally clearing away mental clutter to restore your inner sanctuary.'},
   {category:'🍵 Mindset & Inner Stillness', jp:'安心立命', romaji:'Anjin ritsumei', meaning:'Finding absolute peace of mind through faith or philosophy.', note:'Live completely free from existential anxiety.'},
   {category:'🍵 Mindset & Inner Stillness', jp:'初心忘るべからず', romaji:'Shoshin wasuru bekarazu', meaning:'Never forget the beginner\'s spirit.', note:'Approach even the familiar with fresh eyes — it keeps you curious instead of jaded.'},
   {category:'🍵 Mindset & Inner Stillness', jp:'知らぬが仏', romaji:'Shiranu ga hotoke', meaning:'Not knowing is Buddha.', note:'You don\'t have to have an opinion on everything — some peace comes from simply not checking.'},
   {category:'🍵 Mindset & Inner Stillness', jp:'沈黙は金', romaji:'Chinmoku wa kin', meaning:'Silence is gold.', note:'A quiet response is still a complete one — you don\'t owe every moment a reaction.'},
   {category:'🍵 Mindset & Inner Stillness', jp:'温故知新', romaji:'Onko chishin', meaning:'Cherish the old to know the new.', note:'Let old memories and old lessons inform you gently rather than pulling you backward.'},
   {category:'🍵 Mindset & Inner Stillness', jp:'腹八分目に医者いらず', romaji:'Hara hachibunme ni isha irazu', meaning:'Eat until eighty percent full and you won\'t need a doctor.', note:'Enough is a completeness of its own; you don\'t need to fill every last space.'},
-  {category:'🪵 Resilience & Subtle Strength', jp:'柳に雪折れなし', romaji:'Yanagi ni yukioro nashi', meaning:'The willow branches do not break under the snow.', note:'Yielding and being flexible is your greatest strength.'},
+  {category:'🪵 Resilience & Subtle Strength', jp:'柳に雪折れなし', romaji:'Yanagi ni yukiore nashi', meaning:'The willow branches do not break under the snow.', note:'Yielding and being flexible is your greatest strength.'},
   {category:'🪵 Resilience & Subtle Strength', jp:'雨降って地固まる', romaji:'Ame futte ji katamaru', meaning:'After rain, the ground hardens.', note:'Adversity only serves to make your foundation more stable.'},
   {category:'🪵 Resilience & Subtle Strength', jp:'我慢', romaji:'Gaman', meaning:'Enduring the seemingly unbearable with patience and dignity.', note:'Keep your composure through internal discipline.'},
   {category:'🪵 Resilience & Subtle Strength', jp:'人間万事塞翁が馬', romaji:'Ningen banji saiou ga uma', meaning:'Life is like the horse of the old man at the frontier.', note:'Bad luck can be good luck in disguise, so stay even-tempered.'},
-  {category:'🪵 Resilience & Subtle Strength', jp:'駿馬東風', romaji:'Shunba toufu', meaning:'Like the east wind blowing past a swift horse.', note:'Let criticisms and worries brush past you without leaving a scratch.'},
-  {category:'🪵 Resilience & Subtle Strength', jp:'泣いてる水に魚住む', romaji:'Naiteru mizu ni sakana sumu', meaning:'Fish live even in weeping waters.', note:'Life can still thrive and be beautiful during sad times.'},
-  {category:'🪵 Resilience & Subtle Strength', jp:'大気静寂', romaji:'Taiki seijaku', meaning:'Deep atmosphere, profound silence.', note:'Cultivate a quiet, vast presence that cannot be easily disturbed.'},
+  {category:'🪵 Resilience & Subtle Strength', jp:'雨垂れ石を穿つ', romaji:'Amadare ishi wo ugatsu', meaning:'Dripping rain wears through stone.', note:'Small, steady effort achieves what force cannot.'},
+  {category:'🪵 Resilience & Subtle Strength', jp:'石の上にも三年', romaji:'Ishi no ue ni mo sannen', meaning:'Three years even on a stone.', note:'Sit with something long enough and even a cold stone grows warm.'},
+  {category:'🪵 Resilience & Subtle Strength', jp:'失敗は成功のもと', romaji:'Shippai wa seikou no moto', meaning:'Failure is the root of success.', note:'Every mistake is part of the path, not a detour from it.'},
   {category:'🪵 Resilience & Subtle Strength', jp:'以心伝心', romaji:'Ishin-denshin', meaning:'Heart to heart communication.', note:'Quietly understanding others without the need for loud, exhausting words.'},
-  {category:'🪵 Resilience & Subtle Strength', jp:'常個の春', romaji:'Toko no haru', meaning:'An eternal spring within.', note:'Cultivating a mindset so warm that it stays calm even during life\'s winters.'},
+  {category:'🪵 Resilience & Subtle Strength', jp:'継続は力なり', romaji:'Keizoku wa chikara nari', meaning:'Continuing is strength.', note:'Keep going, a little at a time - persistence is its own power.'},
   {category:'🪵 Resilience & Subtle Strength', jp:'風波を凌ぐ', romaji:'Fuuha wo shinogu', meaning:'Weathering the wind and waves.', note:'Remind yourself that you have the quiet strength to ride out any temporary storm.'},
   {category:'🪵 Resilience & Subtle Strength', jp:'良薬は口に苦し', romaji:'Ryouyaku wa kuchi ni nigashi', meaning:'Good medicine tastes bitter.', note:'Let a hard truth or a hard season do its work — discomfort is not the same as harm.'},
   {category:'🪵 Resilience & Subtle Strength', jp:'苦あれば楽あり', romaji:'Ku areba raku ari', meaning:'Where there is hardship, there is also ease.', note:'Whatever hard stretch you\'re in is already, quietly, making room for its opposite.'},
@@ -14174,12 +14196,12 @@ const PROVERBS = [
   {category:'🪵 Resilience & Subtle Strength', jp:'二兎を追う者は一兎をも得ず', romaji:'Nito wo ou mono wa itto wo mo ezu', meaning:'Chase two rabbits, catch neither.', note:'Choosing one thing to give your full attention to isn\'t a loss — it\'s how anything gets done well.'},
   {category:'🪵 Resilience & Subtle Strength', jp:'待てば海路の日和あり', romaji:'Mateba kairo no hiyori ari', meaning:'Wait, and fair sailing weather will come.', note:'If the timing feels wrong, that\'s information, not failure — hold steady and let it turn.'},
   {category:'🌊 Harmony & Balance', jp:'和', romaji:'Wa', meaning:'Harmony.', note:'Living in pursuit of harmony, balance, and peaceful coexistence with all things.'},
-  {category:'🌊 Harmony & Balance', jp:'柔よく剛を制す', romaji:'Juu noku gou wo seisu', meaning:'Softness overcomes hardness.', note:'Gentleness is far more powerful than force.'},
-  {category:'🌊 Harmony & Balance', jp:'陰応', romaji:'In-ou', meaning:'The quiet harmony of yin and yang.', note:'Accepting that life requires a balance of rest and action, dark and light.'},
+  {category:'🌊 Harmony & Balance', jp:'柔よく剛を制す', romaji:'Juu yoku gou wo seisu', meaning:'Softness overcomes hardness.', note:'Gentleness is far more powerful than force.'},
+  {category:'🌊 Harmony & Balance', jp:'持ちつ持たれつ', romaji:'Mochitsu motaretsu', meaning:'Supporting and being supported.', note:'Give help freely, and let yourself accept it too.'},
   {category:'🌊 Harmony & Balance', jp:'生き甲斐', romaji:'Ikigai', meaning:'A reason for being.', note:'Finding peace by focusing purely on what brings you quiet joy and purpose.'},
-  {category:'🌊 Harmony & Balance', jp:'沈んでもまた浮かぶ', romaji:'Shizun de mo mata ukabu', meaning:'Even if you sink, you will float to the top again.', note:'Trust the natural buoyancy of your spirit.'},
-  {category:'🌊 Harmony & Balance', jp:'清々颯々', romaji:'Seiseitsuatsatsu', meaning:'Pure, fresh, and rustling like the wind.', note:'The feeling of a mind cleared of clutter.'},
-  {category:'🌊 Harmony & Balance', jp:'穏良慈筆', romaji:'Onryo jihitsu', meaning:'Gentle, kind, and compassionate.', note:'Treat your own mistakes with this exact mindset.'},
+  {category:'🌊 Harmony & Balance', jp:'沈む瀬あれば浮かぶ瀬あり', romaji:'Shizumu se areba ukabu se ari', meaning:'Where there are shallows that sink you, there are shallows that lift you.', note:'Life has its downs and its ups - a low point never lasts forever.'},
+  {category:'🌊 Harmony & Balance', jp:'和を以て貴しと為す', romaji:'Wa wo motte toutoshi to nasu', meaning:'Harmony is to be valued above all.', note:'Choosing peace with others is a strength, not a weakness.'},
+  {category:'🌊 Harmony & Balance', jp:'思いやり', romaji:'Omoiyari', meaning:'Consideration for others.', note:'Offer yourself the same kindness you would offer a friend.'},
   {category:'🌊 Harmony & Balance', jp:'幽玄', romaji:'Yugen', meaning:'A profound, mysterious sense of the beauty of the universe.', note:'Leaves your daily anxieties feeling distant and small.'},
   {category:'🌊 Harmony & Balance', jp:'三人寄れば文殊の知恵', romaji:'Sannin yoreba Monju no chie', meaning:'When three gather, the wisdom of Manjushri appears.', note:'You don\'t have to solve everything alone — invite others in and let the answer emerge between you.'},
   {category:'🌊 Harmony & Balance', jp:'類は友を呼ぶ', romaji:'Rui wa tomo wo yobu', meaning:'Like calls to like.', note:'Notice who and what you\'re drawn to — it says something true about where you already are.'},
@@ -14208,17 +14230,42 @@ function maybeShowDailyProverbs() {
   showProverbOverlay(shuffle([...PROVERBS]).slice(0, 2));
 }
 
+// Category -> colour key + faint corner motif, ported from the Japan trip
+// app (categoryKey / proverbMotifSvg there) so the two apps' proverb cards
+// match: blossom, leaf, mountain, wave, stacked stones.
+function proverbCategoryKey(category) {
+  if (category.includes('Acceptance')) return 'rose';
+  if (category.includes('Nature') || category.includes('Impermanence')) return 'teal';
+  if (category.includes('Mindset') || category.includes('Inner Stillness')) return 'wood';
+  if (category.includes('Resilience') || category.includes('Subtle Strength')) return 'sky';
+  if (category.includes('Harmony') || category.includes('Balance')) return 'lavender';
+  return 'rose';
+}
+function proverbMotifSvg(key) {
+  const shapes = {
+    rose: '<g fill="currentColor"><circle cx="50" cy="30" r="12"/><circle cx="72" cy="45" r="12"/><circle cx="63" cy="70" r="12"/><circle cx="37" cy="70" r="12"/><circle cx="28" cy="45" r="12"/><circle cx="50" cy="48" r="9"/></g>',
+    teal: '<path d="M50,10 C80,25 85,55 50,92 C15,55 20,25 50,10 Z" fill="currentColor"/><path d="M50,22 L50,84" stroke="var(--surface)" stroke-width="3" opacity=".5"/>',
+    wood: '<path d="M6,82 L28,40 L40,58 L55,14 L70,55 L90,42 L96,82 Z" fill="currentColor"/><path d="M55,14 L64,30 L46,30 Z" fill="var(--surface)" opacity=".22"/>',
+    sky: '<path d="M8,58 C28,40 40,40 50,52 C60,40 72,40 92,58 C72,50 62,54 50,68 C38,54 28,50 8,58 Z" fill="currentColor"/>',
+    lavender: '<ellipse cx="50" cy="80" rx="26" ry="9" fill="currentColor"/><ellipse cx="50" cy="55" rx="19" ry="8" fill="currentColor"/><ellipse cx="50" cy="34" rx="12" ry="7" fill="currentColor"/>',
+  };
+  return `<svg class="proverb-motif" viewBox="0 0 100 100" aria-hidden="true">${shapes[key] || shapes.rose}</svg>`;
+}
+
 function showProverbOverlay(proverbs) {
   const list = document.getElementById('proverb-list');
   const overlay = document.getElementById('proverb-overlay');
   if (!list || !overlay) return;
   list.innerHTML = proverbs.map(p => {
+    // Category label without its leading emoji - the colour and corner
+    // motif now carry the category (same as the Japan trip app).
     const spaceIdx = p.category.indexOf(' ');
-    const catEmoji = spaceIdx === -1 ? p.category : p.category.slice(0, spaceIdx);
-    const catLabel = spaceIdx === -1 ? '' : p.category.slice(spaceIdx + 1);
+    const catLabel = spaceIdx === -1 ? p.category : p.category.slice(spaceIdx + 1);
+    const key = proverbCategoryKey(p.category);
     return `
-    <div class="proverb-entry">
-      <div class="proverb-category"><span class="proverb-category-emoji">${catEmoji}</span> ${catLabel}</div>
+    <div class="proverb-entry cat-${key}">
+      ${proverbMotifSvg(key)}
+      <div class="proverb-category">${catLabel}</div>
       <div class="proverb-jp">${p.jp}</div>
       <div class="proverb-romaji">${p.romaji}</div>
       <div class="proverb-meaning">${p.meaning}</div>
