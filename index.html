@@ -1275,7 +1275,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261003.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261004.001</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -7088,7 +7088,7 @@ function buildKanjiTileGrid(sectionKey) {
   data.forEach((item, idx) => {
     const tile = document.createElement('div');
     tile.className = 'kana-ref-card';
-    tile.innerHTML = `<span class="kana-ref-char">${item.char}</span><span class="kana-ref-rom">${item.answer}</span>`;
+    tile.innerHTML = `<span class="kana-ref-char">${markSmallKana(item.char)}</span><span class="kana-ref-rom">${item.answer}</span>`;
     const scoreKey = item.char + '|' + item.answer;
     tile.dataset.scoreKey = scoreKey;
     const scoreClass = kanaScoreClass(scoreKey);
@@ -7608,7 +7608,9 @@ function buildVocabTileGrid(categoryKey) {
       charSize = tileKanaFontSize(item.jp);
       mainText = item.jp;
     }
-    tile.innerHTML = `<span class="kana-ref-char" style="font-size:${charSize};">${mainText}</span><span class="kana-ref-rom">${item.en}</span>`;
+    // Small kana (っ ゃ ょ…) wrapped so they render visibly smaller - the
+    // missing wrap here made ちょっと read as chi-yo-tsu-to (fixed 2026-10-04).
+    tile.innerHTML = `<span class="kana-ref-char" style="font-size:${charSize};">${romajiView ? mainText : markSmallKana(mainText)}</span><span class="kana-ref-rom">${item.en}</span>`;
     const scoreKey = item.jp + '|' + item.en;
     tile.dataset.scoreKey = scoreKey;
     const scoreClass = kanaScoreClass(scoreKey);
@@ -10909,7 +10911,7 @@ function buildKanaSectionGrid(containerId, section) {
       const card = document.createElement('div');
       card.className = char ? 'kana-ref-card' : 'kana-ref-card empty';
       if (char) {
-        card.innerHTML = `<span class="kana-ref-char">${char}</span><span class="kana-ref-rom">${rom}</span>`;
+        card.innerHTML = `<span class="kana-ref-char">${markSmallKana(char)}</span><span class="kana-ref-rom">${rom}</span>`;
         card.dataset.scoreKey = char;
         const scoreClass = kanaScoreClass(char);
         if (scoreClass) card.classList.add(scoreClass);
@@ -14266,7 +14268,7 @@ function showProverbOverlay(proverbs) {
     <div class="proverb-entry cat-${key}">
       ${proverbMotifSvg(key)}
       <div class="proverb-category">${catLabel}</div>
-      <div class="proverb-jp">${p.jp}</div>
+      <div class="proverb-jp">${markSmallKana(p.jp)}</div>
       <div class="proverb-romaji">${p.romaji}</div>
       <div class="proverb-meaning">${p.meaning}</div>
       <div class="proverb-note">${p.note}</div>
