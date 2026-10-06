@@ -88,11 +88,15 @@
     and focus just on what's being taught in class.
   </p>
 
+  <h2>Opening screen</h2>
+  <p>The first time you open the app each day you get a greeting, today's date and the time — all in Japanese, with the romaji and English underneath, so you see them read out every day: おはようございます in the morning (until 11am), こんにちは during the day, こんばんは from 6pm. Tap any of the three lines to hear it. Two Japanese sayings follow underneath. Tapping 日本語 at the top of the app brings the screen back any time with a fresh pair.</p>
+
   <h2>Sound</h2>
   <p>The speaker button next to ⚙ at the top switches all sound on or off. Off means the app makes no sound at all — handy if you're listening to music, since some phones pause it the moment an app speaks. While it's off, the drill's "hear it" button and "Tap a card to hear it" are greyed out, and holding a card shows its other spelling without saying it. The app remembers your choice.</p>
   <p><strong>No sound on an iPhone or iPad?</strong> Check the phone isn't in silent mode — on most iPhones that's the switch on the side (orange showing = silent), on an iPad (and newer iPhones) it's the bell in Control Centre. Silent mode mutes the app's speech without any warning, even when the app's own sound button is on. Also make sure the volume is up, and that a Japanese voice is available under Settings → Accessibility → Spoken Content → Voices.</p>
 
   <h2>Settings</h2>
+  <p>The app works offline automatically — once it's been opened with a signal, it still opens without one. (There used to be a switch for this; it's now always on. With a signal you always get the latest version.)</p>
   <div class="setting">
     <div class="setting-name">Light theme</div>
     <div class="setting-desc">Switches from a dark to light theme.</div>
@@ -110,16 +114,12 @@
     <div class="setting-desc">Confidence scores now quietly fade back toward neutral the longer a word goes unpractised — never past neutral, and never for words you've actually got wrong (those stay exactly as they are until you're tested on them again, not gradually recovering just by being left alone, and not getting worse for it either). This always affects which words come up more often in the random drills. This setting is just about whether it also affects the colours you see on tiles and cards — off by default, so colours only ever change when you're actually tested.</div>
   </div>
   <div class="setting">
-    <div class="setting-name">Work offline</div>
-    <div class="setting-desc">Caches the application so it doesn't need to be online to work. It's a very small app so this doesn't really get in the way. It's a Progressive Web App, which means it's just a webpage that tries to pretend it's not in a browser.</div>
-  </div>
-  <div class="setting">
     <div class="setting-name">Untaught vocabulary</div>
     <div class="setting-desc">Everything outside the taught Level 1/2/3 course lives behind this one switch — trip words (food, money, directions, emergencies, tourist phrases), real words and phrases pulled from photos I've actually taken in Japan (signs, menus, receipts, announcements), and any private word lists you've loaded on this device, such as Genki textbook vocab (see Private vocab below). This used to be three separate switches — "Trip vocabulary", "Andrew mode", and "Genki vocabulary" — split by where the content came from. That split didn't actually mean anything useful any more, so they merged into this one toggle; Private word lists (like Genki) lead the list here, just after Tourist essentials. Any Genki word that's already taught in the course keeps showing up in its usual place too — this just adds a second way to find it, nothing is duplicated or replaced. This entire section will only appear if you turn it on — otherwise the whole app will act as if none of this exists.</div>
   </div>
   <div class="setting">
-    <div class="setting-name">Activate Andrew mode</div>
-    <div class="setting-desc">Whatever mad scheme I'm working on next will be visible by turning this on. Its last occupant — "Materials", the photo-sourced vocab — graduated into Untaught vocabulary above, so this is currently empty. That's expected, not a bug: it's a standing staging area for whatever comes next (an intensive N5 course is the most likely next tenant), not a fixed content bucket. It's turned off by default.</div>
+    <div class="setting-name">Share this app</div>
+    <div class="setting-desc">At the bottom of Settings there's a QR code for the app — let a friend scan it with their phone camera to open it straight away. Underneath is a link to <strong>Kanji strokes</strong>, a companion app for practising writing hiragana and katakana stroke by stroke (kanji too, when you get there).</div>
   </div>
 
   <div class="setting">
@@ -192,7 +192,7 @@
   <p><strong>Hold to peek:</strong> on any word list, hold a card for about half a second and a bubble pops up above it (or beside it, near the top of the screen) showing the kana, the romaji and the English, and says the word if sound is on. Once it's showing, a slight wobble of your finger won't close it — only lifting your finger does. It's a peek rather than a switch, so the list keeps testing you on the kana, and it doesn't affect your scores.</p>
 
   <h3>Search</h3>
-  <p>There's a search pill next to the level tabs (it takes the full width unless Andrew mode is switched on, in which case the Andrew pill moves to its right). Type at least two characters and press enter — it only searches when you submit, not as you type. It matches the start of any word in the English meaning or the romaji, so partial words still work ("cred" finds "credit card") but coincidental letter runs in the middle of a word don't ("up" won't match inside "supermarket" just because the letters happen to sit next to each other). It only searches real taught or added vocabulary, never the extra background sentences shown as context on some Untaught cards. Results respect whatever you've currently got switched on — Untaught and Andrew words only turn up if those are on — and take you to the normal selection screen to drill whichever ones you pick, colour-coded by which level they're from.</p>
+  <p>There's a search pill next to the level tabs. Type at least two characters and press enter — it only searches when you submit, not as you type. It matches the start of any word in the English meaning or the romaji, so partial words still work ("cred" finds "credit card") but coincidental letter runs in the middle of a word don't ("up" won't match inside "supermarket" just because the letters happen to sit next to each other). It only searches real taught or added vocabulary, never the extra background sentences shown as context on some Untaught cards. Results respect whatever you've currently got switched on — Untaught and Andrew words only turn up if those are on — and take you to the normal selection screen to drill whichever ones you pick, colour-coded by which level they're from.</p>
 
   <h3>Collections</h3>
   <p>The normal reading challenges work on individual categories in one level of the course. Collections can go across levels and can also include words from any additional categories that you've got turned on. This pulls together combinations like "All vocabulary" as well as more specific collections of categories like "Transport and UK Places", "Around the world" (countries and cities), and so on. Kanji has its own version of this now - see Kanji drilling above.</p>
@@ -316,8 +316,6 @@
   <p>If you have Untaught turned on, this vocabulary will feed into the Collections above, into search, and into the "random words" tests. If it's turned off you'll never see it, in any of those places.</p>
   <div class="note">"Highlight the meaning instead of sound", "Reverse the drill direction", and "Type the reading instead of choosing" are all available here.</div>
 
-  <h3>Andrew mode</h3>
-  <p>Only appears if you've got it switched on. Whatever mad scheme I'm testing at the moment, kept separate from Untaught vocabulary above since it's a genuinely different kind of thing — a workbench, not a finished tier. Its last occupant, "Materials" (the photo-sourced vocab), graduated into Untaught vocabulary, so it's currently empty. That's the expected steady state between experiments, not a bug — whatever lands here next is being tried out before it's decided whether it becomes core, or its own gated tier the way Untaught vocabulary did.</p>
 
   <div class="footer">
     <a class="back-link" href="./index.html">← Back to the app</a>
