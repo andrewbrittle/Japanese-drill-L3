@@ -1146,7 +1146,17 @@
      all in Japanese (kana, since kanji isn't taught yet) with romaji and
      English underneath, for familiarity with greetings, dates and times.
      Each line can be tapped to hear it. */
-  .proverb-greeting { text-align: center; margin-bottom: 1rem; padding-bottom: 0.9rem; border-bottom: 1px solid var(--border); }
+  .proverb-greeting, .proverb-sentence {
+    text-align: center; border: 1px solid var(--accent); border-radius: 12px;
+    background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+    padding: 0.8rem 0.9rem; margin-bottom: 0.9rem;
+  }
+  .proverb-sentence-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); margin-bottom: 6px; }
+  .sg-line { cursor: pointer; border-radius: var(--radius); padding: 2px 4px; }
+  .sg-line + .sg-line { margin-top: 0.6rem; }
+  .sg-jp { font-family: 'BIZ UDPGothic', sans-serif; font-weight: 700; font-size: 18px; color: var(--text); line-height: 1.4; }
+  .sg-ro { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-top: 2px; }
+  .sg-en { font-size: 13px; color: var(--text-dim); font-style: italic; margin-top: 1px; }
   .pg-line { cursor: pointer; border-radius: var(--radius); padding: 2px 4px; }
   .pg-line + .pg-line { margin-top: 0.55rem; }
   .pg-jp { font-family: 'BIZ UDPGothic', sans-serif; font-weight: 700; font-size: 17px; color: var(--text); line-height: 1.3; }
@@ -1182,6 +1192,7 @@
   <div class="proverb-overlay" id="proverb-overlay" onclick="if (event.target === this) dismissProverbOverlay();">
     <div class="proverb-card">
       <div class="proverb-greeting" id="proverb-greeting"></div>
+      <div class="proverb-sentence" id="proverb-sentence"></div>
       <div id="proverb-list"></div>
       <button class="start-btn" onclick="dismissProverbOverlay()">Continue</button>
     </div>
@@ -1308,7 +1319,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261006.001</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261006.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -8832,7 +8843,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-06';
+const LATEST_CHANGELOG_ENTRY = '2026-10-06b';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -14253,7 +14264,7 @@ function maybeShowDailyProverbs() {
     // localStorage write in this file. Worst case it shows again next
     // load, which is harmless.
   }
-  showProverbOverlay(shuffle([...PROVERBS]).slice(0, 2));
+  showProverbOverlay(shuffle([...PROVERBS]).slice(0, 1));
 }
 
 // Category -> colour key + faint corner motif, ported from the Japan trip
@@ -14276,6 +14287,486 @@ function proverbMotifSvg(key) {
     lavender: '<ellipse cx="50" cy="80" rx="26" ry="9" fill="currentColor"/><ellipse cx="50" cy="55" rx="19" ry="8" fill="currentColor"/><ellipse cx="50" cy="34" rx="12" ry="7" fill="currentColor"/>',
   };
   return `<svg class="proverb-motif" viewBox="0 0 100 100" aria-hidden="true">${shapes[key] || shapes.rose}</svg>`;
+}
+
+// SENTENCE OF THE DAY (2026-10-06) - builds a short sentence or a
+// question-and-answer pair from TAUGHT vocab only, using fixed patterns
+// whose slots each carry their own rules (tense, particles, which places
+// and times make sense together). Words are looked up by kana among taught
+// items (l3TaughtItem) so romaji always matches the drills; any word that
+// isn't found simply drops out of its pool. English is written per pattern
+// rather than derived from glosses, which aren't sentence-ready.
+//
+// Grammar used = what the course has covered: は topic, を object, に
+// destination / time / person met, で place of action / transport, と "with"
+// and "and", や "things like", の possession, から/まで with times,
+// frequency words (negative verb after あまり/ぜんぜん), ます / ません /
+// ました / ませんでした, です, and question words なに/どこ/だれ/いつ/なんじ.
+//
+// Kana is written with a space between every word AND before each particle
+// (ともだち は がっこう に いきます) so it lines up word-for-word with the
+// romaji - Andrew's request while continuous kana is still hard to parse.
+//
+// GROWING IT: each lesson, add the new taught words to the lists below
+// (verb objects/places, SG_DEST, SG_TIMES, SG_JOBS...) with any rule they
+// need, then generate a few thousand sentences in a headless browser
+// (sgRand can be swapped for a seeded generator) and read/scan them
+// before release - see the handover note. Untaught words are skipped
+// automatically, so adding ahead of the course is harmless.
+
+const SG_TIMES = {
+  // tenses: which verb tenses the word can go with. span: 'day' (ordinary
+  // outings and activities), 'long' (trips abroad only).
+  まいにち: { en: 'every day', tenses: ['hab'] },
+  まいあさ: { en: 'every morning', tenses: ['hab'], morning: true },
+  あさ: { en: 'in the morning', tenses: ['hab'], morning: true, freqOk: true },
+  ひる: { en: 'at lunchtime', tenses: ['hab'], freqOk: true },
+  よる: { en: 'in the evening', tenses: ['hab'], evening: true, freqOk: true },
+  しゅうまつ: { en: { hab: 'at weekends', fut: 'at the weekend', past: 'at the weekend' }, tenses: ['hab', 'fut', 'past'], weekend: true, freqOk: true },
+  きょう: { en: 'today', tenses: ['fut'] },
+  あした: { en: 'tomorrow', tenses: ['fut'] },
+  あさって: { en: 'the day after tomorrow', tenses: ['fut'] },
+  こんばん: { en: 'tonight', tenses: ['fut'], evening: true },
+  らいしゅう: { en: 'next week', tenses: ['fut'], outing: true },
+  きのう: { en: 'yesterday', tenses: ['past'] },
+  おととい: { en: 'the day before yesterday', tenses: ['past'] },
+  けさ: { en: 'this morning', tenses: ['past'], morning: true },
+  せんしゅう: { en: 'last week', tenses: ['past'], outing: true },
+  らいげつ: { en: 'next month', tenses: ['fut'], long: true },
+  らいねん: { en: 'next year', tenses: ['fut'], long: true },
+  せんげつ: { en: 'last month', tenses: ['past'], long: true },
+  きょねん: { en: 'last year', tenses: ['past'], long: true },
+};
+const SG_DAYS = [['げつようび', 'Monday'], ['かようび', 'Tuesday'], ['すいようび', 'Wednesday'], ['もくようび', 'Thursday'], ['きんようび', 'Friday'], ['どようび', 'Saturday', true], ['にちようび', 'Sunday', true]];
+
+const SG_FREQ = [
+  { jp: 'いつも', en: 'always', neg: false }, { jp: 'よく', en: 'often', neg: false }, { jp: 'ときどき', en: 'sometimes', neg: false },
+  { jp: 'あまり', en: 'not often', neg: true }, { jp: 'ぜんぜん', en: 'never', neg: true },
+];
+
+// English verb forms, keyed by the first word of a phrase.
+const SG_VERB_EN = {
+  eat: ['eats', 'ate'], drink: ['drinks', 'drank'], have: ['has', 'had'], watch: ['watches', 'watched'], listen: ['listens', 'listened'],
+  read: ['reads', 'read'], write: ['writes', 'wrote'], buy: ['buys', 'bought'], take: ['takes', 'took'], play: ['plays', 'played'],
+  do: ['does', 'did'], go: ['goes', 'went'], cook: ['cooks', 'cooked'], study: ['studies', 'studied'], dance: ['dances', 'danced'],
+  get: ['gets', 'got'], work: ['works', 'worked'], rest: ['rests', 'rested'], meet: ['meets', 'met'], come: ['comes', 'came'],
+};
+function sgVerbEn(phrase, form) { // form: base | third | past
+  if (form === 'base') return phrase;
+  const [first, ...rest] = phrase.split(' ');
+  const f = SG_VERB_EN[first]; const w = f ? f[form === 'third' ? 0 : 1] : first;
+  return [w, ...rest].join(' ');
+}
+
+// Verbs with their own object lists. noun = English for lists with と/や
+// (eat/drink/buy only); place = where the activity can happen (で).
+const SG_OBJECT_VERBS = [
+  { v: 'たべます', en: 'eat', list: true, objs: [['パン', 'bread'], ['ごはん', 'rice'], ['たまご', 'eggs'], ['さかな', 'fish'], ['にく', 'meat'], ['やさい', 'vegetables'], ['くだもの', 'fruit'], ['サラダ', 'salad'], ['ラーメン', 'ramen'], ['パスタ', 'pasta'], ['すし', 'sushi'], ['カレー', 'curry'], ['てんぷら', 'tempura']], places: ['うち', 'レストラン', 'カフェ', 'きっさてん', 'しょくどう'], futHave: true },
+  { v: 'のみます', en: 'drink', list: true, objs: [['コーヒー', 'coffee'], ['おちゃ', 'green tea'], ['こうちゃ', 'black tea'], ['ジュース', 'juice'], ['ぎゅうにゅう', 'milk'], ['みず', 'water'], ['ビール', 'beer'], ['ワイン', 'wine']], places: ['うち', 'カフェ', 'きっさてん', 'レストラン'], futHave: true },
+  { v: 'かいます', en: 'buy', list: true, objs: [['パン', 'bread'], ['たまご', 'eggs'], ['やさい', 'vegetables'], ['くだもの', 'fruit'], ['にく', 'meat'], ['さかな', 'fish'], ['ぎゅうにゅう', 'milk'], ['ジュース', 'juice']], places: ['スーパー', 'コンビニ', 'デパート'] },
+  { v: 'かいます', en: 'buy', objs: [['ほん', 'books', 'a book'], ['ざっし', 'magazines', 'a magazine']], places: ['ほんや', 'コンビニ'] },
+  { v: 'かいます', en: 'buy', objs: [['カメラ', 'cameras', 'a camera']], places: ['カメラや', 'デパート'], once: true },
+  { v: 'みます', en: 'watch', objs: [['テレビ', 'TV', 'TV'], ['ニュース', 'the news', 'the news']], places: ['うち'] },
+  { v: 'みます', en: 'watch', objs: [['えいが', 'films', 'a film']], places: ['うち', 'えいがかん'] },
+  { v: 'ききます', en: 'listen to', objs: [['おんがく', 'music', 'music'], ['ラジオ', 'the radio', 'the radio']], places: ['うち'] },
+  { v: 'よみます', en: 'read', objs: [['ほん', 'books', 'a book'], ['しんぶん', 'the newspaper', 'the newspaper'], ['ざっし', 'magazines', 'a magazine']], places: ['うち', 'カフェ', 'きっさてん', 'としょかん'] },
+  { v: 'かきます', en: 'write', objs: [['メール', 'emails', 'an email'], ['てがみ', 'letters', 'a letter'], ['レポート', 'reports', 'a report']], places: ['うち', 'かいしゃ'] },
+  { v: 'とります', en: 'take', objs: [['しゃしん', 'photos', 'photos']], places: ['こうえん'] },
+  // します: English phrase is whole (play tennis, go swimming).
+  { v: 'します', phrase: true, objs: [['テニス', 'play tennis'], ['サッカー', 'play football'], ['ゴルフ', 'play golf']], places: ['こうえん'] },
+  { v: 'します', phrase: true, objs: [['すいえい', 'go swimming']], places: ['プール'] },
+  { v: 'します', phrase: true, objs: [['ピクニック', 'have a picnic'], ['バーベキュー', 'have a barbecue']], places: ['こうえん'], outing: true },
+  { v: 'します', phrase: true, objs: [['ゲーム', 'play games'], ['りょうり', 'cook'], ['ガーデニング', 'do some gardening']], places: ['うち'] },
+  { v: 'します', phrase: true, objs: [['べんきょう', 'study']], places: ['うち', 'としょかん', 'だいがく'] },
+  { v: 'します', phrase: true, objs: [['しごと', 'work']], places: ['うち', 'かいしゃ'], workObj: true },
+  { v: 'します', phrase: true, objs: [['カラオケ', 'do karaoke']], places: [] },
+];
+const SG_PLACE_EN = {
+  うち: ['at home'], レストラン: ['at a restaurant'], カフェ: ['at a café'], きっさてん: ['at a coffee shop'], しょくどう: ['in the canteen'],
+  スーパー: ['at the supermarket'], コンビニ: ['at the convenience store'], デパート: ['at the department store'], ほんや: ['at the bookshop'],
+  カメラや: ['at the camera shop'], えいがかん: ['at the cinema'], としょかん: ['at the library'], だいがく: ['at university'],
+  かいしゃ: ['at the office'], こうえん: ['in the park'], プール: ['at the pool'],
+};
+
+// Destinations for いきます. kind: daily (fine every day / every morning),
+// outing (occasional), event (go to a show), weekday (closed evenings and
+// weekends), study/work (not at weekends).
+const SG_DEST = {
+  がっこう: ['to school', 'work'], だいがく: ['to university', 'work'], かいしゃ: ['to work', 'work'],
+  えき: ['to the station', 'daily'], ジム: ['to the gym', 'daily'], こうえん: ['to the park', 'daily'], スーパー: ['to the supermarket', 'daily'],
+  コンビニ: ['to the convenience store', 'daily'], カフェ: ['to a café', 'daily'], きっさてん: ['to a coffee shop', 'daily'], としょかん: ['to the library', 'daily'],
+  プール: ['to the pool', 'daily'],
+  レストラン: ['to a restaurant', 'outing'], デパート: ['to the department store', 'outing'], ほんや: ['to the bookshop', 'outing'],
+  カメラや: ['to the camera shop', 'outing'], えいがかん: ['to the cinema', 'outing'], びじゅつかん: ['to the art museum', 'outing'],
+  ゆうえんち: ['to an amusement park', 'outing'],
+  ぎんこう: ['to the bank', 'weekday'], ゆうびんきょく: ['to the post office', 'weekday'], びょういん: ['to the hospital', 'weekday'],
+  ロックコンサート: ['to a rock concert', 'event'], ミュージカル: ['to a musical', 'event'], オペラ: ['to the opera', 'event'],
+};
+const SG_TRANSPORT = [['でんしゃ', 'by train'], ['バス', 'by bus'], ['ちかてつ', 'by underground'], ['じてんしゃ', 'by bike'], ['くるま', 'by car'], ['タクシー', 'by taxi'], ['バイク', 'by motorbike'], ['あるいて', 'on foot', true]];
+const SG_COUNTRIES = ['にほん', 'フランス', 'イタリア', 'スペイン', 'ドイツ', 'アメリカ', 'カナダ', 'オーストラリア', 'かんこく', 'ちゅうごく', 'タイ', 'ベトナム', 'メキシコ', 'ブラジル', 'インド', 'シンガポール'];
+
+// Family words are the polite forms, used for SOMEONE ELSE'S family, so
+// they only ever appear as ともだちの / [name]の + family word. おとうと and
+// いもうと are left out: for someone else's younger siblings the polite
+// forms (おとうとさん, いもうとさん) aren't taught yet.
+const SG_FAMILY = [['おかあさん', 'mother'], ['おとうさん', 'father'], ['おにいさん', 'older brother'], ['おねえさん', 'older sister'], ['おじいさん', 'grandfather'], ['おばあさん', 'grandmother']];
+// Jobs, each with the workplace that goes with it.
+const SG_JOBS = [['いしゃ', 'a doctor', 'びょういん', 'at the hospital'], ['ぎんこういん', 'a bank clerk', 'ぎんこう', 'at the bank'], ['かいしゃいん', 'an office worker', 'かいしゃ', 'at the office'],
+  ['エンジニア', 'an engineer', 'かいしゃ', 'at the office'], ['デザイナー', 'a designer', 'かいしゃ', 'at the office'], ['せんせい', 'a teacher', 'がっこう', 'at the school'],
+  ['がくせい', 'a student', 'だいがく', 'at university'], ['けんきゅうしゃ', 'a researcher', 'だいがく', 'at the university'], ['べんごし', 'a lawyer', 'じむしょ', 'at the office']];
+
+// ---------------------------------------------------------------------
+let sgRand = Math.random;
+const sgPick = arr => arr[Math.floor(sgRand() * arr.length)];
+const sgChance = p => sgRand() < p;
+function sgW(jp) { // taught word -> {jp, ro}; null if not taught
+  if (jp === 'わたし') return { jp, ro: 'watashi' };
+  const name = SENTENCE_NAME_POOL.find(n => n.jp === jp);
+  if (name) return { jp, ro: name.romaji.replace(/^(.)/, c => c.toUpperCase()).replace('-san', '-san') };
+  const it = l3TaughtItem(jp);
+  return it ? { jp, ro: it.romaji } : null;
+}
+function sgOk(...jps) { return jps.every(j => sgW(j)); }
+
+// A sentence is built as segments {jp, ro} joined with spaces; particles are
+// attached to their word (わたしは, がっこうに) as the app writes them.
+function sgSeg(word, particle = '', particleRo = '') {
+  const w = sgW(word);
+  return { jp: w.jp + (particle ? ' ' + particle : ''), ro: w.ro + (particleRo ? ' ' + particleRo : '') };
+}
+function sgJoin(segs, end, q) {
+  segs = segs.filter(Boolean);
+  const jp = segs.map(s => s.jp).join(' ') + (q ? ' か。' : '。');
+  let ro = segs.map(s => s.ro).join(' ') + (q ? ' ka?' : '.');
+  ro = ro.charAt(0).toUpperCase() + ro.slice(1);
+  return { jp, ro };
+}
+const sgCap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+// Verb in a given tense/polarity: たべます -> たべません / たべました / たべませんでした
+function sgVerb(v, tense, neg) {
+  const w = sgW(v); const stemJ = w.jp.slice(0, -2), stemR = w.ro.slice(0, -4);
+  const endJ = tense === 'past' ? (neg ? 'ませんでした' : 'ました') : (neg ? 'ません' : 'ます');
+  const endR = tense === 'past' ? (neg ? 'masendeshita' : 'mashita') : (neg ? 'masen' : 'masu');
+  return { jp: stemJ + endJ, ro: stemR + endR };
+}
+
+// Subjects: {segs, en, third, me}
+function sgSubject(opts = {}) {
+  const r = sgRand();
+  if (r < 0.3) return { segs: sgChance(0.5) ? [sgSeg('わたし', 'は', 'wa')] : [], en: 'I', third: false, me: true };
+  if (r < 0.48) return { segs: [sgSeg('ともだち', 'は', 'wa')], en: 'my friend', third: true };
+  if (r < 0.58 && !opts.noTeacher) return { segs: [sgSeg('せんせい', 'は', 'wa')], en: 'the teacher', third: true };
+  if (r < 0.75) {
+    const owner = sgChance(0.5) ? ['ともだち', "my friend's"] : (n => [n.jp, n.en + "'s"])(sgPick(SENTENCE_NAME_POOL));
+    const fam = sgPick(SG_FAMILY);
+    return { segs: [sgSeg(owner[0], 'の', 'no'), sgSeg(fam[0], 'は', 'wa')], en: `${owner[1]} ${fam[1]}`, third: true };
+  }
+  const n = sgPick(SENTENCE_NAME_POOL);
+  return { segs: [sgSeg(n.jp, 'は', 'wa')], en: n.en, third: true };
+}
+function sgCompanion(subj) {
+  const hasFriend = /friend/.test(subj.en || '');
+  if (hasFriend) { const n = sgPick(SENTENCE_NAME_POOL); return { seg: sgSeg(n.jp, 'と', 'to'), en: 'with ' + n.en }; }
+  const r = sgRand();
+  if (r < 0.35) return { seg: sgSeg('ともだち', 'と', 'to'), en: 'with a friend' };
+  if (r < 0.6) { const n = sgPick(SENTENCE_NAME_POOL); return { seg: sgSeg(n.jp, 'と', 'to'), en: 'with ' + n.en }; }
+  if (r < 0.8 && subj.me) return { seg: { jp: 'ひとり で', ro: 'hitori de' }, en: 'on my own' };
+  const fam = sgPick(SG_FAMILY);
+  return { segs: [sgSeg('ともだち', 'の', 'no'), sgSeg(fam[0], 'と', 'to')], en: `with my friend's ${fam[1]}` };
+}
+
+// Time word for a tense. filter(t) can veto words (e.g. no weekends).
+function sgTime(tense, filter = () => true, opts = {}) {
+  const pool = [];
+  Object.entries(SG_TIMES).forEach(([jp, t]) => {
+    if (!t.tenses.includes(tense) || !!t.long !== !!opts.long) return;
+    if (opts.freq && !t.freqOk) return;
+    if (!sgW(jp) || !filter(jp, t)) return;
+    pool.push({ seg: sgSeg(jp), en: typeof t.en === 'string' ? t.en : t.en[tense], jp, t });
+  });
+  if (!opts.long) SG_DAYS.forEach(([jp, en, wkend]) => {
+    const t = { weekend: !!wkend, freqOk: true };
+    if (!sgW(jp) || !filter(jp, t)) return;
+    pool.push({ seg: sgSeg(jp, 'に', 'ni'), en: 'on ' + en + (tense === 'hab' ? 's' : ''), jp, t });
+  });
+  return pool.length ? sgPick(pool) : null;
+}
+
+// English subject + verb phrase, with tense/frequency/negative.
+function sgEnClause(subj, phrase, tense, freq, neg) {
+  const S = subj.me ? 'I' : subj.en;
+  if (tense === 'past') return neg ? `${S} didn't ${phrase}` : `${S} ${sgVerbEn(phrase, 'past')}`;
+  if (tense === 'fut') return neg ? `${S} ${subj.me ? "won't" : "won't"} ${phrase}` : `${S} ${subj.me ? "'m going to" : 'is going to'} ${phrase}`.replace("I 'm", "I'm");
+  if (freq) {
+    if (freq.jp === 'ぜんぜん') return `${S} never ${subj.third ? sgVerbEn(phrase, 'third') : phrase}`;
+    if (freq.jp === 'あまり') return `${S} ${subj.third ? "doesn't" : "don't"} often ${phrase}`;
+    return `${S} ${freq.en} ${subj.third ? sgVerbEn(phrase, 'third') : phrase}`;
+  }
+  if (neg) return `${S} ${subj.third ? "doesn't" : "don't"} ${phrase}`;
+  return `${S} ${subj.third ? sgVerbEn(phrase, 'third') : phrase}`;
+}
+function sgEnFinish(parts) { return sgCap(parts.filter(Boolean).join(' ')) + '.'; }
+
+// ---------------- patterns ----------------
+function sgObjectSentence() {
+  const V = sgPick(SG_OBJECT_VERBS.filter(v => sgW(v.v)));
+  const objs = V.objs.filter(o => sgW(o[0]));
+  if (!objs.length) return null;
+  const tense = sgPick(['hab', 'hab', 'fut', 'past']);
+  let subj = sgSubject();
+  if (V.workObj && /'s /.test(subj.en)) subj = { segs: [sgSeg('ともだち', 'は', 'wa')], en: 'my friend', third: true };
+  let freq = null, time = null;
+  if (tense === 'hab' && !V.once && sgChance(0.55)) {
+    freq = sgPick(SG_FREQ);
+    if (!freq.neg && sgChance(0.6)) time = sgTime('hab', () => true, { freq: true });
+  } else if (!(tense === 'hab' && V.once)) {
+    time = sgTime(tense, (jp, t) => !(V.outing && t.morning) && !(V.outing && jp === 'まいにち') && !(V.once && tense === 'hab'));
+  }
+  if (tense === 'hab' && V.once) return null;
+  const neg = freq ? freq.neg : (tense === 'past' && sgChance(0.15));
+  // object(s)
+  let objSegs, objEn;
+  const o1 = sgPick(objs);
+  if (V.list && sgChance(0.3)) {
+    const o2 = sgPick(objs.filter(o => o[0] !== o1[0]));
+    const ya = sgChance(0.5);
+    objSegs = [{ jp: o1[0] + (ya ? ' や' : ' と'), ro: sgW(o1[0]).ro + (ya ? ' ya' : ' to') }, sgSeg(o2[0], 'を', 'o')];
+    objEn = (ya ? 'things like ' : '') + `${o1[1]} and ${o2[1]}`;
+  } else {
+    objSegs = [sgSeg(o1[0], 'を', 'o')];
+    objEn = V.phrase ? null : (tense === 'hab' ? o1[1] : (o1[2] || o1[1]));
+  }
+  let phrase = V.workObj && tense !== 'hab' ? 'do some work' : V.phrase ? o1[1] : `${V.futHave && tense !== 'hab' && !objEn.startsWith('things') && !objEn.includes(' and ') ? 'have' : V.en} ${objEn}`;
+  if (V.phrase && objSegs.length > 1) return null;
+  // place
+  let placeSeg = null, placeEn = '';
+  const places = V.places.filter(p => sgW(p));
+  if (places.length && !neg && sgChance(freq && time ? 0.25 : 0.5)) {
+    const p = sgPick(places); placeSeg = sgSeg(p, 'で', 'de'); placeEn = SG_PLACE_EN[p][0];
+  }
+  const verb = sgVerb(V.v, tense, neg);
+  const segs = [...subj.segs, time && time.seg, freq && { jp: freq.jp, ro: sgW(freq.jp).ro }, placeSeg, ...objSegs, verb].filter(Boolean);
+  const out = sgJoin(segs);
+  out.en = sgEnFinish([sgEnClause(subj, phrase, tense, freq, neg && !freq), placeEn, time && time.en]);
+  return [out];
+}
+
+function sgMotionSentence() {
+  const tense = sgPick(['hab', 'hab', 'fut', 'past']);
+  const subj = sgSubject();
+  const longTrip = tense !== 'hab' && sgChance(0.15);
+  let time, dest, destEn;
+  if (longTrip) {
+    time = sgTime(tense, () => true, { long: true });
+    const c = sgPick(SG_COUNTRIES.filter(c => sgW(c)));
+    dest = c; destEn = 'to ' + l3TaughtItem(c).en.replace('UK / England', 'the UK').replace('USA', 'the USA');
+  } else {
+    let freq = null;
+    const goHome = tense !== 'hab' && sgChance(0.15);
+    const ok = Object.entries(SG_DEST).filter(([jp]) => sgW(jp));
+    let pick = goHome ? null : sgPick(ok);
+    const kind = pick ? pick[1][1] : 'daily';
+    if (tense === 'hab' && sgChance(0.4) && kind !== 'work') freq = sgPick(SG_FREQ);
+    const plainNeg = freq && freq.neg;
+    time = plainNeg ? { seg: null, en: '' } : sgTime(tense, (jp, t) => {
+      if (goHome && !['きょう', 'こんばん', 'きのう'].includes(jp)) return false;
+      if (kind === 'work' && t.weekend) return false;
+      if (kind === 'weekday' && (t.weekend || t.evening)) return false;
+      if ((kind === 'outing' || kind === 'event' || kind === 'weekday') && (jp === 'まいにち' || jp === 'まいあさ' || t.morning)) return false;
+      if (kind === 'event' && t.morning) return false;
+      if (freq && freq.neg && SG_DAYS.some(d => d[0] === jp)) return false;
+      if ((kind === 'event' || kind === 'outing') && tense === 'hab' && SG_DAYS.some(d => d[0] === jp)) return false;
+      if (kind === 'event' && tense === 'hab' && !freq) return false;
+      return true;
+    }, { freq: !!freq });
+    if (!time) return null;
+    const neg = freq ? freq.neg : (tense === 'past' && sgChance(0.1));
+    const segs = [...subj.segs, time.seg, freq && { jp: freq.jp, ro: sgW(freq.jp).ro }];
+    let comp = null, tr = null;
+    if (!plainNeg && sgChance(freq ? 0.2 : 0.35)) { comp = sgCompanion(subj); segs.push(...(comp.segs || [comp.seg])); }
+    else if (!plainNeg && sgChance(freq ? 0.2 : 0.35)) {
+      const t = sgPick(SG_TRANSPORT.filter(t => sgW(t[0])));
+      tr = { seg: t[2] ? sgSeg(t[0]) : sgSeg(t[0], 'で', 'de'), en: t[1] };
+      segs.push(tr.seg);
+    }
+    let phrase;
+    if (goHome) { segs.push(sgSeg('うち', 'に', 'ni'), sgVerb('かえります', tense, neg)); phrase = 'go home'; }
+    else { segs.push(sgSeg(pick[0], 'に', 'ni'), sgVerb('いきます', tense, neg)); phrase = 'go ' + pick[1][0]; }
+    const out = sgJoin(segs);
+    out.en = sgEnFinish([sgEnClause(subj, phrase, tense, freq, neg && !freq), comp && comp.en, tr && tr.en, time.en]);
+    return [out];
+  }
+  if (!time) return null;
+  const segs = [...subj.segs, time.seg];
+  let tr = null;
+  if (sgChance(0.4) && sgW('ひこうき')) { tr = { seg: sgSeg('ひこうき', 'で', 'de'), en: 'by plane' }; segs.push(tr.seg); }
+  segs.push(sgSeg(dest, 'に', 'ni'), sgVerb('いきます', tense, false));
+  const out = sgJoin(segs);
+  out.en = sgEnFinish([sgEnClause(subj, 'go ' + destEn, tense, null, false), tr && tr.en, time.en]);
+  return [out];
+}
+
+// Daily routine with clock times: get up / go to bed / work from-until.
+function sgRoutineSentence() {
+  const kind = sgPick(['okimasu', 'nemasu', 'hatarakimasu', 'hatarakimasu']);
+  const tense = sgPick(['hab', 'hab', 'fut', 'past']);
+  let subj = sgSubject();
+  if (kind === 'hatarakimasu' && /'s (mother|father|grandfather|grandmother|older)/.test(subj.en)) subj = { segs: [sgSeg('ともだち', 'は', 'wa')], en: 'my friend', third: true };
+  const time = sgChance(0.6) ? sgTime(tense, (jp, t) => {
+    const isDay = SG_DAYS.some(d => d[0] === jp);
+    if ((kind === 'okimasu' || kind === 'nemasu') && (isDay || ['あさ', 'ひる', 'よる', 'まいあさ'].includes(jp))) return false;
+    if (kind === 'okimasu' && t.evening) return false;
+    if (kind === 'nemasu' && t.morning) return false;
+    if (kind === 'hatarakimasu' && (t.morning || t.evening || jp === 'ひる')) return false;
+    return !t.long;
+  }) : null;
+  if (tense !== 'hab' && !time) return null;
+  const clock = (h, m) => ({ jp: timeToKana(h, m, null, 'none'), ro: timeToRomaji(h, m, null, 'none'), en: `${h}:${String(m).padStart(2, '0')}` });
+  const segs = [...subj.segs, time && time.seg];
+  let phrase;
+  if (kind === 'okimasu') {
+    const c = clock(sgPick([5, 6, 6, 7, 7, 8]), sgPick([0, 0, 15, 30, 30, 45]));
+    segs.push({ jp: c.jp + ' に', ro: c.ro + ' ni' }, sgVerb('おきます', tense, false)); phrase = `get up at ${c.en}`;
+  } else if (kind === 'nemasu') {
+    const c = clock(sgPick([10, 10, 11, 11, 12]), sgPick([0, 0, 15, 30, 30, 45]));
+    segs.push({ jp: c.jp + ' に', ro: c.ro + ' ni' }, sgVerb('ねます', tense, false)); phrase = `go to bed at ${c.en}`;
+  } else {
+    if (time && time.t.weekend) return null;
+    const a = clock(sgPick([8, 8, 9, 9, 10]), sgPick([0, 0, 30])), b = clock(sgPick([4, 5, 5, 6]), sgPick([0, 0, 30]));
+    segs.push({ jp: a.jp + ' から', ro: a.ro + ' kara' }, { jp: b.jp + ' まで', ro: b.ro + ' made' }, sgVerb('はたらきます', tense, false));
+    phrase = `work from ${a.en} to ${b.en}`;
+  }
+  const out = sgJoin(segs.filter(Boolean));
+  out.en = sgEnFinish([sgEnClause(subj, phrase, tense, null, false), time && time.en]);
+  return [out];
+}
+
+// Job profile: two sentences. "Tanaka-san is an engineer. Goes to the office…"
+function sgJobProfile() {
+  const job = sgPick(SG_JOBS.filter(j => sgOk(j[0], j[2])));
+  const who = sgChance(0.35) ? { jp: 'ともだち', en: 'My friend' } : (n => ({ jp: n.jp, en: n.en }))(sgPick(SENTENCE_NAME_POOL));
+  const first = sgJoin([sgSeg(who.jp, 'は', 'wa'), { jp: job[0] + ' です', ro: sgW(job[0]).ro + ' desu' }]);
+  first.jp = first.jp.replace('です。', 'です。'); // (kept as one segment)
+  const r = sgRand(); let segs, en;
+  const goes = r < 0.5;
+  const time = sgTime('hab', jp => jp === 'まいにち' || (goes && jp === 'まいあさ'));
+  if (goes) {
+    const t = sgChance(0.6) ? sgPick(SG_TRANSPORT.filter(t => sgW(t[0]))) : null;
+    segs = [time.seg, t && (t[2] ? sgSeg(t[0]) : sgSeg(t[0], 'で', 'de')), sgSeg(job[2], 'に', 'ni'), sgVerb('いきます', 'hab', false)];
+    en = `goes ${SG_DEST[job[2]] ? SG_DEST[job[2]][0] : 'to ' + job[3].replace(/^at /, '')}${t ? ' ' + t[1] : ''} ${time.en}`;
+  } else {
+    const study = job[0] === 'がくせい';
+    segs = [time.seg, sgSeg(job[2], 'で', 'de'), sgVerb(study ? 'べんきょうします' : 'はたらきます', 'hab', false)];
+    en = `${study ? 'studies' : 'works'} ${job[3]} ${time.en}`;
+  }
+  const second = sgJoin(segs.filter(Boolean));
+  return [{ jp: first.jp + second.jp, ro: first.ro + ' ' + second.ro, en: `${who.en} is ${job[1]} and ${en}.` }];
+}
+
+// Meeting someone: [time] [place で] [person] に あいます
+function sgMeetSentence() {
+  const tense = sgPick(['hab', 'fut', 'fut', 'past']);
+  const subj = sgSubject({ noTeacher: false });
+  const time = sgTime(tense, (jp, t) => !t.long && jp !== 'まいあさ');
+  if (!time) return null;
+  const r = sgRand(); let pSegs, pEn;
+  const subjFriend = /friend/.test(subj.en);
+  if (r < 0.4 && !subjFriend) { pSegs = [sgSeg('ともだち', 'に', 'ni')]; pEn = 'a friend'; }
+  else if (r < 0.75) { const n = sgPick(SENTENCE_NAME_POOL); pSegs = [sgSeg(n.jp, 'に', 'ni')]; pEn = n.en; }
+  else if (!subjFriend) { const f = sgPick(SG_FAMILY); pSegs = [sgSeg('ともだち', 'の', 'no'), sgSeg(f[0], 'に', 'ni')]; pEn = `my friend's ${f[1]}`; }
+  else { const n = sgPick(SENTENCE_NAME_POOL); pSegs = [sgSeg(n.jp, 'に', 'ni')]; pEn = n.en; }
+  if (!subj.me && pEn.startsWith('my friend')) pEn = pEn.replace('my friend', 'a friend');
+  let placeSeg = null, placeEn = '';
+  if (sgChance(0.5)) { const p = sgPick(['えき', 'カフェ', 'きっさてん', 'レストラン', 'こうえん'].filter(p => sgW(p) && !(p === 'レストラン' && time.t.morning))); placeSeg = sgSeg(p, 'で', 'de'); placeEn = { えき: 'at the station', カフェ: 'at a café', きっさてん: 'at a coffee shop', レストラン: 'at a restaurant', こうえん: 'in the park' }[p]; }
+  const segs = [...subj.segs, time.seg, placeSeg, ...pSegs, sgVerb('あいます', tense, false)];
+  const out = sgJoin(segs.filter(Boolean));
+  out.en = sgEnFinish([sgEnClause(subj, `meet ${pEn}`, tense, null, false), placeEn, time.en]);
+  return [out];
+}
+
+// Question and answer pairs.
+function sgQA() {
+  const kind = sgPick(['what', 'what', 'where', 'where', 'who', 'when', 'freq', 'freq', 'whattime']);
+  const tense = sgPick(['fut', 'past', 'hab']);
+  if (kind === 'what') {
+    const t = sgTime(tense, (jp, tt) => !tt.long && jp !== 'まいあさ' && jp !== 'まいにち');
+    if (!t) return null;
+    const V = sgPick(SG_OBJECT_VERBS.filter(v => v.v === 'します' && v.objs.length === 1 || v.v === 'します'));
+    const o = sgPick(V.objs.filter(o => sgW(o[0])));
+    if (V.outing && t.t.morning) return null;
+    const qv = sgVerb('します', tense, false);
+    const q = sgJoin([t.seg, { jp: 'なに を', ro: 'nani o' }, qv], null, true);
+    q.en = tense === 'past' ? `What did you do ${t.en}?` : tense === 'fut' ? `What are you doing ${t.en}?` : `What do you do ${t.en}?`;
+    const a = sgJoin([sgSeg(o[0], 'を', 'o'), qv]);
+    a.en = sgEnFinish([sgEnClause({ me: true, en: 'I' }, o[1], tense, null, false)]);
+    return [q, a];
+  }
+  if (kind === 'where') {
+    const t = sgTime(tense === 'hab' ? 'fut' : tense, (jp, tt) => !tt.long && !tt.morning);
+    if (!t) return null;
+    const tn = tense === 'hab' ? 'fut' : tense;
+    const d = sgPick(Object.entries(SG_DEST).filter(([jp, v]) => sgW(jp) && v[1] !== 'work' && !(v[1] === 'weekday' && (t.t.weekend || t.t.evening))));
+    const qv = sgVerb('いきます', tn, false);
+    const q = sgJoin([t.seg, { jp: 'どこ に', ro: 'doko ni' }, qv], null, true);
+    q.en = tn === 'past' ? `Where did you go ${t.en}?` : `Where are you going ${t.en}?`;
+    const a = sgJoin([sgSeg(d[0], 'に', 'ni'), qv]);
+    a.en = tn === 'past' ? `I went ${d[1][0]}.` : `I'm going ${d[1][0]}.`;
+    return [q, a];
+  }
+  if (kind === 'who') {
+    const d = sgPick(Object.entries(SG_DEST).filter(([jp, v]) => sgW(jp) && v[1] !== 'work' && v[1] !== 'weekday'));
+    const tn = tense === 'hab' ? 'fut' : tense;
+    const qv = sgVerb('いきます', tn, false);
+    const q = sgJoin([{ jp: 'だれ と', ro: 'dare to' }, sgSeg(d[0], 'に', 'ni'), qv], null, true);
+    q.en = tn === 'past' ? `Who did you go ${d[1][0]} with?` : `Who are you going ${d[1][0]} with?`;
+    const c = sgCompanion({ me: true });
+    if (c.en === 'on my own') { const a = sgJoin([c.seg, qv]); a.en = tn === 'past' ? 'I went on my own.' : "I'm going on my own."; return [q, a]; }
+    const a = sgJoin([...(c.segs || [c.seg]), qv]);
+    a.en = (tn === 'past' ? 'I went ' : "I'm going ") + c.en + '.';
+    return [q, a];
+  }
+  if (kind === 'when') {
+    const tn = tense === 'hab' ? 'fut' : tense;
+    const d = sgPick(Object.entries(SG_DEST).filter(([jp, v]) => sgW(jp) && v[1] !== 'work'));
+    const t = sgTime(tn, (jp, tt) => !tt.long && !(d[1][1] === 'weekday' && (tt.weekend || tt.evening)) && !((d[1][1] === 'event' || d[1][1] === 'outing') && tt.morning));
+    if (!t) return null;
+    const qv = sgVerb('いきます', tn, false);
+    const q = sgJoin([{ jp: 'いつ', ro: 'itsu' }, sgSeg(d[0], 'に', 'ni'), qv], null, true);
+    q.en = tn === 'past' ? `When did you go ${d[1][0]}?` : `When are you going ${d[1][0]}?`;
+    const a = sgJoin([t.seg, qv]);
+    a.en = tn === 'past' ? `I went ${t.en}.` : `I'm going ${t.en}.`;
+    return [q, a];
+  }
+  if (kind === 'whattime') {
+    const which = sgPick([['おきます', 'get up', [6, 7, 8]], ['ねます', 'go to bed', [10, 11, 12]]]);
+    const h = sgPick(which[2]), m = sgPick([0, 0, 30]);
+    const q = sgJoin([{ jp: 'なんじ に', ro: 'nanji ni' }, sgVerb(which[0], 'hab', false)], null, true);
+    q.en = `What time do you ${which[1]}?`;
+    const a = sgJoin([{ jp: timeToKana(h, m, null, 'none') + ' に', ro: timeToRomaji(h, m, null, 'none') + ' ni' }, sgVerb(which[0], 'hab', false)]);
+    a.en = `I ${which[1]} at ${h}:${String(m).padStart(2, '0')}.`;
+    return [q, a];
+  }
+  // freq yes/no
+  const V = sgPick(SG_OBJECT_VERBS.filter(v => !v.once && v.v !== 'します'));
+  const o = sgPick(V.objs.filter(o => sgW(o[0])));
+  const f = sgPick(SG_FREQ);
+  const q = sgJoin([sgSeg(o[0], 'を', 'o'), sgVerb(V.v, 'hab', false)], null, true);
+  q.en = `Do you ${V.en} ${o[1]}?`;
+  const a = sgJoin([{ jp: (f.neg ? 'いいえ、' : 'はい、') + f.jp, ro: (f.neg ? 'iie, ' : 'hai, ') + sgW(f.jp).ro }, sgVerb(V.v, 'hab', f.neg)]);
+  a.en = f.jp === 'ぜんぜん' ? 'No, never.' : f.jp === 'あまり' ? 'No, not often.' : `Yes, ${f.en}.`;
+  return [q, a];
+}
+
+function sgGenerate() {
+  const makers = [[sgObjectSentence, 4], [sgMotionSentence, 3], [sgRoutineSentence, 1], [sgJobProfile, 1], [sgMeetSentence, 1], [sgQA, 4]];
+  const total = makers.reduce((a, m) => a + m[1], 0);
+  for (let tries = 0; tries < 50; tries++) {
+    let r = sgRand() * total, fn = makers[0][0];
+    for (const [f, w] of makers) { if ((r -= w) < 0) { fn = f; break; } }
+    try { const out = fn(); if (out) return out; } catch (e) { /* a pool came up empty - try another pattern */ }
+  }
+  return null;
 }
 
 // GREETING (2026-10-06) - greeting, date and time in Japanese at the top of
@@ -14322,6 +14813,24 @@ function renderProverbGreeting() {
   el.querySelectorAll('.pg-line').forEach(l => { l.onclick = () => speakJapanese(l.dataset.say); });
 }
 
+// Picks a sentence, avoiding the one shown last time (remembered on this
+// device only - harmless if storage is unavailable).
+const SG_LAST_KEY = 'jpDrillLastSentence';
+function renderProverbSentence() {
+  const el = document.getElementById('proverb-sentence');
+  if (!el) return;
+  let last = null;
+  try { last = localStorage.getItem(SG_LAST_KEY); } catch (e) { last = null; }
+  let lines = null;
+  for (let i = 0; i < 10; i++) { lines = sgGenerate(); if (lines && lines[0].jp !== last) break; }
+  if (!lines) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  try { localStorage.setItem(SG_LAST_KEY, lines[0].jp); } catch (e) { /* fine */ }
+  el.innerHTML = '<div class="proverb-sentence-label">' + (lines.length > 1 ? 'A short exchange' : 'A sentence to read') + '</div>' +
+    lines.map(l => `<div class="sg-line" data-say="${l.jp.replace(/ /g, '')}"><div class="sg-jp">${markSmallKana(l.jp)}</div><div class="sg-ro">${l.ro}</div><div class="sg-en">${l.en}</div></div>`).join('');
+  el.querySelectorAll('.sg-line').forEach(l => { l.onclick = () => speakJapanese(l.dataset.say); });
+}
+
 function showProverbOverlay(proverbs) {
   const list = document.getElementById('proverb-list');
   const overlay = document.getElementById('proverb-overlay');
@@ -14344,6 +14853,7 @@ function showProverbOverlay(proverbs) {
   `;
   }).join('');
   renderProverbGreeting();
+  renderProverbSentence();
   clearInterval(proverbGreetingTimer);
   proverbGreetingTimer = setInterval(renderProverbGreeting, 20000); // keeps the time current while open
   overlay.classList.add('show');
@@ -14364,7 +14874,7 @@ function dismissProverbOverlay() {
 // just genuinely useful for testing this feature without waiting a day or
 // clearing localStorage by hand.
 function triggerSpontaneousProverbs() {
-  showProverbOverlay(shuffle([...PROVERBS]).slice(0, 2));
+  showProverbOverlay(shuffle([...PROVERBS]).slice(0, 1));
 }
 
 applyAllSettingsUI();
