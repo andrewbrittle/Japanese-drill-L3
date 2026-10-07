@@ -278,6 +278,7 @@
      experiments) rather than settings that are inert while some other
      condition holds. */
   .group-card.dimmed .group-name { opacity: 0.6; }
+  .group-card.not-for-choice { opacity: 0.45; }
   .group-card.dimmed .group-count { opacity: 0.45; }
   .group-card.emphasis { border-color: var(--accent); }
   /* BUG FIX (2026-09-13): see the comment above backup-scores-card in the
@@ -1130,8 +1131,11 @@
     padding: 20px; box-sizing: border-box;
   }
   .proverb-overlay.show { display: flex; }
+  /* Gold edge + shadow on every popup card (2026-10-07) - a plain border
+     disappeared into the dimmed page in dark mode. Same gold as the hold
+     bubble. Shared by the daily sentence and the verb forms window. */
   .proverb-card {
-    background: var(--surface); border: 1px solid var(--border);
+    background: var(--surface); border: 1.5px solid var(--accent); box-shadow: 0 8px 32px rgba(0,0,0,0.5);
     border-radius: var(--radius-lg); padding: 1.5rem;
     max-width: 420px; width: 100%; max-height: 85vh; overflow-y: auto;
   }
@@ -1166,12 +1170,15 @@
      all in Japanese (kana, since kanji isn't taught yet) with romaji and
      English underneath, for familiarity with greetings, dates and times.
      Each line can be tapped to hear it. */
+  /* (2026-10-07) Greeting + sentence take the day's proverb colour (--pc,
+     set on the card in showProverbOverlay) rather than gold, so all three
+     boxes match inside the gold-edged card. Gold if there's no proverb. */
   .proverb-greeting, .proverb-sentence {
-    text-align: center; border: 1px solid var(--accent); border-radius: 12px;
-    background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+    text-align: center; border: 1px solid var(--pc, var(--accent)); border-radius: 12px;
+    background: color-mix(in srgb, var(--pc, var(--accent)) 10%, var(--surface));
     padding: 0.8rem 0.9rem; margin-bottom: 0.9rem;
   }
-  .proverb-sentence-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); margin-bottom: 6px; }
+  .proverb-sentence-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--pc, var(--accent)); margin-bottom: 6px; }
   .sg-line { cursor: pointer; border-radius: var(--radius); padding: 2px 4px; }
   .sg-line + .sg-line { margin-top: 0.6rem; }
   .sg-jp { font-family: 'BIZ UDPGothic', sans-serif; font-weight: 700; font-size: 18px; color: var(--text); line-height: 1.4; }
@@ -1183,6 +1190,24 @@
   .pg-line.pg-hello .pg-jp { font-size: 24px; }
   .pg-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
   .pg-sub .pg-en { color: var(--text-dim); }
+  /* Verb forms window (2026-10-07) - see showVerbFormsPopup. */
+  .proverb-card.vf-card { padding: 1rem 0.85rem; }
+  .vf-title { text-align: center; font-family: 'BIZ UDPGothic', sans-serif; font-weight: 700; font-size: 30px; color: var(--text); cursor: pointer; }
+  .vf-title-sub { text-align: center; font-size: 13px; color: var(--text-muted); margin: 2px 0 0.9rem; }
+  .vf-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); margin: 0.4rem 0 6px; }
+  .vf-grid { display: grid; grid-template-columns: auto 1fr 1fr; gap: 6px; align-items: stretch; }
+  .vf-head { font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: center; }
+  .vf-rowlabel { font-size: 11px; font-weight: 700; color: var(--text-muted); writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; }
+  .vf-cell { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.45rem 0.35rem; text-align: center; cursor: pointer; background: var(--surface); min-width: 0; }
+  .vf-jp { font-family: 'BIZ UDPGothic', sans-serif; font-weight: 700; font-size: 15px; color: var(--text); line-height: 1.3; white-space: nowrap; overflow: hidden; }
+  .vf-ro { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; }
+  .vf-en { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 1px; }
+  .vf-q-verb { font-family: 'BIZ UDPGothic', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-muted); margin-top: 6px; }
+  .vf-q-en { font-size: 14px; font-weight: 400; color: var(--text-dim); margin-top: 2px; }
+  .vf-note { font-size: 12px; color: var(--text-dim); margin: 0.5rem 0 0.9rem; line-height: 1.4; }
+  .tile-peek-bubble .peek-hint { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 6px; border-top: 1px solid var(--border); padding-top: 5px; }
+  .tile-peek-bubble.peek-armed { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
+  .tile-peek-bubble.peek-armed .peek-hint { color: var(--accent); }
   /* Share card in Settings (2026-10-06) - QR is always black on white so
      phone cameras read it in dark mode too. */
   #share-app-card { flex-direction: column; align-items: stretch; gap: 0.6rem; cursor: default; }
@@ -1215,6 +1240,15 @@
       <div class="proverb-sentence" id="proverb-sentence"></div>
       <div id="proverb-list"></div>
       <button class="start-btn" onclick="dismissProverbOverlay()">Continue</button>
+    </div>
+  </div>
+
+  <!-- Verb forms window (2026-10-07) - hold a verb card, slide towards the
+       bubble, let go. Same overlay as the daily sentence above. -->
+  <div class="proverb-overlay" id="verb-forms-overlay" onclick="if (event.target === this && Date.now() - (this._openedAt || 0) > 400) dismissVerbFormsPopup();">
+    <div class="proverb-card vf-card">
+      <div id="verb-forms-body"></div>
+      <button class="start-btn" onclick="dismissVerbFormsPopup()">Close</button>
     </div>
   </div>
 
@@ -1339,7 +1373,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.011</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.016</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2004,6 +2038,18 @@
           <div class="random-choice-desc">20 words you haven't been tested on yet</div>
         </div>
         <div class="cat-bar" id="theme-untested-vocab-swatch"></div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <!-- Verb forms (2026-10-07) - every taught verb, so it grows with the
+           vocabulary rather than belonging to a level. See buildVerbFormDeck. -->
+      <div class="group-card cat-tile" data-random-key="verbforms" onclick="selectRandomChoice('verbforms')" style="cursor:pointer;">
+        <div class="cat-tile-top cat-tile-top-stack">
+          <div class="group-name">Verb forms</div>
+          <div class="random-choice-desc">20 random verb forms — which form is it? Reverse the direction to build the form instead</div>
+        </div>
+        <div class="cat-bar" id="random-verbforms-swatch"></div>
       </div>
 
       <div class="section-divider"></div>
@@ -7722,7 +7768,10 @@ function syncTileSoundControls(categoryKey) {
 function updateTileSelectionSubText(categoryKey) {
   const sub = document.getElementById('vocab-tile-selection-sub');
   if (!sub) return;
-  const peek = 'Hold a card to see its reading.';
+  let peek = 'Hold a card to see its reading.';
+  let hasVerb = false;
+  try { hasVerb = resolveVocabCategory(categoryKey).items.some(isVerbItem); } catch (e) { /* no items yet */ }
+  if (hasVerb) peek += ' On a verb, slide towards the bubble and let go to see all its forms.';
   sub.textContent = (tileSpeakModeActive(categoryKey) ? 'Tap a card to hear it. ' : 'Tap a word to select it for drilling. ') + peek;
 }
 function toggleTileTapToSpeak() {
@@ -7774,7 +7823,11 @@ function showTilePeekBubble(tile, item) {
   const b = document.createElement('div');
   b.className = 'tile-peek-bubble';
   b.id = 'tile-peek-bubble';
-  b.innerHTML = `<div class="peek-jp">${markSmallKana(item.jp)}</div><div class="peek-romaji">${item.romaji}</div><div class="peek-en">${item.en}</div>`;
+  // Verbs (2026-10-07) get a hint line: slide towards this bubble and let
+  // go to open every form (showVerbFormsPopup). The arrow is filled in once
+  // the bubble's side is known, since it isn't always above the card.
+  const verbHint = isVerbItem(item) ? '<div class="peek-hint"><span class="peek-arrow">↑</span> slide here for all forms</div>' : '';
+  b.innerHTML = `<div class="peek-jp">${markSmallKana(item.jp)}</div><div class="peek-romaji">${item.romaji}</div><div class="peek-en">${item.en}</div>${verbHint}`;
   document.body.appendChild(b);
   const r = tile.getBoundingClientRect();
   const bw = b.offsetWidth, bh = b.offsetHeight;
@@ -7797,29 +7850,47 @@ function showTilePeekBubble(tile, item) {
   }
   b.style.left = left + 'px';
   b.style.top = top + 'px';
+  const arrow = b.querySelector('.peek-arrow');
+  if (arrow) {
+    const dx = (left + bw / 2) - (r.left + r.width / 2), dy = (top + bh / 2) - (r.top + r.height / 2);
+    arrow.textContent = Math.abs(dy) >= Math.abs(dx) ? (dy < 0 ? '↑' : '↓') : (dx < 0 ? '←' : '→');
+  }
+  return b;
 }
 function hideTilePeekBubble() {
   const old = document.getElementById('tile-peek-bubble');
   if (old) old.remove();
 }
 let tilePeekSuppressClickUntil = 0;
+// HOLD AND SLIDE (2026-10-07): on a verb, once the bubble is up, sliding
+// the finger towards it (VERB_SLIDE_PX along the line from card to bubble,
+// or onto the bubble itself) "arms" it - the bubble tints - and letting go
+// while armed opens the verb's full forms window. Slide back and it
+// disarms, so letting go just closes the bubble as before.
+const VERB_SLIDE_PX = 40;
 function attachTilePeek(tile, item) {
   let timer = null, peeking = false, startX = 0, startY = 0, pointerId = null;
+  let bubble = null, armed = false;
+  const isVerb = isVerbItem(item);
   const begin = () => {
     timer = null;
     peeking = true;
+    armed = false;
     tile.classList.add('tile-peeking');
-    showTilePeekBubble(tile, item);
+    bubble = showTilePeekBubble(tile, item);
     tilePeekSuppressClickUntil = Date.now() + 1000;
     speakJapanese(item.speakAs || item.jp);
   };
-  const end = () => {
+  const end = (e) => {
     if (timer) { clearTimeout(timer); timer = null; }
     if (!peeking) return;
     peeking = false;
     tile.classList.remove('tile-peeking');
     hideTilePeekBubble();
+    bubble = null;
     tilePeekSuppressClickUntil = Date.now() + 400;
+    if (armed && e && e.type === 'pointerup') { armed = false; showVerbFormsPopup(item); }
+    armed = false;
   };
   // Tolerance (2026-10-02): a little wobble before the bubble appears is
   // allowed (TILE_PEEK_MOVE_TOLERANCE); once it's showing, only lifting the
@@ -7839,6 +7910,16 @@ function attachTilePeek(tile, item) {
   tile.addEventListener('pointermove', e => {
     if (timer && (Math.abs(e.clientX - startX) > TILE_PEEK_MOVE_TOLERANCE || Math.abs(e.clientY - startY) > TILE_PEEK_MOVE_TOLERANCE)) {
       clearTimeout(timer); timer = null;
+    }
+    if (peeking && isVerb && bubble) {
+      const br = bubble.getBoundingClientRect();
+      const tr = tile.getBoundingClientRect();
+      let ux = (br.left + br.width / 2) - (tr.left + tr.width / 2), uy = (br.top + br.height / 2) - (tr.top + tr.height / 2);
+      const len = Math.hypot(ux, uy) || 1; ux /= len; uy /= len;
+      const along = (e.clientX - startX) * ux + (e.clientY - startY) * uy;
+      const onBubble = e.clientX >= br.left && e.clientX <= br.right && e.clientY >= br.top && e.clientY <= br.bottom;
+      const nowArmed = onBubble || along >= VERB_SLIDE_PX;
+      if (nowArmed !== armed) { armed = nowArmed; bubble.classList.toggle('peek-armed', armed); }
     }
   });
   tile.addEventListener('touchmove', e => { if (peeking && e.cancelable) e.preventDefault(); }, { passive: false });
@@ -9080,7 +9161,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-07d';
+const LATEST_CHANGELOG_ENTRY = '2026-10-07e';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -9782,7 +9863,8 @@ function isTrackedItem(q) {
   const isKanji = !!(q && (q.disp === 'kanji' || q.disp === 'survival'));
   const isVocabWord = !!(q && q.disp === 'word');
   const isNumberOrTime = !!(q && (q.disp === 'number' || q.disp === 'time' || q.disp === 'counter'));
-  return isKana || isKanji || isVocabWord || isNumberOrTime;
+  const isVerbForm = !!(q && q.disp === 'verbform');
+  return isKana || isKanji || isVocabWord || isNumberOrTime || isVerbForm;
 }
 
 // Kana characters always mean the same sound, so the character itself is a
@@ -9796,6 +9878,7 @@ function getScoreKey(q) {
   if (q.disp === 'number') return 'numbers-consistency';
   if (q.disp === 'time') return 'times-consistency';
   if (q.disp === 'counter') return 'counters-consistency';
+  if (q.disp === 'verbform') return q.scoreKey; // 'verbform:たべます|pastNeg' - see buildVerbFormDeck
   return q.char;
 }
 
@@ -10183,6 +10266,7 @@ function refreshRandomView() {
   setupCatBar(document.getElementById('theme-weakest-vocab-swatch'), getCategoryBandCounts(getWeakestVocabItems(20)));
   setupCatBar(document.getElementById('theme-untested-vocab-swatch'), getCategoryBandCounts(getUntestedVocabItems()));
   [1, 2, 3].forEach(n => setupCatBar(document.getElementById('random-l' + n + '-swatch'), getCategoryBandCounts(scanVocabByTag('L' + n))));
+  setupCatBar(document.getElementById('random-verbforms-swatch'), getCategoryBandCounts(verbFormScoreItems()));
   const untaughtCard = document.getElementById('random-untaught-card');
   if (untaughtCard) {
     untaughtCard.style.display = appSettings.showUntaught ? '' : 'none';
@@ -10211,12 +10295,19 @@ function updateRandomChoiceUI() {
   });
   const btn = document.getElementById('random-start-btn');
   if (btn) btn.disabled = !randomChoice;
+  // Verb forms is always multiple choice and has no meaning to highlight,
+  // so only the Reverse toggle applies - the other two fade (still tappable).
+  ['drill-mode-toggle-card', 'type-answer-toggle-card'].forEach(id => {
+    const card = document.getElementById(id);
+    if (card) card.classList.toggle('not-for-choice', randomChoice === 'verbforms');
+  });
 }
 function startSelectedRandom() {
   if (randomChoice === 'all') startRandomMatchEverything();
   else if (randomChoice === 'weakest') startWeakestVocab();
   else if (randomChoice === 'untested') startUntestedVocab();
   else if (randomChoice === 'untaught') startRandomForLevel('untaught');
+  else if (randomChoice === 'verbforms') startVerbFormDrill();
   else if (/^L[123]$/.test(randomChoice || '')) startRandomForLevel(+randomChoice.slice(1));
 }
 
@@ -10571,6 +10662,9 @@ function getSpeechText(q) {
   // prompt, English answer options), so q.answer holds English here - the
   // speakable form is the stashed kana reading instead.
   if (q.disp === 'counter') return q.kana;
+  // Verb forms: the form shown, or - reversed, where saying the form would
+  // give the answer away - just the verb itself.
+  if (q.disp === 'verbform') return q.reverse ? q.verbJp : q.formJp;
   if (q.disp === 'number' || q.disp === 'time') return q.answer;
   if (q.disp === 'kanji' || q.disp === 'survival') {
     const reading = KANJI_READINGS[q.char + '|' + q.answer];
@@ -10670,12 +10764,12 @@ function renderQuestion() {
   document.getElementById('stat-left').textContent = deck.length - current;
 
   const badge = document.getElementById('q-badge');
-  badge.textContent = q.disp === 'number' ? 'numbers' : q.disp === 'word' ? 'word reading' : q.disp === 'time' ? 'time reading' : q.disp === 'counter' ? 'counter reading' : (BADGE_LABELS[q.groupKey] || q.groupKey);
+  badge.textContent = q.disp === 'number' ? 'numbers' : q.disp === 'word' ? 'word reading' : q.disp === 'time' ? 'time reading' : q.disp === 'counter' ? 'counter reading' : q.disp === 'verbform' ? 'verb forms' : (BADGE_LABELS[q.groupKey] || q.groupKey);
   let badgeClass = 'base';
   if (q.disp === 'diacritic') badgeClass = 'diacritic';
   else if (q.disp === 'kanji') badgeClass = 'kanji';
   else if (q.disp === 'survival') badgeClass = 'survival';
-  else if (q.disp === 'number' || q.disp === 'time' || q.disp === 'counter') badgeClass = 'kanji';
+  else if (q.disp === 'number' || q.disp === 'time' || q.disp === 'counter' || q.disp === 'verbform') badgeClass = 'kanji';
   badge.className = 'type-badge type-' + badgeClass;
 
   const altEl = document.getElementById('q-alt-form');
@@ -10798,7 +10892,9 @@ function renderQuestion() {
     }
   }
 
-  if (isWord && vocabReversed) {
+  if (q.disp === 'verbform') {
+    renderVerbFormQuestion(q, charDisplay, container);
+  } else if (isWord && vocabReversed) {
     // Reversed: the prompt is always the English meaning, and the 4 options
     // are Japanese text - the mirror image of the normal isWord branch
     // below. Deliberately NOT tied to drillByMeaning (that toggle only
@@ -10987,6 +11083,34 @@ function renderQuestion() {
   }
 }
 
+// Verb forms question (see buildVerbFormDeck). Direction is stored on the
+// question itself, so a resumed session renders the way it was started.
+function renderVerbFormQuestion(q, charDisplay, container) {
+  const promptEl = document.getElementById('q-prompt');
+  if (!q.reverse) {
+    charDisplay.style.fontFamily = "'BIZ UDPGothic', sans-serif";
+    const len = [...q.char].length;
+    charDisplay.style.fontSize = len <= 5 ? '56px' : len <= 8 ? '44px' : '34px';
+    charDisplay.innerHTML = markSmallKana(q.char);
+    promptEl.textContent = 'Which form of the verb is this?';
+  } else {
+    charDisplay.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    charDisplay.style.fontSize = '36px';
+    charDisplay.innerHTML = `${VERB_FORM_LABELS[q.verbForm]}<div class="vf-q-verb">${markSmallKana(q.verbJp)}</div><div class="vf-q-en">${q.verbEn}</div>`;
+    promptEl.textContent = 'Which is this form of the verb?';
+  }
+  q.options.forEach((o, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = o.jp
+      ? `<span class="opt-num">${idx + 1}</span><span class="opt-rd" style="font-family:'BIZ UDPGothic', sans-serif;">${markSmallKana(o.top)}</span><span class="opt-en">(${o.sub})</span>`
+      : `<span class="opt-num">${idx + 1}</span><span class="opt-rd">${o.top}</span>`;
+    btn.dataset.value = o.value;
+    btn.onclick = () => choose(btn, o.value, q.answer, q.char);
+    container.appendChild(btn);
+  });
+}
+
 function choose(btn, selectedVal, answer, char) {
   if (answered) return;
   answered = true;
@@ -11026,7 +11150,7 @@ function choose(btn, selectedVal, answer, char) {
   // Reversed word drills have Japanese text as the answer (rather than the
   // usual romaji/English), so it needs the same small-kana wrapping used
   // everywhere else real Japanese text gets inserted.
-  const reversedWordItem = currentQ && currentQ.disp === 'word' && vocabReversed;
+  const reversedWordItem = (currentQ && currentQ.disp === 'word' && vocabReversed) || (currentQ && currentQ.disp === 'verbform' && currentQ.reverse);
   const displayAnswerHtml = reversedWordItem ? markSmallKana(displayAnswer) : displayAnswer;
   if (selectedVal === answer) {
     score++;
@@ -11045,7 +11169,7 @@ function choose(btn, selectedVal, answer, char) {
     const missedKey = char + '|' + answer;
     if (!missed.includes(missedKey)) {
       missed.push(missedKey);
-      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter')) missedItems.push(currentQ);
+      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter' || currentQ.disp === 'verbform')) missedItems.push(currentQ);
     }
   }
   document.getElementById('stat-correct').textContent = score;
@@ -11108,7 +11232,7 @@ function chooseTyped(rawInput, answer, char) {
     const missedKey = char + '|' + answer;
     if (!missed.includes(missedKey)) {
       missed.push(missedKey);
-      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter')) missedItems.push(currentQ);
+      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter' || currentQ.disp === 'verbform')) missedItems.push(currentQ);
     }
   }
   document.getElementById('stat-correct').textContent = score;
@@ -12042,6 +12166,12 @@ function showVerbConjugationReferenceFor(table, title, defaultKey) {
   taiNote.className = 'verb-conj-note';
   taiNote.textContent = 'The second grid ("want to ~") conjugates differently to the first - たい behaves like an い-adjective once it’s formed, not like a verb: たい → たくない (not たいません), たかった (not たいました), たくなかった. Same pattern as adjectives like たかい/たかくない/たかかった.';
   list.appendChild(taiNote);
+
+  // Kept as taught (2026-10-07) - this grid covers the Level 2 verbs only.
+  const laterNote = document.createElement('div');
+  laterNote.className = 'verb-conj-note';
+  laterNote.innerHTML = '<strong>Later:</strong> for every verb, including newer ones, hold it on any word list and slide towards the bubble to see all its forms. Level 3\'s Grammar notes has "How verbs conjugate", and the dice page has a Verb forms drill.';
+  list.appendChild(laterNote);
   showScreen('vocab-reference');
 }
 
@@ -12055,6 +12185,200 @@ function showVerbConjugationReference() {
 // a crowded pill row.
 function showObjectVerbConjugationReference() {
   showVerbConjugationReferenceFor(VERB_CONJUGATION_TABLE_OBJECTS, 'Verb tense & affirmative/negative (object verbs)', 'tabemasu');
+}
+
+// ==== VERB FORMS (2026-10-07) ====
+// One generator for every taught verb, so the hold-and-slide window, the
+// Level 3 "How verbs conjugate" card and the dice page's Verb forms drill
+// all grow on their own as verbs are added - nothing here lists verbs.
+// A word counts as a verb if it carries a verbs-* tag (verbs-l2, verbs-l3,
+// verbs-l4…) and is a single ます word, so set phrases that happen to end
+// in ます (わかります, おねがいします - tagged greetings/phrase) never count.
+// ます-form conjugation is completely regular (see the comment above
+// VERB_CONJUGATION_TABLE_CORE), so the ます and たい forms are derived from
+// the stem. Later forms (dictionary, て) can't be - かえります/ねます look
+// alike but split differently, and きます/します are irregular - so those
+// will need a verb-group field on each verb when they're taught.
+// The Level 2 cards keep their own hand-written tables, as taught.
+function isVerbItem(item) {
+  return !!(item && item.jp && /ます$/.test(item.jp) && !/[\s、]/.test(item.jp) &&
+    (item.tags || []).some(t => /^verbs(-|$)/.test(t)));
+}
+// Every taught verb, once each (a verb tagged into L2 and L3 is one verb).
+function getTaughtVerbs() {
+  const seen = new Set();
+  return getCoreVocabPool().filter(item => {
+    if (!isVerbItem(item) || seen.has(item.jp)) return false;
+    seen.add(item.jp);
+    return true;
+  });
+}
+
+const VERB_FORM_KEYS = ['nonPastAff', 'nonPastNeg', 'pastAff', 'pastNeg'];
+// Same terms as the Level 2 grid (Non-past / Past x affirmative / negative).
+const VERB_FORM_LABELS = {
+  nonPastAff: 'Non-past', nonPastNeg: 'Non-past negative',
+  pastAff: 'Past', pastNeg: 'Past negative',
+};
+
+// English for each form, built from the verb's own gloss ("to eat" ->
+// eat / don't eat / ate / didn't eat). Regular verbs need nothing; the
+// irregular past tenses live in this one list.
+const ENGLISH_IRREGULAR_PAST = {
+  be: 'was', become: 'became', begin: 'began', bring: 'brought', build: 'built', buy: 'bought',
+  catch: 'caught', choose: 'chose', come: 'came', cut: 'cut', do: 'did', draw: 'drew',
+  drink: 'drank', drive: 'drove', eat: 'ate', fall: 'fell', feel: 'felt', find: 'found',
+  fly: 'flew', forget: 'forgot', get: 'got', give: 'gave', go: 'went', have: 'had',
+  hear: 'heard', hold: 'held', keep: 'kept', know: 'knew', lend: 'lent', leave: 'left',
+  lose: 'lost', make: 'made', meet: 'met', pay: 'paid', put: 'put', read: 'read',
+  ride: 'rode', ring: 'rang', run: 'ran', say: 'said', see: 'saw', sell: 'sold',
+  send: 'sent', sing: 'sang', sit: 'sat', sleep: 'slept', speak: 'spoke', spend: 'spent',
+  stand: 'stood', swim: 'swam', take: 'took', teach: 'taught', tell: 'told', think: 'thought',
+  understand: 'understood', wake: 'woke', wear: 'wore', win: 'won', write: 'wrote',
+};
+const ENGLISH_DOUBLED_PAST = { chat: 'chatted', jog: 'jogged', plan: 'planned', shop: 'shopped', stop: 'stopped', travel: 'travelled' };
+function englishPastWord(w) {
+  const lw = w.toLowerCase();
+  if (ENGLISH_IRREGULAR_PAST[lw]) return ENGLISH_IRREGULAR_PAST[lw];
+  if (ENGLISH_DOUBLED_PAST[lw]) return ENGLISH_DOUBLED_PAST[lw];
+  if (/e$/.test(lw)) return w + 'd';
+  if (/[^aeiou]y$/.test(lw)) return w.slice(0, -1) + 'ied';
+  return w + 'ed';
+}
+function verbEnglishForms(en) {
+  const base = String(en || '').replace(/^to /, '').trim();
+  const parts = base.split(' / ').map(p => p.replace(/^to /, ''));
+  const past = parts.map(p => p.replace(/^(\S+)/, w => englishPastWord(w))).join(' / ');
+  return {
+    nonPastAff: base, nonPastNeg: "don't " + base, pastAff: past, pastNeg: "didn't " + base,
+    taiAff: 'want to ' + base, taiNeg: "don't want to " + base,
+    taiPast: 'wanted to ' + base, taiPastNeg: "didn't want to " + base,
+  };
+}
+
+// All forms of one verb item: { key: [jp, romaji, english] }.
+function verbForms(item) {
+  const st = item.jp.replace(/ます$/, '');
+  const rs = item.romaji.replace(/masu$/, '');
+  const en = verbEnglishForms(item.en);
+  return {
+    nonPastAff: [item.jp, item.romaji, en.nonPastAff],
+    nonPastNeg: [st + 'ません', rs + 'masen', en.nonPastNeg],
+    pastAff: [st + 'ました', rs + 'mashita', en.pastAff],
+    pastNeg: [st + 'ませんでした', rs + 'masendeshita', en.pastNeg],
+    taiAff: [st + 'たい', rs + 'tai', en.taiAff],
+    taiNeg: [st + 'たくない', rs + 'takunai', en.taiNeg],
+    taiPast: [st + 'たかった', rs + 'takatta', en.taiPast],
+    taiPastNeg: [st + 'たくなかった', rs + 'takunakatta', en.taiPastNeg],
+  };
+}
+
+// --- The hold-and-slide window ---
+// Same overlay as the daily sentence (proverb-overlay/proverb-card), so it
+// looks and closes the same way. Every form can be tapped to hear it.
+function verbFormsGridHtml(f, keys) {
+  const cell = k => `<div class="vf-cell" data-say="${f[k][0]}"><div class="vf-jp">${markSmallKana(f[k][0])}</div><div class="vf-ro">${f[k][1]}</div><div class="vf-en">${f[k][2]}</div></div>`;
+  return `<div class="vf-grid">
+      <div class="vf-head"></div><div class="vf-head">Affirmative</div><div class="vf-head">Negative</div>
+      <div class="vf-rowlabel">Non-past</div>${cell(keys[0])}${cell(keys[1])}
+      <div class="vf-rowlabel">Past</div>${cell(keys[2])}${cell(keys[3])}
+    </div>`;
+}
+function showVerbFormsPopup(item) {
+  const overlay = document.getElementById('verb-forms-overlay');
+  const body = document.getElementById('verb-forms-body');
+  if (!overlay || !body || !isVerbItem(item)) return;
+  const f = verbForms(item);
+  body.innerHTML = `
+    <div class="vf-title" data-say="${item.jp}">${markSmallKana(item.jp)}</div>
+    <div class="vf-title-sub">${item.romaji} · ${item.en}${item.altForm ? ' · ' + markSmallKana(item.altForm) : ''}</div>
+    <div class="vf-section">ます form</div>
+    ${verbFormsGridHtml(f, ['nonPastAff', 'nonPastNeg', 'pastAff', 'pastNeg'])}
+    <div class="vf-note">Non-past covers "now", "usually" and "will" — the time word tells you which.</div>
+    <div class="vf-section">たい — want to</div>
+    ${verbFormsGridHtml(f, ['taiAff', 'taiNeg', 'taiPast', 'taiPastNeg'])}
+    <div class="vf-note">たい ends like an い-adjective: たい → たくない, たかった, たくなかった.</div>`;
+  body.querySelectorAll('[data-say]').forEach(el => { el.onclick = () => speakJapanese(el.dataset.say); });
+  overlay._openedAt = Date.now(); // the lifting finger mustn't count as a tap outside
+  body.parentElement.scrollTop = 0;
+  overlay.classList.add('show');
+  // Each form stays on one line: step its text down until it fits the cell
+  // (narrow phones and べんきょうしませんでした would otherwise wrap mid-word).
+  body.querySelectorAll('.vf-jp, .vf-ro').forEach(el => {
+    let px = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > el.clientWidth && px > 9) { px -= 0.5; el.style.fontSize = px + 'px'; }
+  });
+}
+function dismissVerbFormsPopup() {
+  const overlay = document.getElementById('verb-forms-overlay');
+  if (overlay) overlay.classList.remove('show');
+}
+
+// --- Level 3 card: how verbs conjugate (fixed, one worked example) ---
+function showVerbConjugationL3Reference() {
+  const list = l3RefOpen('How verbs conjugate (ます form)');
+  l3Note(list, 'Every ます verb changes the same way. Take off ます and add the ending — no exceptions, します and きます included.');
+  const ex = { jp: 'たべます', romaji: 'tabemasu', en: 'to eat', tags: ['verbs'] };
+  const f = verbForms(ex);
+  [['ます', 'nonPastAff'], ['ません', 'nonPastNeg'], ['ました', 'pastAff'], ['ませんでした', 'pastNeg']].forEach(([end, k]) => {
+    l3Example(list, f[k][0], f[k][1], VERB_FORM_LABELS[k] + ' — ' + f[k][2]);
+  });
+  l3Note(list, 'Non-past covers "I eat", "I usually eat" and "I will eat" — a time word like まいにち or あした tells you which.');
+  l3Heading(list, 'たい — "want to"');
+  l3Note(list, 'Take off ます and add たい. たい then changes like an い-adjective, not a verb:');
+  ['taiAff', 'taiNeg', 'taiPast', 'taiPastNeg'].forEach(k => l3Example(list, f[k][0], f[k][1], f[k][2]));
+  l3Heading(list, 'Every verb, one at a time');
+  l3Note(list, 'On any verb list, <strong>hold a verb</strong> to hear it, then <strong>slide towards the bubble</strong> and let go to see all its forms.');
+  l3Note(list, 'To practise, the dice page has <strong>Verb forms</strong>: spot the form, or turn on "Reverse the drill direction" to build it.');
+  showScreen('vocab-reference');
+}
+
+// --- Dice page drill: Verb forms ---
+// Forward: see たべませんでした, pick "Past negative". Reversed (the page's own
+// "Reverse the drill direction" toggle): see "Past negative · たべます", pick
+// the form. Wrong answers are always the same verb's other three forms, so
+// recognising the verb alone never gives the answer away. Scored per verb
+// AND form, under keys of their own ('verbform:たべます|pastNeg') that never
+// touch vocab scores, so these never turn up in Weakest/Untested 20.
+function verbFormScoreItems() {
+  const out = [];
+  getTaughtVerbs().forEach(v => VERB_FORM_KEYS.forEach(k => out.push({ jp: 'verbform:' + v.jp, en: k, verb: v, form: k })));
+  return out;
+}
+function buildVerbFormDeck(reverse) {
+  const picks = weightedSampleWithoutReplacement(verbFormScoreItems(), 20,
+    it => selectionWeight(decayedScore(kanaScores[it.jp + '|' + it.en])));
+  return picks.map(({ verb, form }) => {
+    const f = verbForms(verb);
+    const base = {
+      disp: 'verbform', groupKey: 'verb-forms', verbForm: form, reverse: !!reverse,
+      scoreKey: 'verbform:' + verb.jp + '|' + form,
+      verbJp: verb.jp, verbRomaji: verb.romaji, verbEn: verb.en, formJp: f[form][0],
+      hint: f[form][1] + ' — ' + f[form][2],
+    };
+    if (!reverse) {
+      return Object.assign(base, {
+        char: f[form][0], answer: VERB_FORM_LABELS[form],
+        // Always in grid order (the same four labels every time), so the
+        // answer's position is learnt as part of the pattern, not hunted for.
+        options: VERB_FORM_KEYS.map(k => ({ value: VERB_FORM_LABELS[k], top: VERB_FORM_LABELS[k] })),
+      });
+    }
+    return Object.assign(base, {
+      char: VERB_FORM_LABELS[form] + ' · ' + verb.jp, answer: f[form][0],
+      options: shuffle(VERB_FORM_KEYS.map(k => ({ value: f[k][0], top: f[k][0], sub: f[k][1], jp: true }))),
+    });
+  });
+}
+function startVerbFormDrill() {
+  if (!getTaughtVerbs().length) return;
+  lastSettingsScreen = 'match-settings';
+  const reverse = !!vocabReversed;
+  lastDeckBuilder = () => buildVerbFormDeck(reverse);
+  deck = lastDeckBuilder();
+  current = 0; score = 0; wrong = 0; hints = 0; answered = false; missed = []; missedItems = [];
+  showScreen('drill');
+  renderQuestion();
 }
 
 // Duration-counter reference (Numbers > Counters reference). Each unit's
@@ -13644,6 +13968,9 @@ function showGrammarNotesHubL3() {
     { label: 'どんな — "what kind of…?"', fn: showDonnaReference },
     { label: 'Place + で — where something happens', fn: showPlaceDeReference },
     { label: 'My family vs someone else\'s (+ と "with")', fn: showFamilyL3Reference },
+    // 2026-10-07: replaces per-verb pill screens - every verb's own forms
+    // are one hold-and-slide away on any word list (showVerbFormsPopup).
+    { label: 'How verbs conjugate — ます / ません / ました / ませんでした', fn: showVerbConjugationL3Reference },
   ];
   entries.forEach(entry => {
     const card = document.createElement('div');
@@ -15564,6 +15891,8 @@ function showProverbOverlay(proverbs) {
     </div>
   `;
   }).join('');
+  const card = overlay.querySelector('.proverb-card');
+  if (card && proverbs.length) card.style.setProperty('--pc', 'var(--cat-' + proverbCategoryKey(proverbs[0].category) + ')');
   renderProverbGreeting();
   renderProverbSentence();
   clearInterval(proverbGreetingTimer);
