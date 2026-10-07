@@ -1319,7 +1319,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261006.005</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -8952,7 +8952,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-06e';
+const LATEST_CHANGELOG_ENTRY = '2026-10-07b';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -13559,18 +13559,11 @@ function showFrequencyReference() {
 // Words are looked up by kana among TAUGHT items, wherever they live - most
 // L3 words are tagged forward from L1/L2/trip categories rather than stored
 // in the L3 ones.
-const L3_SENTENCE_VERBS = [
-  { jp: 'たべます', en: 'eat', objs: [['パン', 'eat bread'], ['ごはん', 'eat rice'], ['たまご', 'eat eggs'], ['りんご', 'eat apples'], ['バナナ', 'eat bananas'], ['くだもの', 'eat fruit'], ['シリアル', 'eat cereal'], ['ヨーグルト', 'eat yoghurt'], ['なっとう', 'eat natto'], ['パンケーキ', 'eat pancakes'], ['サンドイッチ', 'eat sandwiches'], ['サラダ', 'eat salad'], ['パスタ', 'eat pasta'], ['ピザ', 'eat pizza'], ['ラーメン', 'eat ramen'], ['すし', 'eat sushi'], ['カレー', 'eat curry'], ['ステーキ', 'eat steak'], ['オムレツ', 'eat omelettes'], ['ぎょうざ', 'eat gyoza'], ['てんぷら', 'eat tempura'], ['にく', 'eat meat'], ['ぶたにく', 'eat pork'], ['ぎゅうにく', 'eat beef'], ['とりにく', 'eat chicken'], ['さかな', 'eat fish'], ['えび', 'eat prawns'], ['たこ', 'eat octopus'], ['いか', 'eat squid'], ['やさい', 'eat vegetables']] },
-  { jp: 'のみます', en: 'drink', objs: [['おちゃ', 'drink green tea'], ['にほんちゃ', 'drink Japanese tea'], ['こうちゃ', 'drink black tea'], ['コーヒー', 'drink coffee'], ['ジュース', 'drink juice'], ['スポーツドリンク', 'drink sports drinks'], ['ぎゅうにゅう', 'drink milk'], ['おさけ', 'drink alcohol'], ['ビール', 'drink beer'], ['スープ', 'have soup'], ['くすり', 'take medicine']] },
-  { jp: 'みます', en: 'watch', objs: [['テレビ', 'watch TV'], ['えいが', 'watch films'], ['ニュース', 'watch the news'], ['スポーツ', 'watch sport'], ['ビデオ', 'watch videos'], ['ドラマ', 'watch dramas'], ['おしばい', 'watch plays']] },
-  { jp: 'ききます', en: 'listen to', objs: [['おんがく', 'listen to music'], ['ラジオ', 'listen to the radio'], ['ポップス', 'listen to pop music'], ['オペラ', 'listen to opera']] },
-  { jp: 'よみます', en: 'read', objs: [['ほん', 'read books'], ['しんぶん', 'read the newspaper'], ['ざっし', 'read magazines']] },
-  { jp: 'かきます', en: 'write', objs: [['メール', 'write emails'], ['レポート', 'write reports']] },
-  { jp: 'かいます', en: 'buy', objs: [['たべもの', 'buy food'], ['のみもの', 'buy drinks'], ['パン', 'buy bread'], ['やさい', 'buy vegetables'], ['くだもの', 'buy fruit'], ['ざっし', 'buy magazines'], ['ふく', 'buy clothes'], ['くつ', 'buy shoes']] },
-  { jp: 'とります', en: 'take', objs: [['しゃしん', 'take photos'], ['セルフィー', 'take selfies']] },
-  { jp: 'します', en: 'do', objs: [['スポーツ', 'do sport'], ['テニス', 'play tennis'], ['ゴルフ', 'play golf'], ['サッカー', 'play football'], ['ゲーム', 'play games'], ['べんきょう', 'study'], ['しごと', 'work'], ['すいえい', 'go swimming'], ['スキー', 'go skiing'], ['じゅうどう', 'do judo'], ['ジョギング', 'go jogging'], ['ダンス', 'dance'], ['カラオケ', 'do karaoke'], ['りょうり', 'cook'], ['ガーデニング', 'do gardening'], ['ドライブ', 'go for a drive'], ['サイクリング', 'go cycling'], ['ウォーキング', 'go walking'], ['バーベキュー', 'have a barbecue'], ['ピクニック', 'have a picnic'], ['パーティー', 'have a party']] },
-];
-
+// (2026-10-07) The Sentence order card's own word list (L3_SENTENCE_VERBS), time
+// pool and English helper were removed: the card now draws verbs/objects,
+// places, times and frequency words from the daily-sentence engine
+// (SG_OBJECT_VERBS, sgTime, sgPlaceTimeOk, sgActTimeOk, SG_FREQ = L3_FREQ_WORDS)
+// so both follow one set of rules and grow together.
 function l3TaughtItem(jp) {
   for (const key of Object.keys(VOCAB)) {
     const hit = VOCAB[key].items.find(i => i.jp === jp && (i.tags || []).includes('taught'));
@@ -13579,40 +13572,10 @@ function l3TaughtItem(jp) {
   return null;
 }
 
-let l3SentenceVerbCache = null;
-function l3SentenceVerbs() {
-  if (!l3SentenceVerbCache) {
-    l3SentenceVerbCache = L3_SENTENCE_VERBS.map(v => ({
-      item: l3TaughtItem(v.jp),
-      en: v.en,
-      objs: v.objs.map(([jp, phrase]) => ({ item: l3TaughtItem(jp), phrase })).filter(o => o.item),
-    })).filter(v => v.item && v.objs.length);
-  }
-  return l3SentenceVerbCache;
-}
-
-// Days take に; あさ/ひる/よる (the class's own examples) take no particle -
-// a real rule worth seeing, not a simplification.
-function l3TimePool() {
-  const days = VOCAB['vocab-days-l2'].items.filter(hasCleanGloss)
-    .map(d => ({ item: d, particle: 'に', particleRomaji: 'ni', en: 'on ' + d.en + 's' })); // habitual English: "on Sundays"
-  const parts = [['あさ', 'in the morning'], ['ひる', 'at lunchtime'], ['よる', 'in the evening']]
-    .map(([jp, en]) => ({ item: VOCAB['vocab-time-l2'].items.find(i => i.jp === jp), particle: '', particleRomaji: '', en }))
-    .filter(p => p.item);
-  return [...days, ...parts];
-}
-
-// "eat bread" -> "eats bread" for he/she/Tanaka-san subjects.
-function l3Third(phrase) {
-  const words = phrase.split(' ');
-  const irregular = { go: 'goes', do: 'does', have: 'has', watch: 'watches', study: 'studies' };
-  words[0] = irregular[words[0]] || words[0] + 's';
-  return words.join(' ');
-}
 
 const L3_SENTENCE_SLOTS = [
   { num: 1, role: 'Topic (who)', particle: 'は', questionBadge: 'だれが', note: 'who is doing it' },
-  { num: 2, role: 'Time (when)', questionBadge: 'いつ', note: 'に after a day (にちようびに) — but no particle after あさ / ひる / よる' },
+  { num: 2, role: 'Time (when)', questionBadge: 'いつ', note: 'に after a day (にちようびに) — but no particle after あさ / ひる / よる / しゅうまつ' },
   { num: 3, role: 'Frequency (how often)', note: 'no particle — あまり and ぜんぜん turn the verb negative' },
   { num: 4, role: 'Location of action (where)', particle: 'で', questionBadge: 'どこで', note: 'where it happens' },
   { num: 5, role: 'Object (what)', particle: 'を', questionBadge: 'なにを', note: 'the thing being eaten, drunk, watched, done…' },
@@ -13679,30 +13642,46 @@ function l3PlacesFor(verbJp, objJp) {
   return places.map(p => Object.assign({}, l3TaughtItem(p), { atEn: SG_PLACE_EN[p][0] }));
 }
 function pickFreshL3SentenceWords() {
+  // Every activity the daily engine knows, as (entry, object) pairs that have
+  // somewhere sensible to happen (the Location slot always needs a place).
   const pairs = [];
-  l3SentenceVerbs().forEach(verb => verb.objs.forEach(obj => {
-    const places = l3PlacesFor(verb.item.jp, obj.item.jp);
-    if (places.length) pairs.push({ verb, obj, places });
-  }));
-  // Time is picked alongside, and has to suit both the activity and the
-  // place (no pub at lunchtime, no beer in the morning, no office on Sunday).
-  let pick, time, places = [];
-  for (let tries = 0; tries < 40 && !places.length; tries++) {
-    pick = pickRandomItem(pairs);
-    time = pickRandomItem(l3TimePool());
-    const tj = time.item.jp, tt = Object.assign({}, SG_TIMES[tj] || {}, { weekend: ['どようび', 'にちようび'].includes(tj) });
-    const act = SG_OBJECT_VERBS.find(e => e.v === pick.verb.item.jp && e.objs.some(o => o[0] === pick.obj.item.jp));
-    const alcohol = ['ビール', 'ワイン', 'おさけ'].includes(pick.obj.item.jp);
-    if ((act && !sgActTimeOk(act, tj, tt, 'hab')) || (alcohol && tt.morning)) continue;
-    places = pick.places.filter(p => sgPlaceTimeOk(p.jp, tj, tt));
+  // Outings (picnics, parties, plays...) are left out: the Frequency row can
+  // be tapped round to いつも, and "always has a party" isn't something to model.
+  SG_OBJECT_VERBS.forEach(V => {
+    if (V.intrans || V.once || V.outing || !sgW(V.v)) return;
+    let ps = V.places.filter(p => sgW(p) && !SG_PLACE_EN[p][1]);
+    if (!V.places.length && L3_HOME_OK_VERBS.includes(V.v) && sgW('うち')) ps = ['うち'];
+    if (!ps.length) return;
+    const places = ps.map(p => Object.assign({}, l3TaughtItem(p), { atEn: SG_PLACE_EN[p][0] }));
+    V.objs.filter(o => sgW(o[0])).forEach(o => pairs.push({ V, o, places }));
+  });
+  for (let tries = 0; tries < 40; tries++) {
+    const { V, o, places } = pickRandomItem(pairs);
+    // Habitual time word the engine allows for this activity with a frequency word.
+    const t = sgTime('hab', (jp, tt) => sgActTimeOk(V, jp, tt, 'hab'), { freq: true });
+    if (!t) continue;
+    const okPlaces = places.filter(p => sgPlaceTimeOk(p.jp, t.jp, t.t));
+    if (!okPlaces.length) continue;
+    const isDay = SG_DAYS.some(d => d[0] === t.jp);
+    l3SentWords = {
+      topic: pickRandomItem(sentenceStructurePeoplePool()),
+      time: { item: { jp: t.jp, romaji: sgW(t.jp).ro }, particle: isDay ? 'に' : '', particleRomaji: isDay ? 'ni' : '', en: t.en, t: t.t, isDay },
+      loc: pickRandomItem(okPlaces),
+      verb: { item: l3TaughtItem(V.v), en: V.phrase ? 'do' : V.en, entry: V },
+      obj: { item: l3TaughtItem(o[0]), phrase: sgActPhrase(V, o, 'hab') },
+    };
+    return;
   }
-  l3SentWords = {
-    topic: pickRandomItem(sentenceStructurePeoplePool()),
-    time,
-    loc: pickRandomItem(places.length ? places : pick.places),
-    verb: pick.verb,
-    obj: pick.obj,
-  };
+}
+
+// あまり/ぜんぜん + a day with に ("げつようびに ぜんぜん…") is stiff - Japanese
+// would say げつようびは. Same rule as the daily sentence: use あさ/ひる/よる
+// instead. Called whenever the frequency word or the example changes.
+function l3FixTimeForFreq() {
+  if (l3SentStates[2] !== 'on' || !L3_FREQ_WORDS[l3FreqIdx].neg || !l3SentWords.time.isDay) return;
+  const V = l3SentWords.verb.entry;
+  const t = sgTime('hab', (jp, tt) => !SG_DAYS.some(d => d[0] === jp) && jp !== 'しゅうまつ' && sgActTimeOk(V, jp, tt, 'hab') && sgPlaceTimeOk(l3SentWords.loc.jp, jp, tt), { freq: true });
+  if (t) l3SentWords.time = { item: { jp: t.jp, romaji: sgW(t.jp).ro }, particle: '', particleRomaji: '', en: t.en, t: t.t, isDay: false };
 }
 
 function renderL3SentenceRows() {
@@ -13759,6 +13738,7 @@ function cycleL3SentenceSlot(idx) {
     if (l3SentStates[2] === 'off') { l3SentStates[2] = 'on'; l3FreqIdx = 0; }
     else if (l3FreqIdx < L3_FREQ_WORDS.length - 1) { l3FreqIdx++; }
     else { l3SentStates[2] = 'off'; }
+    l3FixTimeForFreq();
   } else {
     const order = ['on', 'off', 'q'];
     l3SentStates[idx] = order[(order.indexOf(l3SentStates[idx]) + 1) % order.length];
@@ -13808,11 +13788,11 @@ function buildL3SentenceExample() {
   let subj, third;
   if (st[0] === 'on') { subj = sentencePersonEnglish(topic); third = true; }
   else { subj = isQ ? 'you' : 'I'; third = false; }
-  const conj = p => (third ? l3Third(p) : p);
+  const conj = p => (third ? sgVerbEn(p, 'third') : p);
 
   let en;
   if (whoQ) {
-    const vp = !f ? l3Third(P) : !neg ? f.en + ' ' + l3Third(P) : isAmari ? "doesn't often " + P : 'never ' + l3Third(P);
+    const vp = !f ? sgVerbEn(P, 'third') : !neg ? f.en + ' ' + sgVerbEn(P, 'third') : isAmari ? "doesn't often " + P : 'never ' + sgVerbEn(P, 'third');
     en = 'Who ' + vp + tailS + '?';
   } else if (isQ) {
     let aux = third ? 'does' : 'do', mid;
@@ -13849,6 +13829,10 @@ function renderL3SentenceExample() {
 
 function shuffleL3SentenceExample() {
   pickFreshL3SentenceWords();
+  // (2026-10-07) A new example also gets a new frequency word if that slot is
+  // on - it used to stay on いつも unless you tapped the Frequency row.
+  if (l3SentStates[2] === 'on') l3FreqIdx = Math.floor(Math.random() * L3_FREQ_WORDS.length);
+  l3FixTimeForFreq();
   renderL3SentenceRows(); // time badge (に vs none) depends on the word picked
   renderL3SentenceExample();
 }
@@ -14612,10 +14596,9 @@ const SG_TIMES = {
 };
 const SG_DAYS = [['げつようび', 'Monday'], ['かようび', 'Tuesday'], ['すいようび', 'Wednesday'], ['もくようび', 'Thursday'], ['きんようび', 'Friday'], ['どようび', 'Saturday', true], ['にちようび', 'Sunday', true]];
 
-const SG_FREQ = [
-  { jp: 'いつも', en: 'always', neg: false }, { jp: 'よく', en: 'often', neg: false }, { jp: 'ときどき', en: 'sometimes', neg: false },
-  { jp: 'あまり', en: 'not often', neg: true }, { jp: 'ぜんぜん', en: 'never', neg: true },
-];
+// (2026-10-07) The same five words as the Frequency card / Sentence order card
+// (L3_FREQ_WORDS) - one list. Only positive words' .en reaches the English.
+const SG_FREQ = L3_FREQ_WORDS;
 
 // English verb forms, keyed by the first word of a phrase.
 const SG_VERB_EN = {
@@ -14628,7 +14611,8 @@ const SG_VERB_EN = {
 function sgVerbEn(phrase, form) { // form: base | third | past
   if (form === 'base') return phrase;
   const [first, ...rest] = phrase.split(' ');
-  const f = SG_VERB_EN[first]; const w = f ? f[form === 'third' ? 0 : 1] : first;
+  const f = SG_VERB_EN[first];
+  const w = f ? f[form === 'third' ? 0 : 1] : (form === 'third' ? first + 's' : first + 'ed');
   return [w, ...rest].join(' ');
 }
 
@@ -14642,6 +14626,7 @@ function sgVerbEn(phrase, form) { // form: base | third | past
 //   outing   - not an everyday thing: never with まいにち/まいあさ/morning words
 //   dayOnly  - not in the evening either (skiing, picnics)
 //   noLunch  - takes longer than a lunch hour (golf, skiing, a play...)
+//   routine  - a daily routine (medicine): every day / morning / evening, not weekly
 //   adult    - never with a subject or companion who might be a child
 //   noMorning - not with morning or lunchtime words (alcohol)
 //   workObj  - しごと: subjects who work only
@@ -14650,25 +14635,39 @@ function sgVerbEn(phrase, form) { // form: base | third | past
 // week used にわ で サッカー / ビール and うち で しゅくだい with それから -
 // deliberately not generated (see scan-sentences.py).
 const SG_OBJECT_VERBS = [
-  { v: 'たべます', en: 'eat', list: true, objs: [['パン', 'bread'], ['たまご', 'eggs'], ['サラダ', 'salad'], ['サンドイッチ', 'sandwiches'], ['くだもの', 'fruit']], places: ['うち', 'カフェ', 'きっさてん', 'しょくどう', 'レストラン'], futHave: true },
-  { v: 'たべます', en: 'eat', list: true, objs: [['ごはん', 'rice'], ['さかな', 'fish'], ['にく', 'meat'], ['やさい', 'vegetables'], ['ラーメン', 'ramen'], ['パスタ', 'pasta'], ['すし', 'sushi'], ['カレー', 'curry'], ['てんぷら', 'tempura'], ['ピザ', 'pizza']], places: ['うち', 'レストラン', 'しょくどう'], futHave: true },
-  { v: 'のみます', en: 'drink', list: true, objs: [['コーヒー', 'coffee'], ['おちゃ', 'green tea'], ['こうちゃ', 'black tea'], ['ジュース', 'juice'], ['ぎゅうにゅう', 'milk'], ['みず', 'water']], places: ['うち', 'カフェ', 'きっさてん', 'レストラン'], futHave: true },
+  // (2026-10-07) This is now the ONE activity list: the Level 3 Sentence
+  // order card draws from it too (it used to have its own), so anything
+  // added here reaches both.
+  { v: 'たべます', en: 'eat', list: true, objs: [['パン', 'bread'], ['たまご', 'eggs'], ['サラダ', 'salad'], ['サンドイッチ', 'sandwiches'], ['くだもの', 'fruit'], ['パンケーキ', 'pancakes'], ['オムレツ', 'omelettes']], places: ['うち', 'カフェ', 'きっさてん', 'しょくどう', 'レストラン'], futHave: true },
+  { v: 'たべます', en: 'eat', list: true, objs: [['ごはん', 'rice'], ['さかな', 'fish'], ['にく', 'meat'], ['やさい', 'vegetables'], ['ラーメン', 'ramen'], ['パスタ', 'pasta'], ['すし', 'sushi'], ['カレー', 'curry'], ['てんぷら', 'tempura'], ['ピザ', 'pizza'],
+    ['ステーキ', 'steak'], ['ぎょうざ', 'gyoza'], ['ぶたにく', 'pork'], ['ぎゅうにく', 'beef'], ['とりにく', 'chicken'], ['えび', 'prawns'], ['たこ', 'octopus'], ['いか', 'squid']], places: ['うち', 'レストラン', 'しょくどう'], futHave: true },
+  { v: 'たべます', en: 'eat', list: true, objs: [['りんご', 'apples'], ['バナナ', 'bananas'], ['シリアル', 'cereal'], ['ヨーグルト', 'yoghurt'], ['なっとう', 'natto']], places: ['うち'], futHave: true },
+  { v: 'のみます', en: 'drink', list: true, objs: [['コーヒー', 'coffee'], ['おちゃ', 'green tea'], ['にほんちゃ', 'Japanese tea'], ['こうちゃ', 'black tea'], ['ジュース', 'juice'], ['ぎゅうにゅう', 'milk'], ['みず', 'water']], places: ['うち', 'カフェ', 'きっさてん', 'レストラン'], futHave: true },
+  { v: 'のみます', en: 'drink', objs: [['スポーツドリンク', 'sports drinks', 'a sports drink']], places: ['ジム', 'うち'], futHave: true },
   { v: 'のみます', en: 'drink', list: true, objs: [['ビール', 'beer'], ['ワイン', 'wine']], places: ['うち', 'レストラン', 'バー', 'パブ'], futHave: true, adult: true, noMorning: true },
+  { v: 'のみます', en: 'drink', objs: [['おさけ', 'alcohol']], places: ['うち', 'レストラン', 'バー', 'パブ'], adult: true, noMorning: true },
+  { v: 'のみます', phrase: true, objs: [['スープ', 'have soup']], places: ['うち', 'レストラン'] },
+  { v: 'のみます', phrase: true, objs: [['くすり', 'take medicine']], places: ['うち'], routine: true },
   { v: 'かいます', en: 'buy', list: true, objs: [['パン', 'bread'], ['たまご', 'eggs'], ['ぎゅうにゅう', 'milk'], ['ジュース', 'juice']], places: ['スーパー', 'コンビニ'] },
+  { v: 'かいます', en: 'buy', list: true, objs: [['たべもの', 'food'], ['のみもの', 'drinks']], places: ['スーパー', 'コンビニ'] },
   { v: 'かいます', en: 'buy', list: true, objs: [['やさい', 'vegetables'], ['くだもの', 'fruit'], ['にく', 'meat'], ['さかな', 'fish']], places: ['スーパー'] }, // fresh food: not a konbini thing
-  { v: 'かいます', en: 'buy', list: true, objs: [['くつ', 'shoes', 'shoes'], ['ふく', 'clothes', 'clothes']], places: ['デパート'] },
+  { v: 'かいます', en: 'buy', list: true, objs: [['くつ', 'shoes', 'shoes'], ['ふく', 'clothes', 'clothes']], places: ['デパート'], outing: true }, // not an everyday/"always" purchase
   { v: 'かいます', en: 'buy', objs: [['ほん', 'books', 'a book'], ['ざっし', 'magazines', 'a magazine']], places: ['ほんや', 'コンビニ'] },
   { v: 'かいます', en: 'buy', objs: [['カメラ', 'cameras', 'a camera']], places: ['カメラや', 'デパート'], once: true },
-  { v: 'みます', en: 'watch', objs: [['テレビ', 'TV', 'TV'], ['ニュース', 'the news', 'the news'], ['ドラマ', 'dramas', 'a drama']], places: ['うち', 'いま'] },
+  { v: 'みます', en: 'watch', objs: [['テレビ', 'TV', 'TV'], ['ニュース', 'the news', 'the news'], ['ドラマ', 'dramas', 'a drama'], ['スポーツ', 'sport', 'sport'], ['ビデオ', 'videos', 'a video']], places: ['うち', 'いま'] },
   { v: 'みます', en: 'watch', objs: [['えいが', 'films', 'a film']], places: ['うち', 'えいがかん'] },
   { v: 'みます', en: 'watch', objs: [['おしばい', 'plays', 'a play']], places: [], outing: true, noLunch: true },
   { v: 'ききます', en: 'listen to', objs: [['おんがく', 'music', 'music'], ['ラジオ', 'the radio', 'the radio'], ['ポップス', 'pop music', 'pop music'], ['オペラ', 'opera', 'opera']], places: ['うち', 'へや', 'いま'] },
   { v: 'よみます', en: 'read', objs: [['ほん', 'books', 'a book'], ['しんぶん', 'the newspaper', 'the newspaper'], ['ざっし', 'magazines', 'a magazine']], places: ['うち', 'へや', 'しんしつ', 'カフェ', 'きっさてん', 'としょかん', 'こうえん'] },
   { v: 'かきます', en: 'write', objs: [['メール', 'emails', 'an email'], ['てがみ', 'letters', 'a letter'], ['レポート', 'reports', 'a report']], places: ['うち', 'かいしゃ', 'じむしょ'] },
-  { v: 'とります', en: 'take', objs: [['しゃしん', 'photos', 'photos']], places: ['こうえん', 'うみ', 'やま', 'いなか', 'どうぶつえん'] },
+  { v: 'とります', en: 'take', objs: [['しゃしん', 'photos', 'photos'], ['セルフィー', 'selfies', 'selfies']], places: ['こうえん', 'うみ', 'やま', 'いなか', 'どうぶつえん'] },
   // します: English phrase is whole (play tennis, go swimming).
   { v: 'します', phrase: true, objs: [['テニス', 'play tennis'], ['サッカー', 'play football'], ['ジョギング', 'go jogging']], places: ['こうえん'] },
   { v: 'します', phrase: true, objs: [['ゴルフ', 'play golf']], places: [], outing: true, noLunch: true },
+  { v: 'します', phrase: true, objs: [['スポーツ', 'do sport']], places: ['ジム', 'こうえん'] },
+  { v: 'します', phrase: true, objs: [['じゅうどう', 'do judo']], places: [], noLunch: true },
+  { v: 'します', phrase: true, objs: [['ウォーキング', 'go walking']], places: ['こうえん', 'いなか'] },
+  { v: 'します', phrase: true, objs: [['パーティー', 'have a party']], places: ['うち'], outing: true, noLunch: true },
   { v: 'します', phrase: true, objs: [['すいえい', 'go swimming']], places: ['プール'] },
   { v: 'します', phrase: true, objs: [['ピクニック', 'have a picnic']], places: ['こうえん', 'うみ'], outing: true, dayOnly: true },
   { v: 'します', phrase: true, objs: [['バーベキュー', 'have a barbecue']], places: ['こうえん', 'うみ', 'にわ'], outing: true },
@@ -14697,7 +14696,7 @@ const SG_PLACE_EN = {
 };
 // Which time words a PLACE can go with, whatever the activity.
 const SG_PLACE_OUTING = ['うみ', 'やま', 'いなか', 'どうぶつえん'];
-const SG_PLACE_WORK = ['かいしゃ', 'じむしょ', 'だいがく', 'きょうしつ'];
+const SG_PLACE_WORK = ['かいしゃ', 'じむしょ', 'だいがく', 'きょうしつ', 'しょくどう']; // しょくどう = the work/school canteen
 function sgPlaceTimeOk(p, jp, t) {
   if (!jp) return true;
   t = t || {};
@@ -14716,6 +14715,7 @@ function sgActTimeOk(V, jp, t, tense) {
   if (V.outing && tense === 'hab' && SG_DAYS.some(d => d[0] === jp && !d[2])) return false;
   if (V.dayOnly && t.evening) return false;
   if (V.noLunch && jp === 'ひる') return false;
+  if (V.routine && (t.weekend || SG_DAYS.some(d => d[0] === jp) || jp === 'ひる' || jp === 'しゅうまつ')) return false;
   return true;
 }
 
@@ -14871,8 +14871,9 @@ function sgSubject(opts = {}) {
   return { segs: [sgSeg(n.jp, 'は', 'wa')], en: n.en, third: true };
 }
 // Companion (と "with"). adultOnly: the destination is a bar etc.
-function sgCompanion(subj, dest, adultOnly) {
-  const famOk = m => !(adultOnly && m.child);
+function sgCompanion(subj, dest, adultOnly, noFamily) {
+  // noFamily: going to school / university / work - "with my mother" would be odd.
+  const famOk = m => !noFamily && !(adultOnly && m.child);
   const r = sgRand();
   if (subj.me) {
     if (r < 0.2) return { seg: sgSeg('ともだち', 'と', 'to'), en: 'with a friend' };
@@ -14880,7 +14881,7 @@ function sgCompanion(subj, dest, adultOnly) {
     if (r < 0.56) { const pool = sgMyFamily(famOk); if (pool.length) { const m = sgPick(pool); return { seg: sgSeg(m.jp, 'と', 'to'), en: 'with my ' + m.en }; } }
     if (r < 0.66 && SG_COLLEAGUE_OK.includes(dest) && sgW('どうりょう')) return { seg: sgSeg('どうりょう', 'と', 'to'), en: 'with a colleague' };
     if (r < 0.84) return { seg: { jp: 'ひとり で', ro: 'hitori de' }, en: 'on my own' };
-    const pool = sgPoliteFamily(m => !m.child && !m.elderly);
+    const pool = noFamily ? [] : sgPoliteFamily(m => !m.child && !m.elderly);
     if (pool.length) { const m = sgPick(pool); return { segs: [sgSeg('ともだち', 'の', 'no'), sgSeg(m.jp, 'と', 'to')], en: `with my friend's ${m.en}` }; }
     return { seg: sgSeg('ともだち', 'と', 'to'), en: 'with a friend' };
   }
@@ -14941,7 +14942,7 @@ function sgObjectSentence() {
   if ((V.workObj && subj.family) || (V.adult && subj.child)) subj = { segs: [sgSeg('ともだち', 'は', 'wa')], en: 'my friend', third: true };
   let freq = null, time = null;
   if (tense === 'hab' && sgChance(0.55)) {
-    freq = sgPick(SG_FREQ);
+    freq = sgPick(SG_FREQ.filter(f => !(V.outing && f.jp === 'いつも'))); // no "always has a picnic"
     if (!freq.neg && sgChance(0.6)) time = sgTime('hab', (jp, t) => sgActTimeOk(V, jp, t, 'hab'), { freq: true });
   } else {
     time = sgTime(tense, (jp, t) => sgActTimeOk(V, jp, t, tense));
@@ -14965,9 +14966,12 @@ function sgObjectSentence() {
   let placeSeg = null, placeEn = '';
   const places = V.places.filter(p => sgW(p) && sgPlaceTimeOk(p, time && time.jp, time && time.t) && !(SG_PLACE_EN[p][1] && !subj.me)
     && !((subj.elderly || subj.child) && (p === 'かいしゃ' || p === 'じむしょ')));
-  if (places.length && !neg && sgChance(V.intrans ? 0.85 : (freq && time ? 0.25 : 0.5))) {
+  if (places.length && !neg && (V.intrans || sgChance(freq && time ? 0.25 : 0.5))) {
     const p = sgPick(places); placeSeg = sgSeg(p, 'で', 'de'); placeEn = sgPlaceEn(p);
   }
+  // A verb with no object needs its place ("I sing" alone is too bare) - except
+  // in a negative ("I never swim"), where no place reads naturally.
+  if (V.intrans && !neg && !placeSeg) return null;
   const verb = sgVerb(V.v, tense, neg);
   const segs = [...subj.segs, time && time.seg, freq && { jp: freq.jp, ro: sgW(freq.jp).ro }, placeSeg, ...objSegs, verb].filter(Boolean);
   const out = sgJoin(segs);
@@ -14990,7 +14994,7 @@ function sgMotionSentence() {
     const ok = Object.entries(SG_DEST).filter(([jp, v]) => sgW(jp) && sgDestSubjOk(jp, v[1], subj));
     let pick = goHome ? null : sgPick(ok);
     const kind = pick ? pick[1][1] : 'daily';
-    if (tense === 'hab' && sgChance(0.4) && kind !== 'work') freq = sgPick(SG_FREQ);
+    if (tense === 'hab' && sgChance(0.4) && kind !== 'work') freq = sgPick(SG_FREQ.filter(f => !(['outing', 'daytrip', 'event'].includes(kind) && f.jp === 'いつも')));
     const plainNeg = freq && freq.neg;
     time = plainNeg ? { seg: null, en: '' } : sgTime(tense, (jp, t) => {
       if (goHome && !['きょう', 'こんばん', 'きのう'].includes(jp)) return false;
@@ -15000,7 +15004,7 @@ function sgMotionSentence() {
     const neg = freq ? freq.neg : (tense === 'past' && sgChance(0.1));
     const segs = [...subj.segs, time.seg, freq && { jp: freq.jp, ro: sgW(freq.jp).ro }];
     let comp = null, tr = null;
-    if (!plainNeg && sgChance(freq ? 0.2 : 0.35)) { comp = sgCompanion(subj, pick && pick[0], kind === 'bar'); segs.push(...(comp.segs || [comp.seg])); }
+    if (!plainNeg && sgChance(freq ? 0.2 : 0.35)) { comp = sgCompanion(subj, pick && pick[0], kind === 'bar', kind === 'work'); segs.push(...(comp.segs || [comp.seg])); }
     else if (!plainNeg && sgChance(freq ? 0.2 : 0.35)) {
       const t = sgPick(SG_TRANSPORT.filter(t => sgW(t[0]) && !(subj.child && ['くるま', 'バイク'].includes(t[0]))));
       tr = { seg: t[2] ? sgSeg(t[0]) : sgSeg(t[0], 'で', 'de'), en: t[1] };
@@ -15264,9 +15268,9 @@ function sgQA() {
   // freq yes/no
   const V = sgPick(SG_OBJECT_VERBS.filter(v => !v.once && !v.intrans && v.v !== 'します' && sgW(v.v)));
   const o = sgPick(V.objs.filter(o => sgW(o[0])));
-  const f = sgPick(SG_FREQ);
+  const f = sgPick(SG_FREQ.filter(f => !(V.outing && f.jp === 'いつも')));
   const q = sgJoin([sgSeg(o[0], 'を', 'o'), sgVerb(V.v, 'hab', false)], null, true);
-  q.en = `Do you ${V.en} ${o[1]}?`;
+  q.en = `Do you ${sgActPhrase(V, o, 'hab')}?`;
   const a = sgJoin([{ jp: (f.neg ? 'いいえ、' : 'はい、') + f.jp, ro: (f.neg ? 'iie, ' : 'hai, ') + sgW(f.jp).ro }, sgVerb(V.v, 'hab', f.neg)]);
   a.en = f.jp === 'ぜんぜん' ? 'No, never.' : f.jp === 'あまり' ? 'No, not often.' : `Yes, ${f.en}.`;
   return [q, a];
