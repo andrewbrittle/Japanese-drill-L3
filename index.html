@@ -1203,6 +1203,17 @@
   .vf-ro { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; }
   .vf-en { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 1px; }
   .vf-q-verb { font-family: 'BIZ UDPGothic', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-muted); margin-top: 6px; }
+  /* Particle drill (2026-10-07) */
+  .options.pt-options { grid-template-columns: repeat(4, 1fr); }
+  .options.pt-options .opt { padding: 10px 4px 8px; }
+  .options.pt-options .opt .opt-jp { font-size: 22px; }
+  .pt-line { text-align: center; line-height: 1.5; }
+  .pt-line + .pt-line { margin-top: 0.7rem; }
+  .pt-jp { font-weight: 700; }
+  .pt-tok { white-space: nowrap; } /* wrap between words, never inside one */
+  .pt-en { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; font-weight: 400; font-style: italic; color: var(--text-dim); margin-top: 4px; line-height: 1.35; }
+  .pt-blank { display: inline-block; min-width: 1.4em; border-bottom: 3px solid var(--accent); color: var(--green); text-align: center; }
+  .pt-blank.filled { border-bottom-color: var(--green); }
   .vf-q-en { font-size: 14px; font-weight: 400; color: var(--text-dim); margin-top: 2px; }
   .vf-note { font-size: 12px; color: var(--text-dim); margin: 0.5rem 0 0.9rem; line-height: 1.4; }
   .tile-peek-bubble .peek-hint { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 6px; border-top: 1px solid var(--border); padding-top: 5px; }
@@ -1373,7 +1384,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.016</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.017</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2050,6 +2061,14 @@
           <div class="random-choice-desc">20 random verb forms — which form is it? Reverse the direction to build the form instead</div>
         </div>
         <div class="cat-bar" id="random-verbforms-swatch"></div>
+      </div>
+
+      <div class="group-card cat-tile" data-random-key="particles" onclick="selectRandomChoice('particles')" style="cursor:pointer;">
+        <div class="cat-tile-top cat-tile-top-stack">
+          <div class="group-name">Particles</div>
+          <div class="random-choice-desc">20 sentences with a particle missing — pick the one that fits. Grows with every lesson</div>
+        </div>
+        <div class="cat-bar" id="random-particles-swatch"></div>
       </div>
 
       <div class="section-divider"></div>
@@ -9161,7 +9180,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-07e';
+const LATEST_CHANGELOG_ENTRY = '2026-10-07f';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -9863,7 +9882,7 @@ function isTrackedItem(q) {
   const isKanji = !!(q && (q.disp === 'kanji' || q.disp === 'survival'));
   const isVocabWord = !!(q && q.disp === 'word');
   const isNumberOrTime = !!(q && (q.disp === 'number' || q.disp === 'time' || q.disp === 'counter'));
-  const isVerbForm = !!(q && q.disp === 'verbform');
+  const isVerbForm = !!(q && (q.disp === 'verbform' || q.disp === 'particle'));
   return isKana || isKanji || isVocabWord || isNumberOrTime || isVerbForm;
 }
 
@@ -9879,6 +9898,7 @@ function getScoreKey(q) {
   if (q.disp === 'time') return 'times-consistency';
   if (q.disp === 'counter') return 'counters-consistency';
   if (q.disp === 'verbform') return q.scoreKey; // 'verbform:たべます|pastNeg' - see buildVerbFormDeck
+  if (q.disp === 'particle') return q.scoreKey; // 'particle|で' - see buildParticleQuestion
   return q.char;
 }
 
@@ -10267,6 +10287,7 @@ function refreshRandomView() {
   setupCatBar(document.getElementById('theme-untested-vocab-swatch'), getCategoryBandCounts(getUntestedVocabItems()));
   [1, 2, 3].forEach(n => setupCatBar(document.getElementById('random-l' + n + '-swatch'), getCategoryBandCounts(scanVocabByTag('L' + n))));
   setupCatBar(document.getElementById('random-verbforms-swatch'), getCategoryBandCounts(verbFormScoreItems()));
+  setupCatBar(document.getElementById('random-particles-swatch'), getCategoryBandCounts(particleScoreItems()));
   const untaughtCard = document.getElementById('random-untaught-card');
   if (untaughtCard) {
     untaughtCard.style.display = appSettings.showUntaught ? '' : 'none';
@@ -10297,10 +10318,13 @@ function updateRandomChoiceUI() {
   if (btn) btn.disabled = !randomChoice;
   // Verb forms is always multiple choice and has no meaning to highlight,
   // so only the Reverse toggle applies - the other two fade (still tappable).
+  // Particles has a fixed set of buttons, so none of the three apply.
   ['drill-mode-toggle-card', 'type-answer-toggle-card'].forEach(id => {
     const card = document.getElementById(id);
-    if (card) card.classList.toggle('not-for-choice', randomChoice === 'verbforms');
+    if (card) card.classList.toggle('not-for-choice', randomChoice === 'verbforms' || randomChoice === 'particles');
   });
+  const revCard = document.getElementById('reversed-mode-toggle-card');
+  if (revCard) revCard.classList.toggle('not-for-choice', randomChoice === 'particles');
 }
 function startSelectedRandom() {
   if (randomChoice === 'all') startRandomMatchEverything();
@@ -10308,6 +10332,7 @@ function startSelectedRandom() {
   else if (randomChoice === 'untested') startUntestedVocab();
   else if (randomChoice === 'untaught') startRandomForLevel('untaught');
   else if (randomChoice === 'verbforms') startVerbFormDrill();
+  else if (randomChoice === 'particles') startParticleDrill();
   else if (/^L[123]$/.test(randomChoice || '')) startRandomForLevel(+randomChoice.slice(1));
 }
 
@@ -10711,6 +10736,18 @@ const KANJI_CHAR_RE = /[一-鿿㐀-䶿]/;
 
 function revealRomaji() {
   const q = deck[current];
+  if (q && q.disp === 'particle') {
+    const el = document.getElementById('q-romaji-reveal');
+    if (!el) return;
+    if (!answered && !hintUsedThisQuestion) {
+      hintUsedThisQuestion = true;
+      hints++;
+      document.getElementById('stat-hints').textContent = hints;
+    }
+    el.textContent = q.roBlank;
+    el.style.display = 'block';
+    return;
+  }
   if (!q || !q.answerRomaji) return;
   const el = document.getElementById('q-romaji-reveal');
   if (!el) return;
@@ -10764,12 +10801,12 @@ function renderQuestion() {
   document.getElementById('stat-left').textContent = deck.length - current;
 
   const badge = document.getElementById('q-badge');
-  badge.textContent = q.disp === 'number' ? 'numbers' : q.disp === 'word' ? 'word reading' : q.disp === 'time' ? 'time reading' : q.disp === 'counter' ? 'counter reading' : q.disp === 'verbform' ? 'verb forms' : (BADGE_LABELS[q.groupKey] || q.groupKey);
+  badge.textContent = q.disp === 'number' ? 'numbers' : q.disp === 'word' ? 'word reading' : q.disp === 'time' ? 'time reading' : q.disp === 'counter' ? 'counter reading' : q.disp === 'verbform' ? 'verb forms' : q.disp === 'particle' ? 'particles' : (BADGE_LABELS[q.groupKey] || q.groupKey);
   let badgeClass = 'base';
   if (q.disp === 'diacritic') badgeClass = 'diacritic';
   else if (q.disp === 'kanji') badgeClass = 'kanji';
   else if (q.disp === 'survival') badgeClass = 'survival';
-  else if (q.disp === 'number' || q.disp === 'time' || q.disp === 'counter' || q.disp === 'verbform') badgeClass = 'kanji';
+  else if (q.disp === 'number' || q.disp === 'time' || q.disp === 'counter' || q.disp === 'verbform' || q.disp === 'particle') badgeClass = 'kanji';
   badge.className = 'type-badge type-' + badgeClass;
 
   const altEl = document.getElementById('q-alt-form');
@@ -10870,6 +10907,7 @@ function renderQuestion() {
   const charDisplay = document.getElementById('q-char');
   const container = document.getElementById('q-options');
   container.innerHTML = '';
+  container.classList.remove('pt-options'); // particle drill's 4-across layout
 
   // On-screen reminder of which 4 counters are in play this round, since
   // the prompt/options alone don't announce it - only shown for this
@@ -10894,6 +10932,8 @@ function renderQuestion() {
 
   if (q.disp === 'verbform') {
     renderVerbFormQuestion(q, charDisplay, container);
+  } else if (q.disp === 'particle') {
+    renderParticleQuestion(q, charDisplay, container);
   } else if (isWord && vocabReversed) {
     // Reversed: the prompt is always the English meaning, and the 4 options
     // are Japanese text - the mirror image of the normal isWord branch
@@ -11143,6 +11183,15 @@ function choose(btn, selectedVal, answer, char) {
   // renderQuestion), it's already the next thing in view - no need to
   // print it twice.
   recordKanaResult(currentQ, selectedVal === answer);
+  if (currentQ && currentQ.disp === 'particle') {
+    const blank = document.querySelector('#q-char .pt-blank');
+    if (blank) { blank.textContent = answer; blank.classList.add('filled'); }
+    // Accepted alternatives light up too, so it's clear both are right.
+    (currentQ.accepted || []).forEach(a => {
+      const b = document.querySelector(`#q-options .opt[data-value="${a}"]`);
+      if (b) b.classList.add('correct');
+    });
+  }
   const isKanaItem = currentQ && (currentQ.disp === 'base' || currentQ.disp === 'diacritic' || currentQ.disp === 'youon');
   const showingHiragana = !reversed && showHiraganaOnKatakana && isKanaItem &&
     currentQ.groupKey && currentQ.groupKey.startsWith('katakana-');
@@ -11169,7 +11218,7 @@ function choose(btn, selectedVal, answer, char) {
     const missedKey = char + '|' + answer;
     if (!missed.includes(missedKey)) {
       missed.push(missedKey);
-      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter' || currentQ.disp === 'verbform')) missedItems.push(currentQ);
+      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter' || currentQ.disp === 'verbform' || currentQ.disp === 'particle')) missedItems.push(currentQ);
     }
   }
   document.getElementById('stat-correct').textContent = score;
@@ -11232,7 +11281,7 @@ function chooseTyped(rawInput, answer, char) {
     const missedKey = char + '|' + answer;
     if (!missed.includes(missedKey)) {
       missed.push(missedKey);
-      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter' || currentQ.disp === 'verbform')) missedItems.push(currentQ);
+      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter' || currentQ.disp === 'verbform' || currentQ.disp === 'particle')) missedItems.push(currentQ);
     }
   }
   document.getElementById('stat-correct').textContent = score;
@@ -12370,6 +12419,128 @@ function buildVerbFormDeck(reverse) {
     });
   });
 }
+// ==== PARTICLE DRILL (2026-10-07) ====
+// Dice page. A sentence from the daily-sentence engine (sgGenerate) with one
+// particle blanked out; pick it. Because the sentences come from the shared
+// engine, the drill grows with every lesson's words and patterns for free.
+// The buttons are the same fixed set every time (in this order), so which
+// particles are on screen never gives the answer away. The English is shown
+// under the sentence, which settles the cases where another particle would
+// be grammatical with a different meaning (も "also", contrastive は).
+// Where a second particle is genuinely just as right, it's accepted too
+// (particleAlternatives) and the feedback says so.
+// To add a newly taught particle (が, から, まで…): add it to PARTICLE_SET and
+// PARTICLE_ROMAJI. Only particles in PARTICLE_SET are ever blanked.
+const PARTICLE_SET = ['は', 'を', 'に', 'へ', 'で', 'と', 'の'];
+const PARTICLE_ROMAJI = { は: 'wa', を: 'o', に: 'ni', へ: 'e', で: 'de', と: 'to', の: 'no' };
+// Engine-produced particles that are blanked (へ is offered but the engine
+// always writes に, so へ is only ever an accepted alternative).
+const PARTICLE_BLANKABLE = ['は', 'を', 'に', 'で', 'と', 'の'];
+let particleTimeWords = null;
+function isParticleTimeWord(tok) {
+  if (!tok) return false;
+  if (/(じ|はん|ふん|ぷん)$/.test(tok)) return true; // くじ, ななじ はん, じゅっぷん
+  if (!particleTimeWords) {
+    particleTimeWords = new Set();
+    Object.values(VOCAB).forEach(cat => (cat.items || []).forEach(i => {
+      if ((i.tags || []).some(t => /^(time|days|months)/.test(t))) particleTimeWords.add(i.jp);
+    }));
+  }
+  return particleTimeWords.has(tok);
+}
+function isParticleDay(tok) {
+  return /ようび$/.test(tok || '');
+}
+function particleAlternatives(p, prev, next) {
+  const motion = /^(いき|き|かえり)ま/.test(next || '');
+  const meet = /^あいま/.test(next || '') && !isParticleTimeWord(prev);
+  if (p === 'に' && motion && !isParticleTimeWord(prev)) return ['へ']; // destination: に or へ
+  if (p === 'に' && meet) return ['と'];  // ともだちに / ともだちと あいます
+  // A day of the week can take は as well as に (きんようびは なにを しますか is
+  // just as natural), and the English can't tell them apart.
+  if (p === 'に' && isParticleDay(prev)) return ['は'];
+  if (p === 'と' && meet) return ['に'];
+  return [];
+}
+function particleScoreItems() {
+  return PARTICLE_BLANKABLE.map(p => ({ jp: 'particle', en: p }));
+}
+function buildParticleQuestion(lines, weightOf) {
+  const toks = lines.map(l => l.jp.split(' '));
+  const found = [];
+  toks.forEach((ts, li) => ts.forEach((t, ti) => { if (PARTICLE_BLANKABLE.includes(t) && ti > 0) found.push({ li, ti, p: t }); }));
+  if (!found.length) return null;
+  // Pick which particle to test (weaker ones more often), then one place it occurs.
+  const kinds = [...new Set(found.map(f => f.p))];
+  const p = weightedSampleWithoutReplacement(kinds, 1, weightOf)[0];
+  const spots = found.filter(f => f.p === p);
+  const { li, ti } = spots[Math.floor(Math.random() * spots.length)];
+  const ts = toks[li];
+  // Romaji: the same occurrence of the same particle in the romaji line.
+  const nth = ts.slice(0, ti).filter(t => t === p).length;
+  const ro = lines[li].ro.split(' ');
+  let seen = -1, roIdx = -1;
+  ro.forEach((w, i) => { if (roIdx < 0 && w === PARTICLE_ROMAJI[p] && ++seen === nth) roIdx = i; });
+  const roLines = lines.map((l, i) => i !== li ? l.ro : ro.map((w, j) => j === roIdx ? '___' : w).join(' '));
+  const blankedJp = ts.map((t, j) => j === ti ? '＿' : t).join(' ');
+  const alts = particleAlternatives(p, ts[ti - 1], ts[ti + 1]);
+  return {
+    disp: 'particle', groupKey: 'particles', answer: p, accepted: alts,
+    scoreKey: 'particle|' + p,
+    char: blankedJp,
+    lines: lines.map((l, i) => ({ jp: l.jp, en: l.en, blank: i === li ? ti : -1 })),
+    roBlank: roLines.join('  '),
+    hint: alts.length ? alts.map(a => a + ' works here too').join(', ') : '',
+  };
+}
+function buildParticleDeck() {
+  const weightOf = p => selectionWeight(decayedScore(kanaScores['particle|' + p]));
+  const deck = [], seen = new Set();
+  for (let tries = 0; deck.length < 20 && tries < 400; tries++) {
+    const lines = sgGenerate();
+    if (!lines) continue;
+    const q = buildParticleQuestion(lines, weightOf);
+    if (!q || seen.has(q.char)) continue;
+    seen.add(q.char);
+    deck.push(q);
+  }
+  return deck;
+}
+function startParticleDrill() {
+  lastSettingsScreen = 'match-settings';
+  lastDeckBuilder = buildParticleDeck;
+  deck = buildParticleDeck();
+  if (!deck.length) return;
+  current = 0; score = 0; wrong = 0; hints = 0; answered = false; missed = []; missedItems = [];
+  showScreen('drill');
+  renderQuestion();
+}
+function renderParticleQuestion(q, charDisplay, container) {
+  charDisplay.style.fontFamily = "'BIZ UDPGothic', sans-serif";
+  charDisplay.style.fontSize = '22px';
+  charDisplay.innerHTML = q.lines.map(l => {
+    const jp = l.jp.split(' ').map((t, j) => j === l.blank ? '<span class="pt-blank">　</span>' : '<span class="pt-tok">' + markSmallKana(t) + '</span>').join(' ');
+    return `<div class="pt-line" data-say="${l.jp.replace(/ /g, '')}"><div class="pt-jp">${jp}</div><div class="pt-en">${l.en}</div></div>`;
+  }).join('');
+  // Once answered, tap a line to hear the whole sentence.
+  charDisplay.querySelectorAll('.pt-line').forEach(el => { el.onclick = () => { if (answered) speakJapanese(el.dataset.say); }; });
+  document.getElementById('q-prompt').textContent = 'Which particle goes in the gap?';
+  const speakBtn = document.getElementById('speak-btn');
+  if (speakBtn) speakBtn.style.display = 'none'; // saying it would give the answer away
+  const romajiBtn = document.getElementById('romaji-btn');
+  if (romajiBtn) { romajiBtn.style.display = 'inline-flex'; romajiBtn.disabled = false; romajiBtn.title = 'Show romaji'; }
+  container.classList.add('pt-options');
+  PARTICLE_SET.forEach((p, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="opt-num">${idx + 1}</span><span class="opt-jp">${p}</span><span class="opt-en">${PARTICLE_ROMAJI[p]}</span>`;
+    btn.dataset.value = p;
+    // An accepted alternative counts as the answer itself.
+    btn.onclick = () => choose(btn, (q.accepted || []).includes(p) ? q.answer : p, q.answer, q.char);
+    container.appendChild(btn);
+  });
+}
+
 function startVerbFormDrill() {
   if (!getTaughtVerbs().length) return;
   lastSettingsScreen = 'match-settings';
@@ -15953,7 +16124,7 @@ function handleDrillKeydown(e) {
   const drillScreen = document.getElementById('screen-drill');
   if (!drillScreen || !drillScreen.classList.contains('visible')) return;
   if (!answered) {
-    const idx = ['1', '2', '3', '4'].indexOf(e.key);
+    const idx = ['1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(e.key);
     if (idx === -1) return;
     const opts = document.querySelectorAll('#q-options .opt');
     if (opts[idx]) {
