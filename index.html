@@ -257,7 +257,7 @@
   .settings-title { font-size: 22px; font-weight: 700; text-align: center; font-family: 'BIZ UDPGothic', -apple-system, sans-serif; }
   .settings-sub { font-size: 14px; font-weight: 500; color: var(--text-muted); text-align: center; }
 
-  #match-vocab-view, #match-theme-view { display: flex; flex-direction: column; gap: 1rem; }
+  #match-vocab-view, #match-theme-view, #match-random-view { display: flex; flex-direction: column; gap: 1rem; }
 
   .group-card {
     background: var(--surface); border: 1px solid var(--border);
@@ -911,6 +911,10 @@
      katakana/numbers/counters) keeps the default padding, since those
      wrap onto multiple lines instead and don't have this problem. */
   #vocab-level-filter-row .level-pill { padding: 6px 14px; }
+  #vocab-level-filter-row .level-pill.level-pill-icon { padding: 5px 10px; display: inline-flex; align-items: center; justify-content: center; }
+  /* Random page (2026-10-07) - single-choice cards, then toggles, then Start */
+  #match-random-view .group-card.cat-tile.selected { border-color: var(--accent); }
+  .random-choice-desc { font-size: 12px; font-weight: 600; color: var(--text-dim); }
   /* Each Numbers/Times/Counters section is a single flex child of
      .screen.visible (which only gives direct children a 1rem gap) - without
      their own flex+gap, the group-cards inside a section would sit flush
@@ -1326,7 +1330,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.005</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.007</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1806,10 +1810,17 @@
   <!-- Match settings screen -->
   <div class="screen visible" id="screen-match-settings">
     <div class="settings-title">Vocab</div>
-    <div class="settings-sub">Pick a word set, or try a random reading challenge.</div>
+    <div class="settings-sub">Pick a word set, or tap the dice for a random drill.</div>
 
     <div class="level-filter-row" id="vocab-level-filter-row">
-      <button class="level-pill active" id="level-pill-theme" onclick="setMatchLevel('theme')">Collections</button>
+      <!-- "Groups" (2026-10-07): was "Collections" - renamed back to its
+           original name to free room for the Random pill below. -->
+      <button class="level-pill active" id="level-pill-theme" onclick="setMatchLevel('theme')">Groups</button>
+      <!-- Random (2026-10-07): every random drill on one page - All vocabulary,
+           Weakest/Untested 20 and Random - Level 1/2/3 (/Untaught), with the
+           toggles and a Start button. Monochrome SVG die, currentColor, so it
+           matches the other pills rather than a colour emoji. -->
+      <button class="level-pill level-pill-icon" id="level-pill-random" onclick="setMatchLevel('random')" title="Random drills" aria-label="Random drills"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"></rect><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="15.5" cy="15.5" r="1.5" fill="currentColor" stroke="none"></circle></svg></button>
       <button class="level-pill" id="level-pill-1" onclick="setMatchLevel(1)">L1</button>
       <button class="level-pill" id="level-pill-2" onclick="setMatchLevel(2)">L2</button>
       <!-- Level 3 (2026-09-28) - the class starts tomorrow; no content yet,
@@ -1860,66 +1871,15 @@
 
 
     <div id="match-theme-view">
-      <!-- Goes straight into drilling with no selection screen first -
-           direct equivalent of the old Read tab's "Reading words -
-           everything". -->
-      <div class="group-card cat-tile" id="theme-all-vocab-card" onclick="startRandomMatchEverything()" style="cursor:pointer;">
+      <!-- Latest words (2026-10-07) - first Group: words new to the app in the
+           most recent batch (by dateAdded), see theme-latest-words. The random
+           drills that used to sit above here moved to the Random page. -->
+      <div class="group-card cat-tile" data-theme-key="theme-latest-words" onclick="showVocabTileSelection('theme-latest-words')" style="cursor:pointer;">
         <div class="cat-tile-top">
-          <div class="group-name">All vocabulary</div>
+          <div class="group-name">Latest words</div>
         </div>
-        <div class="cat-bar" id="theme-all-vocab-swatch"></div>
+        <div class="cat-bar"></div>
       </div>
-      <!-- Weakest 20 / Untested 20 (2026-09-22) - same "goes straight into
-           drilling with no selection screen" pattern as All vocabulary
-           above, just a harder/deterministic version of the same weighting
-           that already biases All vocabulary's own random 20 toward weak
-           and untested words (see WEIGHTED RANDOM SELECTION comment above
-           selectionWeight) - sort-to-bottom-20 and filter-to-untested
-           instead of a soft weighted draw across everything. Their bars
-           will read as almost solid red / almost solid grey respectively -
-           tautological (that's the whole point of the card), kept anyway
-           for visual consistency with every other card here rather than
-           special-cased away, per Andrew. -->
-      <div class="group-card cat-tile" id="theme-weakest-vocab-card" onclick="startWeakestVocab()" style="cursor:pointer;">
-        <div class="cat-tile-top">
-          <div class="group-name">Weakest 20</div>
-        </div>
-        <div class="cat-bar" id="theme-weakest-vocab-swatch"></div>
-      </div>
-      <div class="group-card cat-tile" id="theme-untested-vocab-card" onclick="startUntestedVocab()" style="cursor:pointer;">
-        <div class="cat-tile-top">
-          <div class="group-name">Untested 20</div>
-        </div>
-        <div class="cat-bar" id="theme-untested-vocab-swatch"></div>
-      </div>
-
-      <!-- These two only affect the two "genuine random" cards above - the
-           named collections below each have their own selection screen with
-           their own copy of these same toggles (per-collection memory), so
-           nothing here leaks into them. -->
-      <div class="group-card" id="drill-mode-toggle-card" onclick="toggleDrillByMeaning()" style="cursor:pointer;">
-        <div class="group-info">
-          <div class="group-name">Highlight the meaning instead of sound</div>
-          <div class="group-count">Swaps which text is prominent on word/vocab cards — romaji on top by default, English on top when this is on</div>
-        </div>
-        <div class="toggle" id="drill-mode-toggle"></div>
-      </div>
-      <div class="group-card" id="reversed-mode-toggle-card" onclick="toggleVocabReversed()" style="cursor:pointer;">
-        <div class="group-info">
-          <div class="group-name">Reverse the drill direction</div>
-          <div class="group-count">See the English meaning first and pick the matching Japanese, instead of reading Japanese and picking the answer</div>
-        </div>
-        <div class="toggle" id="reversed-mode-toggle"></div>
-      </div>
-      <div class="group-card" id="type-answer-toggle-card" onclick="toggleTypeAnswerMode()" style="cursor:pointer;">
-        <div class="group-info">
-          <div class="group-name">Type the reading instead of choosing</div>
-          <div class="group-count">Type the romaji yourself instead of picking from four options. Kana → romaji only, so this has no effect while reversed or highlighting the meaning.</div>
-        </div>
-        <div class="toggle" id="type-answer-toggle"></div>
-      </div>
-
-      <div class="section-divider"></div>
 
       <div class="group-card cat-tile" data-theme-key="theme-transport-uk" onclick="showVocabTileSelection('theme-transport-uk')" style="cursor:pointer;">
         <div class="cat-tile-top">
@@ -1941,6 +1901,18 @@
       <div class="group-card cat-tile" data-theme-key="theme-items-clothing-general" onclick="showVocabTileSelection('theme-items-clothing-general')" style="cursor:pointer;">
         <div class="cat-tile-top">
           <div class="group-name">Everyday items, clothing & general vocab</div>
+        </div>
+        <div class="cat-bar"></div>
+      </div>
+      <div class="group-card cat-tile" data-theme-key="theme-food-drink-taught" onclick="showVocabTileSelection('theme-food-drink-taught')" style="cursor:pointer;">
+        <div class="cat-tile-top">
+          <div class="group-name">Food & drink</div>
+        </div>
+        <div class="cat-bar"></div>
+      </div>
+      <div class="group-card cat-tile" data-theme-key="theme-occupations" onclick="showVocabTileSelection('theme-occupations')" style="cursor:pointer;">
+        <div class="cat-tile-top">
+          <div class="group-name">Occupations</div>
         </div>
         <div class="cat-bar"></div>
       </div>
@@ -1997,37 +1969,87 @@
 
     <div id="match-vocab-view" style="display:none;">
       <div id="match-category-list"></div>
+    </div>
+
+    <!-- RANDOM PAGE (2026-10-07) - the die pill. Pick one, set the toggles,
+         Start: same shape as every Group/category selection screen. Levels
+         read by tag (scanVocabByTag), so tagged-forward words count. -->
+    <div id="match-random-view" style="display:none;">
+      <div class="group-card cat-tile" data-random-key="all" onclick="selectRandomChoice('all')" style="cursor:pointer;">
+        <div class="cat-tile-top cat-tile-top-stack">
+          <div class="group-name">All vocabulary</div>
+          <div class="random-choice-desc">20 random words from everything taught</div>
+        </div>
+        <div class="cat-bar" id="theme-all-vocab-swatch"></div>
+      </div>
+      <div class="group-card cat-tile" data-random-key="weakest" onclick="selectRandomChoice('weakest')" style="cursor:pointer;">
+        <div class="cat-tile-top cat-tile-top-stack">
+          <div class="group-name">Weakest 20</div>
+          <div class="random-choice-desc">The 20 words you've scored lowest on</div>
+        </div>
+        <div class="cat-bar" id="theme-weakest-vocab-swatch"></div>
+      </div>
+      <div class="group-card cat-tile" data-random-key="untested" onclick="selectRandomChoice('untested')" style="cursor:pointer;">
+        <div class="cat-tile-top cat-tile-top-stack">
+          <div class="group-name">Untested 20</div>
+          <div class="random-choice-desc">20 words you haven't been tested on yet</div>
+        </div>
+        <div class="cat-bar" id="theme-untested-vocab-swatch"></div>
+      </div>
 
       <div class="section-divider"></div>
 
-      <div class="match-card-select" id="random-match-card" onclick="selectRandomMatchCard(this)">
-        <div class="group-name">Random reading</div>
-        <div class="group-chars">らんだむな ことば</div>
-        <div class="group-count" id="random-match-count">20 random words per round, from all Level 1 categories</div>
+      <div class="group-card cat-tile" data-random-key="L1" onclick="selectRandomChoice('L1')" style="cursor:pointer;">
+        <div class="cat-tile-top cat-tile-top-stack">
+          <div class="group-name">Random – Level 1</div>
+          <div class="random-choice-desc">20 random words from all Level 1 categories</div>
+        </div>
+        <div class="cat-bar" id="random-l1-swatch"></div>
+      </div>
+      <div class="group-card cat-tile" data-random-key="L2" onclick="selectRandomChoice('L2')" style="cursor:pointer;">
+        <div class="cat-tile-top cat-tile-top-stack">
+          <div class="group-name">Random – Level 2</div>
+          <div class="random-choice-desc">20 random words from all Level 2 categories</div>
+        </div>
+        <div class="cat-bar" id="random-l2-swatch"></div>
+      </div>
+      <div class="group-card cat-tile" data-random-key="L3" onclick="selectRandomChoice('L3')" style="cursor:pointer;">
+        <div class="cat-tile-top cat-tile-top-stack">
+          <div class="group-name">Random – Level 3</div>
+          <div class="random-choice-desc">20 random words from all Level 3 categories</div>
+        </div>
+        <div class="cat-bar" id="random-l3-swatch"></div>
+      </div>
+      <div class="group-card cat-tile" data-random-key="untaught" id="random-untaught-card" onclick="selectRandomChoice('untaught')" style="cursor:pointer; display:none;">
+        <div class="cat-tile-top cat-tile-top-stack">
+          <div class="group-name">Random – Untaught</div>
+          <div class="random-choice-desc">20 random words from Untaught vocabulary</div>
+        </div>
+        <div class="cat-bar" id="random-untaught-swatch"></div>
       </div>
 
-      <div class="group-card" id="drill-mode-toggle-card-l" onclick="toggleDrillByMeaning()" style="cursor:pointer;">
+      <div class="group-card" id="drill-mode-toggle-card" onclick="toggleDrillByMeaning()" style="cursor:pointer;">
         <div class="group-info">
           <div class="group-name">Highlight the meaning instead of sound</div>
           <div class="group-count">Swaps which text is prominent on word/vocab cards — romaji on top by default, English on top when this is on</div>
         </div>
-        <div class="toggle"></div>
+        <div class="toggle" id="drill-mode-toggle"></div>
       </div>
-      <div class="group-card" id="reversed-mode-toggle-card-l" onclick="toggleVocabReversed()" style="cursor:pointer;">
+      <div class="group-card" id="reversed-mode-toggle-card" onclick="toggleVocabReversed()" style="cursor:pointer;">
         <div class="group-info">
           <div class="group-name">Reverse the drill direction</div>
           <div class="group-count">See the English meaning first and pick the matching Japanese, instead of reading Japanese and picking the answer</div>
         </div>
-        <div class="toggle"></div>
+        <div class="toggle" id="reversed-mode-toggle"></div>
       </div>
-      <div class="group-card" id="type-answer-toggle-card-l" onclick="toggleTypeAnswerMode()" style="cursor:pointer;">
+      <div class="group-card" id="type-answer-toggle-card" onclick="toggleTypeAnswerMode()" style="cursor:pointer;">
         <div class="group-info">
           <div class="group-name">Type the reading instead of choosing</div>
           <div class="group-count">Type the romaji yourself instead of picking from four options. Kana → romaji only, so this has no effect while reversed or highlighting the meaning.</div>
         </div>
-        <div class="toggle"></div>
+        <div class="toggle" id="type-answer-toggle"></div>
       </div>
-      <button class="start-btn" id="match-start-btn" onclick="startRandomMatch()" disabled>Start random drill</button>
+      <button class="start-btn" id="random-start-btn" onclick="startSelectedRandom()" disabled>Start</button>
     </div>
 
   </div>
@@ -3838,7 +3860,7 @@ const VOCAB = {
       {jp:'いす', romaji:'isu', en:'chair', tags:['L1','objects','taught'], dateAdded:'2026-08-01'},
       {jp:'チョコレート', romaji:'chokoreeto', en:'chocolate', tags:['L1','objects','taught'], altForm:'ちょこれーと', dateAdded:'2026-08-01'},
       {jp:'たばこ', romaji:'tabako', en:'cigarettes', tags:['L1','objects','taught'], dateAdded:'2026-08-01'},
-      {jp:'コーヒー', romaji:'koohii', en:'coffee', tags:['L1','objects','taught','L3','food-drink-l3','l3-1','genki','genki-1-3'], altForm:'こーひー', dateAdded:'2026-08-01'},
+      {jp:'コーヒー', romaji:'koohii', en:'coffee', tags:['L1','objects','taught','L3','food-drink-l3','l3-1','genki','genki-1-3','drink'], altForm:'こーひー', dateAdded:'2026-08-01'},
       {jp:'コンピューター', romaji:'konpyuutaa', en:'computer', tags:['L1','objects','taught','genki','genki-1-1','genki-1-2'], altForm:'こんぴゅーたー', dateAdded:'2026-08-01'},
       {jp:'りょうり', romaji:'ryouri', en:'cooking', tags:['L1','objects','taught','L3','hobbies-l3','l3-1'], dateAdded:'2026-08-01'},
       {jp:'つくえ', romaji:'tsukue', en:'desk', tags:['L1','objects','taught'], dateAdded:'2026-08-01'},
@@ -3847,7 +3869,7 @@ const VOCAB = {
       {jp:'かぎ', romaji:'kagi', en:'key', tags:['L1','objects','taught'], dateAdded:'2026-08-01'},
       {jp:'ざっし', romaji:'zasshi', en:'magazine', tags:['L1','objects','taught','genki','genki-1-3','L3','general-l3','l3-2'], dateAdded:'2026-08-01'},
       {jp:'ちず', romaji:'chizu', en:'map', tags:['L1','objects','taught'], dateAdded:'2026-08-01'},
-      {jp:'にく', romaji:'niku', en:'meat', tags:['L1','objects','taught','L3','food-drink-l3','l3-1','genki','genki-1-2'], dateAdded:'2026-08-01'},
+      {jp:'にく', romaji:'niku', en:'meat', tags:['L1','objects','taught','L3','food-drink-l3','l3-1','genki','genki-1-2','food-type'], dateAdded:'2026-08-01'},
       {jp:'シャープペンシル', romaji:'shaapupenshiru', en:'mechanical pencil', tags:['L1','objects','taught'], altForm:'しゃーぷぺんしる', dateAdded:'2026-08-01'},
       {jp:'けいたい', romaji:'keitai', en:'mobile phone', tags:['L1','objects','taught'], dateAdded:'2026-08-01'},
       {jp:'しんぶん', romaji:'shinbun', en:'newspaper', tags:['L1','objects','taught','genki','genki-1-2','L3','general-l3','l3-2'], dateAdded:'2026-08-01'},
@@ -3995,11 +4017,11 @@ const VOCAB = {
       {jp:'かいぎ', romaji:'kaigi', en:'meeting', tags:['L2','general-l2','taught'], altForm:'会議', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'えいが', romaji:'eiga', en:'movie', tags:['L2','general-l2','taught','L3','hobbies-l3','l3-1','genki','genki-1-3'], altForm:'映画', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'パーティー', romaji:'paatii', en:'party', tags:['L2','general-l2','taught','L3','hobbies-l3','l3-1'], dateAdded:'2026-08-01'},
-      {jp:'ごはん', romaji:'gohan', en:'rice / meal', tags:['L2','general-l2','taught','L3','food-drink-l3','l3-1'], altForm:'ご飯', altIsStandard:true, seenAs:'ごはん also labels the rice preset button on a microwave (Tokyu Stay Kyoto) - same word, not a separate one', dateAdded:'2026-08-01'},
+      {jp:'ごはん', romaji:'gohan', en:'rice / meal', tags:['L2','general-l2','taught','L3','food-drink-l3','l3-1','food-type'], altForm:'ご飯', altIsStandard:true, seenAs:'ごはん also labels the rice preset button on a microwave (Tokyu Stay Kyoto) - same word, not a separate one', dateAdded:'2026-08-01'},
       {jp:'ごみばこ', romaji:'gomibako', en:'rubbish bin', tags:['L2','general-l2','taught'], altForm:'ゴミ箱', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'はさみ', romaji:'hasami', en:'scissors', tags:['L2','general-l2','taught'], dateAdded:'2026-08-01'},
       {jp:'きせつ', romaji:'kisetsu', en:'season', tags:['L2','general-l2','taught'], altForm:'季節', altIsStandard:true, dateAdded:'2026-08-01'},
-      {jp:'しょうゆ', romaji:'shouyu', en:'soy sauce', tags:['L2','general-l2','taught','L3','food-drink-l3','l3-2'], altForm:'醤油', altIsStandard:true, dateAdded:'2026-08-01'},
+      {jp:'しょうゆ', romaji:'shouyu', en:'soy sauce', tags:['L2','general-l2','taught','L3','food-drink-l3','l3-2','food-type'], altForm:'醤油', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'とうふ', romaji:'toufu', en:'tofu', tags:['L2','general-l2','taught'], altForm:'豆腐', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'じどうはんばいき', romaji:'jidouhanbaiki', en:'vending machine', tags:['L2','general-l2','taught'], altForm:'自動販売機', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'しごと', romaji:'shigoto', en:'work / job', tags:['L2','general-l2','taught'], altForm:'仕事', altIsStandard:true, dateAdded:'2026-08-01'},
@@ -4023,7 +4045,7 @@ const VOCAB = {
       // lesson, so it only needs to live here (see the Week 6 relocation
       // note above vocab-trip-prep). ビール/ワイン made the same move, into
       // the new Food and drink (L2) category below.
-      {jp:'みず', romaji:'mizu', en:'water', tags:['L2','general-l2','taught','genki','genki-1-3'], altForm:'水', altIsStandard:true, dateAdded:'2026-08-13'},
+      {jp:'みず', romaji:'mizu', en:'water', tags:['L2','general-l2','taught','genki','genki-1-3','drink'], altForm:'水', altIsStandard:true, dateAdded:'2026-08-13'},
     ],
   },
   // New in Week 6 - the app's first dedicated family-member vocabulary.
@@ -4357,7 +4379,7 @@ const VOCAB = {
       {jp:'まいにち', romaji:'mainichi', en:'every day', tags:['L2','time-l2','taught','L3','frequency-l3','l3-1','genki','genki-1-3'], dateAdded:'2026-08-01'},
       {jp:'おととい', romaji:'ototoi', en:'the day before yesterday', tags:['L2','time-l2','taught'], dateAdded:'2026-08-01'},
       {jp:'あさって', romaji:'asatte', en:'the day after tomorrow', tags:['L2','time-l2','taught'], dateAdded:'2026-08-01'},
-      {jp:'ときどき', romaji:'tokidoki', en:'sometimes', tags:['L2','time-l2','taught','L3','frequency-l3','l3-1','genki','genki-1-3'], dateAdded:'2026-08-01'},
+      {jp:'ときどき', romaji:'tokidoki', en:'sometimes', tags:['L2','time-l2','taught','L3','frequency-l3','l3-1','genki','genki-1-3','frequency'], dateAdded:'2026-08-01'},
       {jp:'せんしゅう', romaji:'senshuu', en:'last week', tags:['L2','time-l2','taught'], dateAdded:'2026-08-01'},
       {jp:'こんしゅう', romaji:'konshuu', en:'this week', tags:['L2','time-l2','taught'], dateAdded:'2026-08-01'},
       {jp:'らいしゅう', romaji:'raishuu', en:'next week', tags:['L2','time-l2','taught'], dateAdded:'2026-08-01'},
@@ -4588,10 +4610,10 @@ const VOCAB = {
     chars: 'いつも よく ぜんぜん…',
     tagQuery: ['L3','frequency-l3'],
     items: [
-      {jp:'いつも', romaji:'itsumo', en:'always', tags:['L3','frequency-l3','taught','l3-1'], dateAdded:'2026-09-29'},
-      {jp:'よく', romaji:'yoku', en:'often', tags:['L3','frequency-l3','taught','l3-1','genki','genki-1-3'], dateAdded:'2026-09-29'},
-      {jp:'あまり', romaji:'amari', en:'not often / seldom (+ negative verb)', tags:['L3','frequency-l3','taught','l3-1','genki','genki-1-3'], dateAdded:'2026-09-29'},
-      {jp:'ぜんぜん', romaji:'zenzen', en:'never / not at all (+ negative verb)', tags:['L3','frequency-l3','taught','l3-1','genki','genki-1-3'], altForm:'全然', altIsStandard:true, dateAdded:'2026-09-29'},
+      {jp:'いつも', romaji:'itsumo', en:'always', tags:['L3','frequency-l3','taught','l3-1','frequency'], dateAdded:'2026-09-29'},
+      {jp:'よく', romaji:'yoku', en:'often', tags:['L3','frequency-l3','taught','l3-1','genki','genki-1-3','frequency'], dateAdded:'2026-09-29'},
+      {jp:'あまり', romaji:'amari', en:'not often / seldom (+ negative verb)', tags:['L3','frequency-l3','taught','l3-1','genki','genki-1-3','frequency'], dateAdded:'2026-09-29'},
+      {jp:'ぜんぜん', romaji:'zenzen', en:'never / not at all (+ negative verb)', tags:['L3','frequency-l3','taught','l3-1','genki','genki-1-3','frequency'], altForm:'全然', altIsStandard:true, dateAdded:'2026-09-29'},
       {jp:'それから', romaji:'sorekara', en:'and then / after that', tags:['L3','frequency-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'そして', romaji:'soshite', en:'and / and also', tags:['L3','frequency-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'なにも', romaji:'nanimo', en:'nothing (+ negative verb)', tags:['L3','frequency-l3','taught','l3-1'], altForm:'何も', altIsStandard:true, dateAdded:'2026-09-29'},
@@ -4617,7 +4639,7 @@ const VOCAB = {
       {jp:'セルフィー', romaji:'serufii', en:'selfie', tags:['L3','general-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'ビデオ', romaji:'bideo', en:'video', tags:['L3','general-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'べんきょう', romaji:'benkyou', en:'study', tags:['L3','general-l3','taught','l3-1'], altForm:'勉強', altIsStandard:true, dateAdded:'2026-09-29'},
-      {jp:'うみ', romaji:'umi', en:'sea / seaside', tags:['L3','places-l3','taught','l3-1','l3-2'], altForm:'海', altIsStandard:true, dateAdded:'2026-09-29'},
+      {jp:'うみ', romaji:'umi', en:'sea / seaside', tags:['L3','places-l3','taught','l3-1','l3-2','places-to-go'], altForm:'海', altIsStandard:true, dateAdded:'2026-09-29'},
       {jp:'けいろうのひ', romaji:'keirou no hi', en:'Respect for the Aged Day (Sept)', tags:['L3','general-l3','taught','l3-1'], altForm:'敬老の日', altIsStandard:true, dateAdded:'2026-09-29'},
       {jp:'もみじがり', romaji:'momijigari', en:'autumn-leaf viewing', tags:['L3','general-l3','taught','l3-1'], altForm:'紅葉狩り', altIsStandard:true, dateAdded:'2026-09-29'},
       {jp:'おつきみ', romaji:'otsukimi', en:'moon viewing (Sept)', tags:['L3','general-l3','taught','l3-1'], altForm:'お月見', altIsStandard:true, dateAdded:'2026-09-29'},
@@ -4674,13 +4696,13 @@ const VOCAB = {
     chars: 'やま にわ だいどころ…',
     tagQuery: ['L3','places-l3'],
     items: [
-      {jp:'やま', romaji:'yama', en:'mountain', tags:['L3','places-l3','taught','l3-2'], altForm:'山', altIsStandard:true, dateAdded:'2026-10-06'},
-      {jp:'ビーチ', romaji:'biichi', en:'beach', tags:['L3','places-l3','taught','l3-2'], dateAdded:'2026-10-06'},
-      {jp:'バー', romaji:'baa', en:'bar', tags:['L3','places-l3','taught','l3-2'], dateAdded:'2026-10-06'},
-      {jp:'クラブ', romaji:'kurabu', en:'club (nightclub)', tags:['L3','places-l3','taught','l3-2'], dateAdded:'2026-10-06'},
-      {jp:'きょうかい', romaji:'kyoukai', en:'church', tags:['L3','places-l3','taught','l3-2'], altForm:'教会', altIsStandard:true, dateAdded:'2026-10-06'},
-      {jp:'どうぶつえん', romaji:'doubutsuen', en:'zoo', tags:['L3','places-l3','taught','l3-2'], altForm:'動物園', altIsStandard:true, dateAdded:'2026-10-06'},
-      {jp:'いなか', romaji:'inaka', en:'countryside', tags:['L3','places-l3','taught','l3-2'], altForm:'田舎', altIsStandard:true, dateAdded:'2026-10-06'},
+      {jp:'やま', romaji:'yama', en:'mountain', tags:['L3','places-l3','taught','l3-2','places-to-go'], altForm:'山', altIsStandard:true, dateAdded:'2026-10-06'},
+      {jp:'ビーチ', romaji:'biichi', en:'beach', tags:['L3','places-l3','taught','l3-2','places-to-go'], dateAdded:'2026-10-06'},
+      {jp:'バー', romaji:'baa', en:'bar', tags:['L3','places-l3','taught','l3-2','places-to-go'], dateAdded:'2026-10-06'},
+      {jp:'クラブ', romaji:'kurabu', en:'club (nightclub)', tags:['L3','places-l3','taught','l3-2','places-to-go'], dateAdded:'2026-10-06'},
+      {jp:'きょうかい', romaji:'kyoukai', en:'church', tags:['L3','places-l3','taught','l3-2','places-to-go'], altForm:'教会', altIsStandard:true, dateAdded:'2026-10-06'},
+      {jp:'どうぶつえん', romaji:'doubutsuen', en:'zoo', tags:['L3','places-l3','taught','l3-2','places-to-go'], altForm:'動物園', altIsStandard:true, dateAdded:'2026-10-06'},
+      {jp:'いなか', romaji:'inaka', en:'countryside', tags:['L3','places-l3','taught','l3-2','places-to-go'], altForm:'田舎', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'いま', romaji:'ima', en:'living room', tags:['L3','places-l3','taught','l3-2'], altForm:'居間', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'だいどころ', romaji:'daidokoro', en:'kitchen', tags:['L3','places-l3','taught','l3-2'], altForm:'台所', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'にわ', romaji:'niwa', en:'garden', tags:['L3','places-l3','taught','l3-2'], altForm:'庭', altIsStandard:true, dateAdded:'2026-10-06'},
@@ -6237,6 +6259,29 @@ const THEMES = {
   //
   // Converted from groups to a tagQuery OR (2026-08-27) - see
   // theme-transport-uk above for why this is safe with no new tagging.
+  // (2026-10-07) Latest words - words NEW to the app in the most recent
+  // batch: taught words whose dateAdded is within 6 days of the newest taught
+  // dateAdded (so it stays full until the next lesson's words arrive). Words
+  // that already existed and were only tagged forward keep their old date, so
+  // they don't count - Andrew's call: "if it was in L1 or L2 it's an old word".
+  'theme-latest-words': {
+    label: 'Latest words',
+    chars: '',
+    latestWords: true,
+  },
+  // (2026-10-07) Food & drink for TAUGHT words only (the Untaught tab has its
+  // own Food and Drink). Two groups: food, then drink.
+  'theme-food-drink-taught': {
+    label: 'Food & drink',
+    chars: 'パン すし おちゃ…',
+    tagQuery: { any: ['food-type', 'drink'], all: ['taught'] },
+  },
+  // (2026-10-07) Level 1 jobs + Level 3 Lesson 2's homework jobs, together.
+  'theme-occupations': {
+    label: 'Occupations',
+    chars: 'いしゃ かんごし てんいん…',
+    tagQuery: { any: ['occupations', 'occupations-l3'] },
+  },
   'theme-items-clothing-general': {
     label: 'Everyday items, clothing & general vocab',
     chars: 'かさ くつ かぞく…',
@@ -6282,7 +6327,12 @@ const THEMES = {
   'theme-time-words': {
     label: 'Time words',
     chars: 'きのう けさ こんばん…',
-    tagQuery: { any: ['time-l2', 'time-l3'] },
+    // (2026-10-07) + the five frequency words (tag 'frequency'), as their own
+    // group first - ときどき is also time-l2, so 'frequency' must come first in
+    // this list for all five to sit together. Answer options stay within a
+    // group (see drillVocabTileSelection), so "always" is never offered for
+    // "tomorrow".
+    tagQuery: { any: ['frequency', 'time-l2', 'time-l3'] },
   },
   'theme-core-grammar': {
     label: 'Core grammar words',
@@ -6311,6 +6361,11 @@ const THEMES = {
     level: 'untaught',
     label: 'Getting around',
     chars: 'でんしゃ ひだり きっぷ…',
+    // (2026-10-07) L3 Lesson 2's destinations (やま, うみ, どうぶつえん...) now
+    // also carry 'places-to-go' so they're here too. The L2 Places to go
+    // category is unaffected (it asks for L2 AND places-to-go). Rooms (いま,
+    // だいどころ...) deliberately not - you don't "go" to them. パブ/カフェ left
+    // as they were: tagging them would also have added them to L2's category.
     tagQuery: { any: ['transport', 'places-to-go', 'directions'] },
   },
   // REMOVED (2026-08-27) - this Collection was always "all of Trip prep +
@@ -6589,6 +6644,9 @@ const THEMES = {
 function tagQueryMatches(itemTags, query) {
   if (!itemTags) return false;
   if (query && typeof query === 'object' && !Array.isArray(query) && query.any) {
+    // optional `all` (2026-10-07): every one of these too - e.g. any of
+    // food-type/drink AND taught, for the taught-only Food & drink Group.
+    if (query.all && !query.all.every(tag => itemTags.includes(tag))) return false;
     return query.any.some(tag => itemTags.includes(tag));
   }
   const required = Array.isArray(query) ? query : [query];
@@ -6598,6 +6656,15 @@ function tagQueryMatches(itemTags, query) {
 function getThemePool(themeKey) {
   const theme = THEMES[themeKey];
   if (!theme) return [];
+  if (theme.latestWords) {
+    const taught = getCoreVocabPool().filter(i => (i.tags || []).includes('taught') && i.dateAdded);
+    if (!taught.length) return [];
+    const newest = taught.reduce((m, i) => (i.dateAdded > m ? i.dateAdded : m), '');
+    const from = new Date(newest + 'T00:00:00Z'); from.setUTCDate(from.getUTCDate() - 6);
+    const cutoff = from.toISOString().slice(0, 10);
+    return taught.filter(i => i.dateAdded >= cutoff)
+      .sort((a, b) => a.en.toLowerCase() < b.en.toLowerCase() ? -1 : 1);
+  }
 
   function buildCategoryItems(catKey) {
     const cat = VOCAB[catKey];
@@ -7954,7 +8021,15 @@ function drillVocabTileSelection() {
   const selectedItems = [...set].sort((a, b) => a - b).map(idx => items[idx]);
   const customDeck = selectedItems.map(item => {
     const correct = item.romaji;
-    const distractorItems = pickDistractorItems(distractorPool, item, 3);
+    // (2026-10-07) In a Group with dividers, wrong answers come from the
+    // word's own group when it has enough words (4+) - frequency words with
+    // frequency words, transport with transport, food with food.
+    let pool = distractorPool;
+    if (item.dividerGroup !== undefined) {
+      const same = distractorPool.filter(i => i.dividerGroup === item.dividerGroup);
+      if (same.length >= 4) pool = same;
+    }
+    const distractorItems = pickDistractorItems(pool, item, 3);
     const allItems = shuffle([item, ...distractorItems]);
     return {
       char: item.jp,
@@ -8096,7 +8171,7 @@ function showScreen(id) {
   else if (id === 'katakana-selection') Object.keys(KATAKANA_SECTIONS).forEach(key => refreshKanaScoreShading('katakana-grid-' + key));
   else if (id === 'kanji-selection') KANJI_SECTION_KEYS.forEach(key => refreshKanaScoreShading('kanji-grid-' + key));
   else if (id === 'vocab-tile-selection' && vocabTileCategory) refreshKanaScoreShading('vocab-tile-grid');
-  else if (id === 'match-settings') buildMatchCategoryList();
+  else if (id === 'match-settings') { buildMatchCategoryList(); if (currentMatchLevel === 'random') refreshRandomView(); }
   else if (id === 'numbers') updateNumberTimeSwatches();
   else if (id === 'counter-quiz-selection') buildCounterQuizSelectionList();
 }
@@ -8959,7 +9034,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-07b';
+const LATEST_CHANGELOG_ENTRY = '2026-10-07d';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -10028,9 +10103,52 @@ function refreshThemeCategorySwatches() {
   // All kanji moved to screen-kanji-selection (2026-09-22) and no longer
   // has a bar at all there (styled to match Select all instead - see that
   // card's own comment), so there's nothing left to refresh for it here.
+}
+
+// RANDOM PAGE (2026-10-07) - the die pill. One choice at a time, then Start.
+// The three "everything" drills and the per-level randoms all live here now,
+// so Groups and the level pages are purely things you pick words from.
+let randomChoice = null;
+function refreshRandomView() {
   setupCatBar(document.getElementById('theme-all-vocab-swatch'), getCategoryBandCounts(getCoreVocabPool()));
   setupCatBar(document.getElementById('theme-weakest-vocab-swatch'), getCategoryBandCounts(getWeakestVocabItems(20)));
   setupCatBar(document.getElementById('theme-untested-vocab-swatch'), getCategoryBandCounts(getUntestedVocabItems()));
+  [1, 2, 3].forEach(n => setupCatBar(document.getElementById('random-l' + n + '-swatch'), getCategoryBandCounts(scanVocabByTag('L' + n))));
+  const untaughtCard = document.getElementById('random-untaught-card');
+  if (untaughtCard) {
+    untaughtCard.style.display = appSettings.showUntaught ? '' : 'none';
+    if (appSettings.showUntaught) setupCatBar(document.getElementById('random-untaught-swatch'), getCategoryBandCounts(scanVocabByTag('untaught')));
+  }
+  if (randomChoice === 'untaught' && !appSettings.showUntaught) randomChoice = null;
+  // Weakest needs something already tested, Untested needs something not yet
+  // tested - dim whichever has nothing in it rather than a Start that does nothing.
+  const empty = { weakest: !getWeakestVocabItems(1).length, untested: !getUntestedVocabItems().length };
+  Object.keys(empty).forEach(k => {
+    const card = document.querySelector(`#match-random-view [data-random-key="${k}"]`);
+    if (card) card.classList.toggle('dimmed', empty[k]);
+    if (empty[k] && randomChoice === k) randomChoice = null;
+  });
+  updateRandomChoiceUI();
+}
+function selectRandomChoice(key) {
+  const card = document.querySelector(`#match-random-view [data-random-key="${key}"]`);
+  if (card && card.classList.contains('dimmed')) return;
+  randomChoice = randomChoice === key ? null : key;
+  updateRandomChoiceUI();
+}
+function updateRandomChoiceUI() {
+  document.querySelectorAll('#match-random-view [data-random-key]').forEach(card => {
+    card.classList.toggle('selected', card.dataset.randomKey === randomChoice);
+  });
+  const btn = document.getElementById('random-start-btn');
+  if (btn) btn.disabled = !randomChoice;
+}
+function startSelectedRandom() {
+  if (randomChoice === 'all') startRandomMatchEverything();
+  else if (randomChoice === 'weakest') startWeakestVocab();
+  else if (randomChoice === 'untested') startUntestedVocab();
+  else if (randomChoice === 'untaught') startRandomForLevel('untaught');
+  else if (/^L[123]$/.test(randomChoice || '')) startRandomForLevel(+randomChoice.slice(1));
 }
 
 // Reference grids are built once and cached, but scores change as drilling
@@ -11330,6 +11448,8 @@ function setMatchLevel(level) {
   document.getElementById('level-pill-2').classList.toggle('active', level === 2);
   document.getElementById('level-pill-3').classList.toggle('active', level === 3);
   document.getElementById('level-pill-theme').classList.toggle('active', level === 'theme');
+  const randomPill = document.getElementById('level-pill-random');
+  if (randomPill) randomPill.classList.toggle('active', level === 'random');
   const andrewPill = document.getElementById('level-pill-andrew');
   if (andrewPill) andrewPill.classList.toggle('active', level === 'andrew');
   const untaughtPill = document.getElementById('level-pill-untaught');
@@ -11343,15 +11463,10 @@ function setMatchLevel(level) {
   // joins the same list for the same reason.
   document.getElementById('match-vocab-view').style.display = (level === 1 || level === 2 || level === 3 || level === 'andrew' || level === 'untaught') ? 'flex' : 'none';
   document.getElementById('match-theme-view').style.display = level === 'theme' ? 'flex' : 'none';
+  document.getElementById('match-random-view').style.display = level === 'random' ? 'flex' : 'none';
   if (level === 'theme') refreshThemeCategorySwatches();
   if (level === 'theme') return;
-  document.getElementById('random-match-count').textContent = level === 'andrew'
-    ? '20 random words per round, from Andrew mode categories'
-    : level === 'untaught'
-    ? '20 random words per round, from Untaught vocabulary'
-    : `20 random words per round, from all Level ${level} categories`;
-  document.getElementById('match-start-btn').disabled = true;
-  document.getElementById('random-match-card').classList.remove('selected');
+  if (level === 'random') { refreshRandomView(); return; }
   buildMatchCategoryList();
 }
 
@@ -11549,10 +11664,7 @@ function buildMatchCategoryList() {
   });
 }
 
-function selectRandomMatchCard(card) {
-  card.classList.add('selected');
-  document.getElementById('match-start-btn').disabled = false;
-}
+// selectRandomMatchCard removed 2026-10-07 - level randoms moved to the Random page (selectRandomChoice).
 
 // Where the vocab-reference screen's Back button returns to - reference
 // screens get opened from several different places (Vocab > L2, and now the
@@ -14233,7 +14345,8 @@ function tryResumeMatch() {
   showMatchSettings();
 }
 
-function startRandomMatch() {
+function startRandomMatch() { startRandomForLevel(currentMatchLevel); }
+function startRandomForLevel(level) {
   // Level 1/2/Untaught: a genuine tag query via scanVocabByTag (see comment
   // there) - every item tagged 'L1'/'L2'/'untaught' anywhere, not "every
   // item stored in a category whose own level happens to match". This is
@@ -14252,9 +14365,9 @@ function startRandomMatch() {
   // whatever L3 content lands here next, until that content gets a proper
   // tag of its own the way Untaught just did.
   let allItems;
-  if (currentMatchLevel === 1 || currentMatchLevel === 2 || currentMatchLevel === 3) {
-    allItems = scanVocabByTag('L' + currentMatchLevel);
-  } else if (currentMatchLevel === 'untaught') {
+  if (level === 1 || level === 2 || level === 3) {
+    allItems = scanVocabByTag('L' + level);
+  } else if (level === 'untaught') {
     allItems = scanVocabByTag('untaught');
   } else {
     // Level 3 moved to the tag scan above (2026-09-29) once it had content -
@@ -14262,11 +14375,11 @@ function startRandomMatch() {
     // level:3 categories' own items would miss them.
     allItems = [];
     Object.keys(VOCAB).forEach(key => {
-      if ((VOCAB[key].level || 1) !== currentMatchLevel) return;
+      if ((VOCAB[key].level || 1) !== level) return;
       VOCAB[key].items.forEach(item => allItems.push(item));
     });
   }
-  startVocabReadingDeck(allItems, 'random-level-' + currentMatchLevel);
+  startVocabReadingDeck(allItems, 'random-level-' + level);
 }
 
 function buildVocabReadingDeck(items, groupKey, distractorPool) {
