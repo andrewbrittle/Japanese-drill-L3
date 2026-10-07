@@ -1388,7 +1388,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.018</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.020</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2070,7 +2070,7 @@
       <div class="group-card cat-tile" data-random-key="verbforms" onclick="selectRandomChoice('verbforms')" style="cursor:pointer;">
         <div class="cat-tile-top cat-tile-top-stack">
           <div class="group-name">Verb forms</div>
-          <div class="random-choice-desc">20 random verb forms — which form is it? Reverse the direction to build the form instead</div>
+          <div class="random-choice-desc">20 random verb forms — which form is it? Reverse the direction to build the form instead, and turn on Type to write it yourself</div>
         </div>
         <div class="cat-bar" id="random-verbforms-swatch"></div>
       </div>
@@ -9238,7 +9238,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-07g';
+const LATEST_CHANGELOG_ENTRY = '2026-10-07h';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -10379,10 +10379,13 @@ function updateRandomChoiceUI() {
   // Verb forms is always multiple choice and has no meaning to highlight,
   // so only the Reverse toggle applies - the other two fade (still tappable).
   // Particles has a fixed set of buttons, so none of the three apply.
-  ['drill-mode-toggle-card', 'type-answer-toggle-card', 'listen-toggle-card'].forEach(id => {
+  // Type applies to Verb forms too (reversed: type the form).
+  ['drill-mode-toggle-card', 'listen-toggle-card'].forEach(id => {
     const card = document.getElementById(id);
     if (card) card.classList.toggle('not-for-choice', randomChoice === 'verbforms' || randomChoice === 'particles');
   });
+  const typeCard = document.getElementById('type-answer-toggle-card');
+  if (typeCard) typeCard.classList.toggle('not-for-choice', randomChoice === 'particles');
   const revCard = document.getElementById('reversed-mode-toggle-card');
   if (revCard) revCard.classList.toggle('not-for-choice', randomChoice === 'particles');
 }
@@ -10916,7 +10919,7 @@ function chooseTypedJapanese(rawInput, q) {
   if (input) input.disabled = true;
   if (submitBtn) submitBtn.disabled = true;
   const typed = normaliseTypedJapanese(rawInput);
-  const forms = [q.char, q.altForm, q.speakAs, ...String(q.char).split(/\s*[\/／]\s*/)].filter(Boolean);
+  const forms = [q.char, q.altForm, q.speakAs, ...(VERB_TYPING_KANJI[q.char] || []), ...String(q.char).split(/\s*[\/／]\s*/)].filter(Boolean);
   const isCorrect = !!typed && forms.some(f => normaliseTypedJapanese(f) === typed);
   if (input) input.classList.add(isCorrect ? 'correct' : 'wrong');
   // Right, but not as it's usually written (other script, or kana for a word
@@ -10924,7 +10927,7 @@ function chooseTypedJapanese(rawInput, q) {
   const asTyped = (rawInput || '').normalize('NFKC').replace(/\s/g, '');
   const usual = (q.altIsStandard && q.altForm) ? q.altForm : q.char;
   let note = '';
-  if (isCorrect && asTyped === String(usual).replace(/\s/g, '')) note = '';
+  if (isCorrect && (asTyped === String(usual).replace(/\s/g, '') || (VERB_TYPING_KANJI[q.char] || []).includes(asTyped))) note = '';
   else if (isCorrect && asTyped !== String(q.char).replace(/\s/g, '')) note = `<div class="feedback-standard-note">Usually written: ${markSmallKana(usual)}</div>`;
   else if (q.altIsStandard && q.altForm) note = `<div class="feedback-standard-note">Normally shown as: ${markSmallKana(q.altForm)}</div>`;
   else if (q.altAfterAnswer && q.altForm) note = `<div class="feedback-standard-note">Also seen as: ${markSmallKana(q.altForm)}</div>`;
@@ -11283,7 +11286,11 @@ function renderVerbFormQuestion(q, charDisplay, container) {
     charDisplay.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
     charDisplay.style.fontSize = '36px';
     charDisplay.innerHTML = `${VERB_FORM_LABELS[q.verbForm]}<div class="vf-q-verb">${markSmallKana(q.verbJp)}</div><div class="vf-q-en">${q.verbEn}</div>`;
-    promptEl.textContent = 'Which is this form of the verb?';
+    promptEl.textContent = q.typed ? 'Type this form of the verb' : 'Which is this form of the verb?';
+    if (q.typed) {
+      renderTypeAnswerInput(container, 'type the form…', raw => chooseTypedVerbForm(raw, q), true);
+      return;
+    }
   }
   q.options.forEach((o, idx) => {
     const btn = document.createElement('button');
@@ -11295,6 +11302,38 @@ function renderVerbFormQuestion(q, charDisplay, container) {
     btn.onclick = () => choose(btn, o.value, q.answer, q.char);
     container.appendChild(btn);
   });
+}
+
+// Verb forms, reversed + Type: type the form itself, so it can't be answered
+// from the ending alone. Same leniency as typed vocab (normaliseTypedJapanese).
+function chooseTypedVerbForm(rawInput, q) {
+  if (answered) return;
+  answered = true;
+  const input = document.getElementById('type-answer-input');
+  const submitBtn = document.getElementById('type-answer-submit');
+  if (input) input.disabled = true;
+  if (submitBtn) submitBtn.disabled = true;
+  const typed = normaliseTypedJapanese(rawInput);
+  const isCorrect = !!typed && [q.formJp, ...(q.formKanji || [])].some(f => normaliseTypedJapanese(f) === typed);
+  if (input) input.classList.add(isCorrect ? 'correct' : 'wrong');
+  recordKanaResult(q, isCorrect);
+  const fb = document.getElementById('q-feedback');
+  if (isCorrect) {
+    score++;
+    fb.innerHTML = `Correct! (${q.hint})`;
+    fb.className = 'feedback good';
+  } else {
+    wrong++;
+    fb.innerHTML = `Not quite — the answer is "${markSmallKana(q.formJp)}" (${q.hint})`;
+    fb.className = 'feedback bad';
+    const missedKey = q.char + '|' + q.answer;
+    if (!missed.includes(missedKey)) { missed.push(missedKey); missedItems.push(q); }
+  }
+  document.getElementById('stat-correct').textContent = score;
+  document.getElementById('stat-wrong').textContent = wrong;
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.style.visibility = 'visible';
+  nextBtn.innerHTML = (current + 1 < deck.length ? 'Next →' : 'See results →') + '<span class="kbd-hint">space</span>';
 }
 
 function choose(btn, selectedVal, answer, char) {
@@ -12412,6 +12451,22 @@ function getTaughtVerbs() {
 }
 
 const VERB_FORM_KEYS = ['nonPastAff', 'nonPastNeg', 'pastAff', 'pastNeg'];
+// Kanji spellings for the Level 2 verbs, which were taught (and stay) kana-
+// only with no altForm. Used ONLY to accept a typed answer when a phone or
+// Mac keyboard converts たべませんでした to 食べませんでした by itself - never
+// shown. Level 3 verbs carry altForm already, which is used the same way.
+const VERB_TYPING_KANJI = {
+  'きます': ['来ます'], 'おわります': ['終わります'], 'おきます': ['起きます'], 'いきます': ['行きます'],
+  'やすみます': ['休みます'], 'かえります': ['帰ります'], 'ねます': ['寝ます'], 'べんきょうします': ['勉強します'],
+  'はたらきます': ['働きます'], 'たべます': ['食べます'], 'のみます': ['飲みます'], 'よみます': ['読みます'],
+  'みます': ['見ます'], 'ききます': ['聞きます'], 'かきます': ['書きます'], 'かいます': ['買います'],
+  'すいます': ['吸います'], 'とります': ['撮ります', '取ります'], 'あいます': ['会います'],
+};
+function verbKanjiSpellings(item) {
+  const out = [...(VERB_TYPING_KANJI[item.jp] || [])];
+  if (item.altForm && /ます$/.test(item.altForm)) out.push(item.altForm);
+  return out;
+}
 // Same terms as the Level 2 grid (Non-past / Past x affirmative / negative).
 const VERB_FORM_LABELS = {
   nonPastAff: 'Non-past', nonPastNeg: 'Non-past negative',
@@ -12542,7 +12597,7 @@ function verbFormScoreItems() {
   getTaughtVerbs().forEach(v => VERB_FORM_KEYS.forEach(k => out.push({ jp: 'verbform:' + v.jp, en: k, verb: v, form: k })));
   return out;
 }
-function buildVerbFormDeck(reverse) {
+function buildVerbFormDeck(reverse, typed) {
   const picks = weightedSampleWithoutReplacement(verbFormScoreItems(), 20,
     it => selectionWeight(decayedScore(kanaScores[it.jp + '|' + it.en])));
   return picks.map(({ verb, form }) => {
@@ -12550,7 +12605,11 @@ function buildVerbFormDeck(reverse) {
     const base = {
       disp: 'verbform', groupKey: 'verb-forms', verbForm: form, reverse: !!reverse,
       scoreKey: 'verbform:' + verb.jp + '|' + form,
-      verbJp: verb.jp, verbRomaji: verb.romaji, verbEn: verb.en, formJp: f[form][0],
+      verbJp: verb.jp, verbRomaji: verb.romaji, verbEn: verb.en, formJp: f[form][0], formRomaji: f[form][1],
+      // Kanji spelling of the form (食べませんでした), so a keyboard that
+      // converts by itself is still marked right when typing.
+      formKanji: verbKanjiSpellings(verb).map(k => k.replace(/ます$/, '') + f[form][0].slice(verb.jp.length - 2)),
+      typed: !!(reverse && typed),
       hint: f[form][1] + ' — ' + f[form][2],
     };
     if (!reverse) {
@@ -12693,7 +12752,8 @@ function startVerbFormDrill() {
   if (!getTaughtVerbs().length) return;
   lastSettingsScreen = 'match-settings';
   const reverse = !!vocabReversed;
-  lastDeckBuilder = () => buildVerbFormDeck(reverse);
+  const typed = !!typeAnswerMode; // only used reversed: type the form
+  lastDeckBuilder = () => buildVerbFormDeck(reverse, typed);
   deck = lastDeckBuilder();
   current = 0; score = 0; wrong = 0; hints = 0; answered = false; missed = []; missedItems = [];
   showScreen('drill');
@@ -13637,6 +13697,10 @@ function showSentenceStructureReference() {
   // visible against a stable sentence rather than a freshly-shuffled one.
   pickFreshSentenceWords();
   renderSentenceExampleDisplay();
+  const l3Pointer = document.createElement('div');
+  l3Pointer.className = 'verb-conj-note';
+  l3Pointer.textContent = 'Level 3 brings this card and the を + object card together in one, with frequency words and tense. See Level 3 → Grammar notes → "Sentence order".';
+  list.appendChild(l3Pointer);
   showScreen('vocab-reference');
 }
 
@@ -13993,7 +14057,7 @@ function showObjectSentenceOrderReference() {
 
   const l3Pointer = document.createElement('div');
   l3Pointer.className = 'verb-conj-note';
-  l3Pointer.textContent = 'Level 3 has an extended version with a Frequency slot (いつも/よく/ときどき/あまり/ぜんぜん - the verb turns negative by itself for あまり and ぜんぜん) and Level 3 foods and hobbies in the shuffle. See Level 3 → Grammar notes.';
+  l3Pointer.textContent = 'Level 3 brings this card and the motion-sentence card together in one, with frequency words, companions (と) and tense. See Level 3 → Grammar notes → "Sentence order".';
   list.appendChild(l3Pointer);
 
   pickFreshObjectSentenceWords();
@@ -14276,7 +14340,7 @@ function showGrammarNotesHubL3() {
   list.innerHTML = '';
   const entries = [
     { label: 'Frequency words — いつも/よく/ときどき/あまり/ぜんぜん', fn: showFrequencyReference },
-    { label: 'Sentence order (を + object + frequency)', fn: showL3SentenceOrderReference },
+    { label: 'Sentence order — doing something / going somewhere', fn: showL3SentenceOrderReference },
     { label: 'を — Level 3 additions', fn: showObjectParticleL3Reference },
     { label: 'と vs や — "and" in a list', fn: showToYaReference },
     { label: 'それから / そして — "and then" vs "and also"', fn: showSorekaraReference },
@@ -14411,29 +14475,75 @@ function l3TaughtItem(jp) {
 }
 
 
-const L3_SENTENCE_SLOTS = [
-  { num: 1, role: 'Topic (who)', particle: 'は', questionBadge: 'だれが', note: 'who is doing it' },
-  { num: 2, role: 'Time (when)', questionBadge: 'いつ', note: 'に after a day (にちようびに) — but no particle after あさ / ひる / よる / しゅうまつ' },
-  { num: 3, role: 'Frequency (how often)', note: 'no particle — あまり and ぜんぜん turn the verb negative' },
-  { num: 4, role: 'Location of action (where)', particle: 'で', questionBadge: 'どこで', note: 'where it happens' },
-  { num: 5, role: 'Object (what)', particle: 'を', questionBadge: 'なにを', note: 'the thing being eaten, drunk, watched, done…' },
-  { num: 6, role: 'Verb (+か for a question)', note: 'positive or negative, depending on the frequency word' },
-];
+// Location (2026-10-06, Lesson 2 = place で): picked to suit the verb AND
+// object, from the daily sentence generator's own place lists
+// (SG_OBJECT_VERBS) - it used to be any Places-to-go word, so "eat sushi at
+// the bank" was possible once Location was switched on. Objects with no
+// listed place fall back to うち for verbs that are fine at home, and are
+// skipped otherwise (so golf/karaoke just don't come up here).
+const L3_HOME_OK_VERBS = ['たべます', 'のみます', 'みます', 'ききます', 'よみます', 'かきます'];
+function l3PlacesFor(verbJp, objJp) {
+  const set = new Set();
+  SG_OBJECT_VERBS.forEach(e => {
+    if (e.v === verbJp && e.objs.some(o => o[0] === objJp)) e.places.forEach(p => set.add(p));
+  });
+  let places = [...set].filter(p => SG_PLACE_EN[p] && !SG_PLACE_EN[p][1] && l3TaughtItem(p));
+  if (!places.length && L3_HOME_OK_VERBS.includes(verbJp) && l3TaughtItem('うち')) places = ['うち'];
+  return places.map(p => Object.assign({}, l3TaughtItem(p), { atEn: SG_PLACE_EN[p][0] }));
+}
 
-// Index 2 (Frequency) is 'on'/'off' with the word itself in l3FreqIdx;
-// Location starts off because none of the class examples use one.
-let l3SentStates = ['on', 'on', 'on', 'off', 'on', 'stmt'];
+// ==== SENTENCE ORDER, LEVEL 3 - the combined card (2026-10-07) ====
+// Replaces the Level 3 "を + object + frequency" card. One card for the whole
+// basic sentence, in the class order (handout, Lesson 2):
+//   Topic は → Time → Frequency → Companion と → Place で / Means で →
+//   Object を / Destination に → Verb
+// with a switch between "Doing something" (place + object) and "Going
+// somewhere" (means + destination), since the two don't mix at this level.
+// Every word comes from the daily-sentence engine (sgSubject, sgTime,
+// sgCompanion, SG_OBJECT_VERBS, SG_DEST, SG_TRANSPORT and their rules), so
+// the card and the daily sentence always agree and grow together.
+// Tense follows the time word (きのう -> ました, あした -> ます "going to");
+// a frequency word means habitual, so turning Frequency on picks a habitual
+// time word. Slots cycle on / skipped / asked as a question; Frequency steps
+// through the five words; the verb toggles か.
+const L3C_SLOTS = {
+  do: [
+    { role: 'Topic (who)', particle: 'は', q: ['だれ', 'dare', 'が', 'ga'], note: 'who it\'s about' },
+    { role: 'Time (when)', q: ['いつ', 'itsu', '', ''], note: 'に after a day (にちようびに) — no particle after あした, きのう, まいにち, あさ…' },
+    { role: 'Frequency (how often)', note: 'no particle — あまり and ぜんぜん turn the verb negative' },
+    { role: 'Companion (with whom)', particle: 'と', q: ['だれ', 'dare', 'と', 'to'], note: 'who with — ひとりで for "on my own"' },
+    { role: 'Place (where it happens)', particle: 'で', q: ['どこ', 'doko', 'で', 'de'], note: 'where the action happens' },
+    { role: 'Object (what)', particle: 'を', q: ['なに', 'nani', 'を', 'o'], note: 'the thing being eaten, drunk, watched, done…' },
+    { role: 'Verb (+か for a question)', note: 'tense follows the time word' },
+  ],
+  go: [
+    { role: 'Topic (who)', particle: 'は', q: ['だれ', 'dare', 'が', 'ga'], note: 'who it\'s about' },
+    { role: 'Time (when)', q: ['いつ', 'itsu', '', ''], note: 'に after a day (にちようびに) — no particle after あした, きのう, まいにち, あさ…' },
+    { role: 'Frequency (how often)', note: 'no particle — あまり and ぜんぜん turn the verb negative' },
+    { role: 'Companion (with whom)', particle: 'と', q: ['だれ', 'dare', 'と', 'to'], note: 'who with — ひとりで for "on my own"' },
+    { role: 'Means (how)', particle: 'で', q: ['なに', 'nani', 'で', 'de'], note: 'by train, by bus, by bike…' },
+    { role: 'Destination (where to)', particle: 'に', q: ['どこ', 'doko', 'に', 'ni'], note: 'where you\'re going — へ also works' },
+    { role: 'Verb (+か for a question)', note: 'tense follows the time word' },
+  ],
+};
+let l3cMode = 'do';
+let l3SentStates = ['on', 'on', 'off', 'on', 'on', 'on', 'stmt'];
 let l3FreqIdx = 0;
 let l3SentWords = null;
 
 function showL3SentenceOrderReference() {
-  const list = l3RefOpen('Sentence order (を + object + frequency)');
-  l3SentStates = ['on', 'on', 'on', 'off', 'on', 'stmt'];
+  const list = l3RefOpen('Sentence order');
+  l3SentStates = ['on', 'on', 'off', 'on', 'on', 'on', 'stmt'];
   l3FreqIdx = 0;
+
+  const modeRow = document.createElement('div');
+  modeRow.className = 'level-filter-row';
+  modeRow.id = 'l3c-mode-row';
+  list.appendChild(modeRow);
 
   const hint = document.createElement('div');
   hint.className = 'sentence-structure-hint';
-  hint.textContent = 'Tap a slot to cycle it. Frequency steps through いつも → よく → ときどき → あまり → ぜんぜん → skipped.';
+  hint.textContent = 'Tap a slot to include it, skip it, or ask it as a question. Frequency steps through いつも → よく → ときどき → あまり → ぜんぜん → skipped.';
   list.appendChild(hint);
 
   const rowsWrap = document.createElement('div');
@@ -14455,109 +14565,148 @@ function showL3SentenceOrderReference() {
   shuffleBtn.onclick = shuffleL3SentenceExample;
   list.appendChild(shuffleBtn);
 
-  l3Note(list, 'This is the Level 2 "Sentence order (を + object)" card with a Frequency slot added, and Level 3 foods, drinks and hobbies in the shuffle. Location starts switched off because the class examples don\'t use one — tap it to bring it in.');
+  l3Note(list, 'One order for both kinds of sentence: <strong>who → when → how often → with whom → where / how → what / where to → verb</strong>. Doing something uses place で + object を; going somewhere uses means で + destination に (or へ). Anything you skip just drops out — the order of the rest never changes.');
+  l3Note(list, 'Put the companion after the topic: わたしは あねと デパートへ いきます, never ✗ わたしと あねは… The time word sets the tense: きのう → いきました, あした → いきます ("going to").');
 
+  renderL3ModeRow();
   pickFreshL3SentenceWords();
   renderL3SentenceRows();
   renderL3SentenceExample();
   showScreen('vocab-reference');
 }
 
-// Location (2026-10-06, Lesson 2 = place で): picked to suit the verb AND
-// object, from the daily sentence generator's own place lists
-// (SG_OBJECT_VERBS) - it used to be any Places-to-go word, so "eat sushi at
-// the bank" was possible once Location was switched on. Objects with no
-// listed place fall back to うち for verbs that are fine at home, and are
-// skipped otherwise (so golf/karaoke just don't come up here).
-const L3_HOME_OK_VERBS = ['たべます', 'のみます', 'みます', 'ききます', 'よみます', 'かきます'];
-function l3PlacesFor(verbJp, objJp) {
-  const set = new Set();
-  SG_OBJECT_VERBS.forEach(e => {
-    if (e.v === verbJp && e.objs.some(o => o[0] === objJp)) e.places.forEach(p => set.add(p));
+function renderL3ModeRow() {
+  const row = document.getElementById('l3c-mode-row');
+  if (!row) return;
+  row.innerHTML = '';
+  [['do', 'Doing something'], ['go', 'Going somewhere']].forEach(([key, label]) => {
+    const btn = document.createElement('button');
+    btn.className = 'level-pill' + (key === l3cMode ? ' active' : '');
+    btn.textContent = label;
+    btn.onclick = () => { if (l3cMode === key) return; l3cMode = key; renderL3ModeRow(); shuffleL3SentenceExample(); };
+    row.appendChild(btn);
   });
-  let places = [...set].filter(p => SG_PLACE_EN[p] && !SG_PLACE_EN[p][1] && l3TaughtItem(p));
-  if (!places.length && L3_HOME_OK_VERBS.includes(verbJp) && l3TaughtItem('うち')) places = ['うち'];
-  return places.map(p => Object.assign({}, l3TaughtItem(p), { atEn: SG_PLACE_EN[p][0] }));
-}
-function pickFreshL3SentenceWords() {
-  // Every activity the daily engine knows, as (entry, object) pairs that have
-  // somewhere sensible to happen (the Location slot always needs a place).
-  const pairs = [];
-  // Outings (picnics, parties, plays...) are left out: the Frequency row can
-  // be tapped round to いつも, and "always has a party" isn't something to model.
-  SG_OBJECT_VERBS.forEach(V => {
-    if (V.intrans || V.once || V.outing || !sgW(V.v)) return;
-    let ps = V.places.filter(p => sgW(p) && !SG_PLACE_EN[p][1]);
-    if (!V.places.length && L3_HOME_OK_VERBS.includes(V.v) && sgW('うち')) ps = ['うち'];
-    if (!ps.length) return;
-    const places = ps.map(p => Object.assign({}, l3TaughtItem(p), { atEn: SG_PLACE_EN[p][0] }));
-    V.objs.filter(o => sgW(o[0])).forEach(o => pairs.push({ V, o, places }));
-  });
-  for (let tries = 0; tries < 40; tries++) {
-    const { V, o, places } = pickRandomItem(pairs);
-    // Habitual time word the engine allows for this activity with a frequency word.
-    const t = sgTime('hab', (jp, tt) => sgActTimeOk(V, jp, tt, 'hab'), { freq: true });
-    if (!t) continue;
-    const okPlaces = places.filter(p => sgPlaceTimeOk(p.jp, t.jp, t.t));
-    if (!okPlaces.length) continue;
-    const isDay = SG_DAYS.some(d => d[0] === t.jp);
-    l3SentWords = {
-      topic: pickRandomItem(sentenceStructurePeoplePool()),
-      time: { item: { jp: t.jp, romaji: sgW(t.jp).ro }, particle: isDay ? 'に' : '', particleRomaji: isDay ? 'ni' : '', en: t.en, t: t.t, isDay },
-      loc: pickRandomItem(okPlaces),
-      verb: { item: l3TaughtItem(V.v), en: V.phrase ? 'do' : V.en, entry: V },
-      obj: { item: l3TaughtItem(o[0]), phrase: sgActPhrase(V, o, 'hab') },
-    };
-    return;
-  }
 }
 
-// あまり/ぜんぜん + a day with に ("げつようびに ぜんぜん…") is stiff - Japanese
-// would say げつようびは. Same rule as the daily sentence: use あさ/ひる/よる
-// instead. Called whenever the frequency word or the example changes.
-function l3FixTimeForFreq() {
-  if (l3SentStates[2] !== 'on' || !L3_FREQ_WORDS[l3FreqIdx].neg || !l3SentWords.time.isDay) return;
-  const V = l3SentWords.verb.entry;
-  const t = sgTime('hab', (jp, tt) => !SG_DAYS.some(d => d[0] === jp) && jp !== 'しゅうまつ' && sgActTimeOk(V, jp, tt, 'hab') && sgPlaceTimeOk(l3SentWords.loc.jp, jp, tt), { freq: true });
-  if (t) l3SentWords.time = { item: { jp: t.jp, romaji: sgW(t.jp).ro }, particle: '', particleRomaji: '', en: t.en, t: t.t, isDay: false };
+// Segments from the engine come as 'ともだち の' / 'tomodachi no'; the card
+// attaches particles to their word in kana (ともだちの) as the other cards do.
+const l3cJp = s => s.jp.replace(/ (は|の|と|で|に|を|が|へ)$/, '$1').replace(/ (の) /g, '$1');
+function l3cSubjectSegs(subj) {
+  return subj.segs.length ? subj.segs : [sgSeg('わたし', 'は', 'wa')];
 }
+
+// Picks words for the current mode. Tense: habitual when Frequency is on,
+// otherwise any of habitual / past / future (the time word decides).
+// A question never has わたし as its topic (you'd be asking about yourself,
+// and はは/ちち companions only make sense for わたし), and never uses
+// あまり/ぜんぜん: a negative question (いきませんか) is an invitation, "won't you
+// come?", not a question about habits.
+function pickFreshL3SentenceWords() {
+  if (l3SentStates[6] === 'q' && l3SentStates[2] === 'on' && L3_FREQ_WORDS[l3FreqIdx].neg) l3FreqIdx = 0;
+  const freqOn = l3SentStates[2] === 'on';
+  const freq = freqOn ? L3_FREQ_WORDS[l3FreqIdx] : null;
+  for (let tries = 0; tries < 120; tries++) {
+    const tense = freqOn ? 'hab' : sgPick(['hab', 'hab', 'past', 'fut']);
+    const w = l3cMode === 'do' ? l3cPickDo(tense, freq) : l3cPickGo(tense, freq);
+    if (w && !(l3SentStates[6] === 'q' && w.subj.me)) { l3SentWords = w; return; }
+  }
+}
+function l3cPickDo(tense, freq) {
+  const entries = SG_OBJECT_VERBS.filter(V => !V.intrans && !V.routine && !V.workObj && sgW(V.v) && !(tense === 'hab' && V.once)
+    && !(freq && V.outing) && V.objs.some(o => sgW(o[0])));
+  const V = sgPick(entries);
+  if (!V) return null;
+  let places = V.places.filter(p => sgW(p));
+  if (!places.length && L3_HOME_OK_VERBS.includes(V.v) && sgW('うち')) places = ['うち'];
+  if (!places.length) return null;
+  let subj = sgSubject({ famFilter: m => !(V.adult && m.child) });
+  if (V.adult && subj.child) return null;
+  const time = sgTime(tense, (jp, t) => sgActTimeOk(V, jp, t, tense) && !(freq && freq.neg && SG_DAYS.some(d => d[0] === jp))
+    && places.some(p => sgPlaceTimeOk(p, jp, t)), { freq: !!freq });
+  if (!time) return null;
+  const okPlaces = places.filter(p => sgPlaceTimeOk(p, time.jp, time.t) && !(SG_PLACE_EN[p][1] && !subj.me)
+    && !((subj.elderly || subj.child) && SG_PLACE_WORK.includes(p)));
+  if (!okPlaces.length) return null;
+  const place = sgPick(okPlaces);
+  const o = sgPick(V.objs.filter(x => sgW(x[0])));
+  const comp = sgCompanion(subj, place, !!V.adult, SG_PLACE_WORK.includes(place));
+  return {
+    mode: 'do', tense, subj, time, comp, V, o,
+    slot4: { seg: sgSeg(place, 'で', 'de'), en: sgPlaceEn(place) },
+    slot5: { seg: sgSeg(o[0], 'を', 'o') },
+    verb: V.v,
+    phrase: sgActPhrase(V, o, tense),
+    phraseQ: V.phrase ? 'do' : (V.futHave && tense !== 'hab' ? 'have' : V.en), // "What do you eat?"
+  };
+}
+function l3cPickGo(tense, freq) {
+  const subj = sgSubject();
+  const ok = Object.entries(SG_DEST).filter(([jp, v]) => sgW(jp) && sgDestSubjOk(jp, v[1], subj)
+    && !(freq && ['outing', 'daytrip', 'event'].includes(v[1]) && freq.jp === 'いつも'));
+  const pick = sgPick(ok);
+  if (!pick) return null;
+  const [dest, [destEn, kind]] = pick;
+  if (freq && kind === 'work') return null;
+  const time = sgTime(tense, (jp, t) => sgDestTimeOk(kind, jp, t, tense, freq), { freq: !!freq });
+  if (!time) return null;
+  const tr = sgPick(SG_TRANSPORT.filter(t => sgW(t[0]) && !t[2] && !(subj.child && ['くるま', 'バイク'].includes(t[0]))));
+  if (!tr) return null;
+  const comp = sgCompanion(subj, dest, kind === 'bar', kind === 'work');
+  return {
+    mode: 'go', tense, subj, time, comp, dest,
+    slot4: { seg: sgSeg(tr[0], 'で', 'de'), en: tr[1] },
+    slot5: { seg: sgSeg(dest, 'に', 'ni'), en: destEn },
+    verb: 'いきます',
+    phrase: 'go ' + destEn,
+    phraseQ: 'go',
+  };
+}
+
+// あまり/ぜんぜん + a day with に is stiff (Japanese would say げつようびは) -
+// swap in a time word without a particle, as the daily sentence does.
+function l3FixTimeForFreq() {
+  const w = l3SentWords;
+  if (!w || l3SentStates[2] !== 'on' || !L3_FREQ_WORDS[l3FreqIdx].neg || !SG_DAYS.some(d => d[0] === w.time.jp)) return;
+  const filt = w.mode === 'do'
+    ? (jp, t) => !SG_DAYS.some(d => d[0] === jp) && sgActTimeOk(w.V, jp, t, 'hab') && sgPlaceTimeOk(l3cPlaceJp(w), jp, t)
+    : (jp, t) => !SG_DAYS.some(d => d[0] === jp) && sgDestTimeOk(SG_DEST[w.dest][1], jp, t, 'hab', null);
+  const t = sgTime('hab', filt, { freq: true });
+  if (t) w.time = t;
+}
+const l3cPlaceJp = w => w.slot4.seg.jp.replace(/ で$/, '');
 
 function renderL3SentenceRows() {
   const wrap = document.getElementById('sentence-structure-rows');
   if (!wrap) return;
   wrap.innerHTML = '';
-  L3_SENTENCE_SLOTS.forEach((slot, idx) => {
+  const w = l3SentWords;
+  L3C_SLOTS[l3cMode].forEach((slot, idx) => {
     const state = l3SentStates[idx];
     const row = document.createElement('div');
     row.className = 'vocab-ref-row minute-row sentence-slot-row' + (state === 'off' ? ' sentence-slot-off' : '');
     row.onclick = () => cycleL3SentenceSlot(idx);
-
     let badgeText, badgeClass = 'sentence-particle-badge', stateLabel = '';
-    if (idx === 5) {
+    if (idx === 6) {
       badgeText = state === 'q' ? 'か' : '。';
       stateLabel = state === 'q' ? '(question)' : '(statement)';
     } else if (state === 'off') {
-      badgeText = '–';
-      badgeClass += ' sentence-particle-badge-off';
-      stateLabel = '(skipped)';
+      badgeText = '–'; badgeClass += ' sentence-particle-badge-off'; stateLabel = '(skipped)';
     } else if (idx === 2) {
       const f = L3_FREQ_WORDS[l3FreqIdx];
-      badgeText = f.jp;
-      badgeClass += ' sentence-particle-badge-freq';
+      badgeText = f.jp; badgeClass += ' sentence-particle-badge-freq';
       stateLabel = `(${f.en}${f.neg ? ' — verb goes negative' : ''})`;
     } else if (state === 'q') {
-      badgeText = slot.questionBadge;
-      badgeClass += ' sentence-particle-badge-q';
-      stateLabel = '(asked as a question)';
+      badgeText = slot.q[0] + slot.q[2]; badgeClass += ' sentence-particle-badge-q'; stateLabel = '(asked as a question)';
     } else if (idx === 1) {
-      badgeText = l3SentWords && l3SentWords.time.particle ? 'に' : '∅';
+      badgeText = w && / に$/.test(w.time.seg.jp) ? 'に' : '∅';
+    } else if (idx === 3) {
+      badgeText = w && w.comp && /ひとり/.test((w.comp.seg || {}).jp || '') ? 'で' : 'と';
     } else {
       badgeText = slot.particle;
     }
-
     row.innerHTML = `
       <div class="sentence-structure-inner">
-        <div class="vocab-ref-num-big">${slot.num}</div>
+        <div class="vocab-ref-num-big">${idx + 1}</div>
         <div class="sentence-structure-text">
           <div class="sentence-structure-role">${slot.role}</div>
           <div class="sentence-structure-note">${slot.note}${stateLabel ? ` <span class="sentence-structure-state">${stateLabel}</span>` : ''}</div>
@@ -14570,12 +14719,21 @@ function renderL3SentenceRows() {
 }
 
 function cycleL3SentenceSlot(idx) {
-  if (idx === 5) {
-    l3SentStates[5] = l3SentStates[5] === 'q' ? 'stmt' : 'q';
+  if (idx === 6) {
+    l3SentStates[6] = l3SentStates[6] === 'q' ? 'stmt' : 'q';
+    if (l3SentStates[6] === 'q' && ((l3SentWords && l3SentWords.subj.me) || (l3SentStates[2] === 'on' && L3_FREQ_WORDS[l3FreqIdx].neg))) pickFreshL3SentenceWords();
   } else if (idx === 2) {
-    if (l3SentStates[2] === 'off') { l3SentStates[2] = 'on'; l3FreqIdx = 0; }
-    else if (l3FreqIdx < L3_FREQ_WORDS.length - 1) { l3FreqIdx++; }
-    else { l3SentStates[2] = 'off'; }
+    const wasOff = l3SentStates[2] === 'off';
+    // In a question, Frequency only steps through いつも / よく / ときどき.
+    const last = l3SentStates[6] === 'q' ? L3_FREQ_WORDS.findIndex(f => f.neg) - 1 : L3_FREQ_WORDS.length - 1;
+    if (wasOff) { l3SentStates[2] = 'on'; l3FreqIdx = 0; }
+    else if (l3FreqIdx < last) l3FreqIdx++;
+    else l3SentStates[2] = 'off';
+    // Frequency only goes with habits: a past/future example gets new words.
+    if (l3SentStates[2] === 'on' && l3SentWords && l3SentWords.tense !== 'hab') pickFreshL3SentenceWords();
+    // Some words can't take every frequency word (no "always goes to a
+    // concert") - pick again if this one doesn't fit.
+    else if (l3SentStates[2] === 'on' && !l3cFreqFits()) pickFreshL3SentenceWords();
     l3FixTimeForFreq();
   } else {
     const order = ['on', 'off', 'q'];
@@ -14584,75 +14742,85 @@ function cycleL3SentenceSlot(idx) {
   renderL3SentenceRows();
   renderL3SentenceExample();
 }
+function l3cFreqFits() {
+  const w = l3SentWords, f = L3_FREQ_WORDS[l3FreqIdx];
+  if (!w) return false;
+  if (w.mode === 'do') return !w.V.outing;
+  const kind = SG_DEST[w.dest][1];
+  if (kind === 'work') return false;
+  return !(['outing', 'daytrip', 'event'].includes(kind) && f.jp === 'いつも') && sgDestTimeOk(kind, w.time.jp, w.time.t, 'hab', f.neg ? null : f);
+}
 
 function buildL3SentenceExample() {
-  const { topic, time, loc, verb, obj } = l3SentWords;
-  const st = l3SentStates;
+  const w = l3SentWords, st = l3SentStates, S = L3C_SLOTS[l3cMode];
   const f = st[2] === 'on' ? L3_FREQ_WORDS[l3FreqIdx] : null;
   const neg = !!(f && f.neg);
-  const isAmari = !!(f && l3FreqIdx === 3);
-  const isQ = st[5] === 'q';
-
+  const isQ = st[6] === 'q';
+  const tense = f ? 'hab' : w.tense;
   const jp = [], ro = [];
-  if (st[0] === 'on') { jp.push(topic.jp + 'は'); ro.push(topic.romaji + ' wa'); }
-  else if (st[0] === 'q') { jp.push('だれが'); ro.push('dare ga'); }
-  if (st[1] === 'on') { jp.push(time.item.jp + time.particle); ro.push((time.item.romaji + ' ' + time.particleRomaji).trim()); }
-  else if (st[1] === 'q') { jp.push('いつ'); ro.push('itsu'); }
+  const add = segs => segs.forEach(s => { jp.push(l3cJp(s)); ro.push(s.ro); });
+  const addQ = i => { const q = S[i].q; jp.push(q[0] + q[2]); ro.push((q[1] + ' ' + q[3]).trim()); };
+  if (st[0] === 'on') add(l3cSubjectSegs(w.subj)); else if (st[0] === 'q') addQ(0);
+  if (st[1] === 'on') add([w.time.seg]); else if (st[1] === 'q') addQ(1);
   if (f) { jp.push(f.jp); ro.push(f.romaji); }
-  if (st[3] === 'on') { jp.push(loc.jp + 'で'); ro.push(loc.romaji + ' de'); }
-  else if (st[3] === 'q') { jp.push('どこで'); ro.push('doko de'); }
-  if (st[4] === 'on') { jp.push(obj.item.jp + 'を'); ro.push(obj.item.romaji + ' o'); }
-  else if (st[4] === 'q') { jp.push('なにを'); ro.push('nani o'); }
-  const vJp = neg ? verb.item.jp.replace(/ます$/, 'ません') : verb.item.jp;
-  const vRo = neg ? verb.item.romaji.replace(/masu$/, 'masen') : verb.item.romaji;
-  jp.push(vJp + (isQ ? 'か' : ''));
-  ro.push(vRo + (isQ ? ' ka' : ''));
+  if (st[3] === 'on') add(w.comp.segs || [w.comp.seg]); else if (st[3] === 'q') addQ(3);
+  if (st[4] === 'on') add([w.slot4.seg]); else if (st[4] === 'q') addQ(4);
+  if (st[5] === 'on') add([w.slot5.seg]); else if (st[5] === 'q') addQ(5);
+  const v = sgVerb(w.verb, tense === 'past' ? 'past' : 'hab', neg);
+  jp.push(v.jp + (isQ ? 'か' : ''));
+  ro.push(v.ro + (isQ ? ' ka' : ''));
+  return { jp: jp.join(' ') + '。', romaji: sgCap(ro.join(' ')) + (isQ ? '?' : '.'), en: l3cEnglish(w, st, f, tense, isQ) };
+}
 
-  // English - habitual present ("always eats"), not L2's progressive.
-  const whoQ = st[0] === 'q', qTime = st[1] === 'q', qLoc = st[3] === 'q', qObj = st[4] === 'q';
-  const qCount = [whoQ, qTime, qLoc, qObj].filter(Boolean).length;
-  const single = isQ && qCount === 1 && !whoQ;
+// English for any combination of slots. Habitual uses the present ("always
+// eats"), past the past ("ate"), future "is going to".
+function l3cEnglish(w, st, f, tense, isQ) {
+  const neg = !!(f && f.neg), isAmari = !!(f && f.jp === 'あまり');
+  const qs = [0, 1, 3, 4, 5].filter(i => st[i] === 'q');
+  const whoQ = st[0] === 'q';
+  const single = isQ && qs.length === 1 && !whoQ;
+  const one = single ? qs[0] : -1;
+  const me = st[0] !== 'on' || w.subj.me;
+  const S = st[0] === 'on' ? (w.subj.me ? 'I' : w.subj.en) : (isQ ? 'you' : 'I');
+  const third = st[0] === 'on' ? !w.subj.me : false;
+  // verb phrase (object / destination may be asked or skipped)
   let P;
-  if (st[4] === 'on') P = obj.phrase;
-  else if (qObj) P = single ? verb.en : verb.en + ' [what]';
-  else P = verb.en;
+  if (st[5] === 'on') P = w.phrase;
+  else if (st[5] === 'q') P = w.phraseQ + (single ? '' : (w.mode === 'do' ? ' [what]' : ' [where]'));
+  else P = w.mode === 'do' ? (w.V.phrase ? w.phrase.split(' ')[0] : w.phraseQ) : 'go';
   const tail = [];
-  if (st[3] === 'on') tail.push(loc.atEn || 'at the ' + loc.en.toLowerCase());
-  else if (qLoc && !single) tail.push('at [where]');
-  if (st[1] === 'on') tail.push(time.en);
-  else if (qTime && !single) tail.push('[when]');
-  const tailS = tail.length ? ' ' + tail.join(' ') : '';
-
-  let subj, third;
-  if (st[0] === 'on') { subj = sentencePersonEnglish(topic); third = true; }
-  else { subj = isQ ? 'you' : 'I'; third = false; }
-  const conj = p => (third ? sgVerbEn(p, 'third') : p);
-
-  let en;
+  if (st[3] === 'on') tail.push(w.comp.en); else if (st[3] === 'q' && !single) tail.push('with [who]');
+  if (st[4] === 'on') tail.push(w.slot4.en); else if (st[4] === 'q' && !single) tail.push(w.mode === 'do' ? 'at [where]' : 'by [how]');
+  if (st[1] === 'on') tail.push(w.time.en); else if (st[1] === 'q' && !single) tail.push('[when]');
+  const T = tail.length ? ' ' + tail.join(' ') : '';
+  const third3 = p => sgVerbEn(p, 'third');
   if (whoQ) {
-    const vp = !f ? sgVerbEn(P, 'third') : !neg ? f.en + ' ' + sgVerbEn(P, 'third') : isAmari ? "doesn't often " + P : 'never ' + sgVerbEn(P, 'third');
-    en = 'Who ' + vp + tailS + '?';
-  } else if (isQ) {
-    let aux = third ? 'does' : 'do', mid;
-    if (!f) mid = P;
-    else if (!neg) mid = f.en + ' ' + P;
-    else if (isAmari) { aux = third ? "doesn't" : "don't"; mid = 'often ' + P; }
-    else mid = 'never ' + P;
-    if (single) {
-      const wh = qTime ? 'When' : qLoc ? 'Where' : 'What';
-      en = `${wh} ${aux} ${subj} ${mid}${tailS}?`;
-    } else {
-      en = `${sentenceCapitalize(aux)} ${subj} ${mid}${tailS}?`;
-    }
-  } else {
     let vp;
-    if (!f) vp = conj(P);
-    else if (!neg) vp = f.en + ' ' + conj(P);
-    else if (isAmari) vp = (third ? "doesn't" : "don't") + ' often ' + P;
-    else vp = 'never ' + conj(P);
-    en = sentenceCapitalize(`${subj} ${vp}${tailS}.`);
+    if (tense === 'past') vp = sgVerbEn(P, 'past');
+    else if (tense === 'fut') vp = 'is going to ' + P;
+    else if (!f) vp = third3(P);
+    else if (!neg) vp = f.en + ' ' + third3(P);
+    else vp = isAmari ? "doesn't often " + P : 'never ' + third3(P);
+    return 'Who ' + vp + T + '?';
   }
-  return { jp: jp.join(' ') + '。', romaji: ro.join(' ') + '.', en };
+  if (isQ) {
+    let aux, mid;
+    if (tense === 'past') { aux = 'did'; mid = P; }
+    else if (tense === 'fut') { aux = third ? 'is' : 'are'; mid = 'going to ' + P; }
+    else { aux = third ? 'does' : 'do'; mid = !f ? P : !neg ? f.en + ' ' + P : isAmari ? 'often ' + P : 'never ' + P; if (isAmari) aux = third ? "doesn't" : "don't"; }
+    if (single) {
+      const wh = { 1: 'When', 3: 'Who', 4: w.mode === 'do' ? 'Where' : 'How', 5: w.mode === 'do' ? 'What' : 'Where' }[one];
+      return `${wh} ${aux} ${S} ${mid}${one === 3 ? ' with' : ''}${T}?`;
+    }
+    return `${sgCap(aux)} ${S} ${mid}${T}?`;
+  }
+  let vp;
+  if (tense === 'past') vp = sgVerbEn(P, 'past');
+  else if (tense === 'fut') vp = (me && S === 'I' ? "'m going to " : 'is going to ') + P;
+  else if (!f) vp = third ? third3(P) : P;
+  else if (!neg) vp = f.en + ' ' + (third ? third3(P) : P);
+  else vp = isAmari ? (third ? "doesn't" : "don't") + ' often ' + P : 'never ' + (third ? third3(P) : P);
+  return sgCap(`${S}${vp.startsWith("'") ? '' : ' '}${vp}${T}.`);
 }
 
 function renderL3SentenceExample() {
@@ -14666,12 +14834,14 @@ function renderL3SentenceExample() {
 }
 
 function shuffleL3SentenceExample() {
+  // A new example also gets a new frequency word if that slot is on.
+  if (l3SentStates[2] === 'on') {
+    const n = l3SentStates[6] === 'q' ? L3_FREQ_WORDS.filter(f => !f.neg).length : L3_FREQ_WORDS.length;
+    l3FreqIdx = Math.floor(Math.random() * n);
+  }
   pickFreshL3SentenceWords();
-  // (2026-10-07) A new example also gets a new frequency word if that slot is
-  // on - it used to stay on いつも unless you tapped the Frequency row.
-  if (l3SentStates[2] === 'on') l3FreqIdx = Math.floor(Math.random() * L3_FREQ_WORDS.length);
   l3FixTimeForFreq();
-  renderL3SentenceRows(); // time badge (に vs none) depends on the word picked
+  renderL3SentenceRows(); // time/companion badges depend on the words picked
   renderL3SentenceExample();
 }
 
@@ -15713,10 +15883,14 @@ function sgSubject(opts = {}) {
 function sgCompanion(subj, dest, adultOnly, noFamily) {
   // noFamily: going to school / university / work - "with my mother" would be odd.
   const famOk = m => !noFamily && !(adultOnly && m.child);
+  // Never the person who is already in the subject (やまもとさんは やまもとさんと…,
+  // or たなかさんの おくさんは たなかさんと…).
+  const inSubj = n => (subj.segs || []).some(s => s.jp.split(' ')[0] === n.jp);
+  const names = SENTENCE_NAME_POOL.filter(n => !inSubj(n));
   const r = sgRand();
   if (subj.me) {
     if (r < 0.2) return { seg: sgSeg('ともだち', 'と', 'to'), en: 'with a friend' };
-    if (r < 0.36) { const n = sgPick(SENTENCE_NAME_POOL); return { seg: sgSeg(n.jp, 'と', 'to'), en: 'with ' + n.en }; }
+    if (r < 0.36) { const n = sgPick(names); return { seg: sgSeg(n.jp, 'と', 'to'), en: 'with ' + n.en }; }
     if (r < 0.56) { const pool = sgMyFamily(famOk); if (pool.length) { const m = sgPick(pool); return { seg: sgSeg(m.jp, 'と', 'to'), en: 'with my ' + m.en }; } }
     if (r < 0.66 && SG_COLLEAGUE_OK.includes(dest) && sgW('どうりょう')) return { seg: sgSeg('どうりょう', 'と', 'to'), en: 'with a colleague' };
     if (r < 0.84) return { seg: { jp: 'ひとり で', ro: 'hitori de' }, en: 'on my own' };
@@ -15724,7 +15898,7 @@ function sgCompanion(subj, dest, adultOnly, noFamily) {
     if (pool.length) { const m = sgPick(pool); return { segs: [sgSeg('ともだち', 'の', 'no'), sgSeg(m.jp, 'と', 'to')], en: `with my friend's ${m.en}` }; }
     return { seg: sgSeg('ともだち', 'と', 'to'), en: 'with a friend' };
   }
-  if (/friend/.test(subj.en || '') || r < 0.5) { const n = sgPick(SENTENCE_NAME_POOL); return { seg: sgSeg(n.jp, 'と', 'to'), en: 'with ' + n.en }; }
+  if (/friend/.test(subj.en || '') || r < 0.5) { const n = sgPick(names); return { seg: sgSeg(n.jp, 'と', 'to'), en: 'with ' + n.en }; }
   return { seg: sgSeg('ともだち', 'と', 'to'), en: 'with a friend' };
 }
 
@@ -15802,19 +15976,27 @@ function sgObjectSentence() {
     phrase = sgActPhrase(V, o1, tense);
   }
   // place: must suit the time word and (for へや) the subject
-  let placeSeg = null, placeEn = '';
+  let placeSeg = null, placeEn = '', placeJp = null;
   const places = V.places.filter(p => sgW(p) && sgPlaceTimeOk(p, time && time.jp, time && time.t) && !(SG_PLACE_EN[p][1] && !subj.me)
     && !((subj.elderly || subj.child) && (p === 'かいしゃ' || p === 'じむしょ')));
   if (places.length && !neg && (V.intrans || sgChance(freq && time ? 0.25 : 0.5))) {
-    const p = sgPick(places); placeSeg = sgSeg(p, 'で', 'de'); placeEn = sgPlaceEn(p);
+    const p = sgPick(places); placeSeg = sgSeg(p, 'で', 'de'); placeEn = sgPlaceEn(p); placeJp = p;
+  }
+  // Companion (と / ひとりで) - added 2026-10-07 with the combined Sentence
+  // order card, which has a Companion slot for "doing something" sentences
+  // too (handout: ははと くつを かいます). Not for routines or work.
+  let comp = null;
+  // Not with a と-list of objects (Aさん と ヨーグルト と りんご を reads as one list).
+  if (!neg && !V.routine && !V.workObj && objSegs.length < 2 && sgChance(freq ? 0.15 : 0.25)) {
+    comp = sgCompanion(subj, placeJp, !!V.adult, SG_PLACE_WORK.includes(placeJp));
   }
   // A verb with no object needs its place ("I sing" alone is too bare) - except
   // in a negative ("I never swim"), where no place reads naturally.
   if (V.intrans && !neg && !placeSeg) return null;
   const verb = sgVerb(V.v, tense, neg);
-  const segs = [...subj.segs, time && time.seg, freq && { jp: freq.jp, ro: sgW(freq.jp).ro }, placeSeg, ...objSegs, verb].filter(Boolean);
+  const segs = [...subj.segs, time && time.seg, freq && { jp: freq.jp, ro: sgW(freq.jp).ro }, ...(comp ? (comp.segs || [comp.seg]) : []), placeSeg, ...objSegs, verb].filter(Boolean);
   const out = sgJoin(segs);
-  out.en = sgEnFinish([sgEnClause(subj, phrase, tense, freq, neg && !freq), placeEn, time && time.en]);
+  out.en = sgEnFinish([sgEnClause(subj, phrase, tense, freq, neg && !freq), comp && comp.en, placeEn, time && time.en]);
   return [out];
 }
 
@@ -15934,7 +16116,7 @@ function sgMeetSentence() {
   const myFam = subj.me ? sgMyFamily() : [];
   if (r < 0.2 && myFam.length) { const m = sgPick(myFam); pSegs = [sgSeg(m.jp, 'に', 'ni')]; pEn = 'my ' + m.en; }
   else if (r < 0.45 && !subjFriend) { pSegs = [sgSeg('ともだち', 'に', 'ni')]; pEn = 'a friend'; }
-  else if (r < 0.78 || subjFriend) { const n = sgPick(SENTENCE_NAME_POOL); pSegs = [sgSeg(n.jp, 'に', 'ni')]; pEn = n.en; }
+  else if (r < 0.78 || subjFriend) { const n = sgPick(SENTENCE_NAME_POOL.filter(n => !subj.segs.some(s => s.jp.split(' ')[0] === n.jp))); pSegs = [sgSeg(n.jp, 'に', 'ni')]; pEn = n.en; } // never meets themselves
   else { const f = sgPick(sgPoliteFamily()); pSegs = [sgSeg('ともだち', 'の', 'no'), sgSeg(f.jp, 'に', 'ni')]; pEn = subj.me ? `my friend's ${f.en}` : `a friend's ${f.en}`; }
   let placeSeg = null, placeEn = '';
   if (sgChance(0.5)) { const p = sgPick(['えき', 'カフェ', 'きっさてん', 'レストラン', 'こうえん'].filter(p => sgW(p) && !(p === 'レストラン' && time.t.morning))); placeSeg = sgSeg(p, 'で', 'de'); placeEn = { えき: 'at the station', カフェ: 'at a café', きっさてん: 'at a coffee shop', レストラン: 'at a restaurant', こうえん: 'in the park' }[p]; }
