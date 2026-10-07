@@ -1203,6 +1203,10 @@
   .vf-ro { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; }
   .vf-en { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 1px; }
   .vf-q-verb { font-family: 'BIZ UDPGothic', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-muted); margin-top: 6px; }
+  /* Listening (2026-10-07) */
+  .listen-play { width: 96px; height: 96px; border-radius: 50%; border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+  .listen-play:active { transform: scale(0.96); }
+  .type-answer-input.type-answer-jp { font-family: 'BIZ UDPGothic', sans-serif; }
   /* Particle drill (2026-10-07) */
   .options.pt-options { grid-template-columns: repeat(4, 1fr); }
   .options.pt-options .opt { padding: 10px 4px 8px; }
@@ -1384,7 +1388,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.017</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.018</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1628,8 +1632,16 @@
          syncVocabTileModeToggles. -->
     <div class="group-card" id="vocab-tile-type-answer-card" onclick="toggleVocabTileTypeAnswerMode()" style="cursor:pointer;">
       <div class="group-info">
-        <div class="group-name">Type the reading instead of choosing</div>
-        <div class="group-count">Type the romaji yourself instead of picking from four options. Kana → romaji only, so this has no effect while reversed or highlighting the meaning.</div>
+        <div class="group-name">Type the answer instead of choosing</div>
+        <div class="group-count">Type the romaji yourself instead of picking from four options. Reversed, type the Japanese — your phone's Japanese keyboard works, and kanji counts too. No effect while highlighting the meaning.</div>
+      </div>
+      <div class="toggle"></div>
+    </div>
+
+    <div class="group-card" id="vocab-tile-listen-card" onclick="toggleVocabTileListenMode()" style="cursor:pointer;">
+      <div class="group-info">
+        <div class="group-name">Listen instead of reading</div>
+        <div class="group-count">Hear the word instead of seeing it, then pick or type the answer. Needs sound on; no effect while reversed.</div>
       </div>
       <div class="toggle"></div>
     </div>
@@ -2118,10 +2130,17 @@
       </div>
       <div class="group-card" id="type-answer-toggle-card" onclick="toggleTypeAnswerMode()" style="cursor:pointer;">
         <div class="group-info">
-          <div class="group-name">Type the reading instead of choosing</div>
-          <div class="group-count">Type the romaji yourself instead of picking from four options. Kana → romaji only, so this has no effect while reversed or highlighting the meaning.</div>
+          <div class="group-name">Type the answer instead of choosing</div>
+          <div class="group-count">Type the romaji yourself instead of picking from four options. Reversed, type the Japanese — your phone's Japanese keyboard works, and kanji counts too. No effect while highlighting the meaning.</div>
         </div>
         <div class="toggle" id="type-answer-toggle"></div>
+      </div>
+      <div class="group-card" id="listen-toggle-card" onclick="toggleListenMode()" style="cursor:pointer;">
+        <div class="group-info">
+          <div class="group-name">Listen instead of reading</div>
+          <div class="group-count">Hear the word instead of seeing it, then pick or type the answer. Needs sound on; no effect while reversed.</div>
+        </div>
+        <div class="toggle" id="listen-toggle"></div>
       </div>
       <button class="start-btn" id="random-start-btn" onclick="startSelectedRandom()" disabled>Start</button>
     </div>
@@ -7136,6 +7155,16 @@ let vocabReversed = false;
 // syncVocabModeToggles() rather than left as three independently-clickable
 // toggles that could combine into a state with no matching UI.
 let typeAnswerMode = false;
+// TYPING JAPANESE + LISTENING (2026-10-07): typing now also works reversed -
+// see the English, type the Japanese (chooseTypedJapanese) - so Type and
+// Reverse no longer switch each other off. listenMode hides the word and
+// plays it instead (forward word questions only), so it can't combine with
+// Reverse, and needs sound on. Rules, in one place:
+//   Highlight meaning - off while reversed or typing (as before)
+//   Reverse           - off while listening
+//   Type              - off while highlighting the meaning
+//   Listen            - off while reversed, or with sound off
+let listenMode = false;
 
 function toggleDrillByMeaning() {
   drillByMeaning = !drillByMeaning;
@@ -7145,13 +7174,20 @@ function toggleDrillByMeaning() {
 
 function toggleVocabReversed() {
   vocabReversed = !vocabReversed;
-  if (vocabReversed) typeAnswerMode = false;
+  if (vocabReversed) listenMode = false;
   syncVocabModeToggles();
 }
 
 function toggleTypeAnswerMode() {
   typeAnswerMode = !typeAnswerMode;
-  if (typeAnswerMode) { drillByMeaning = false; vocabReversed = false; }
+  if (typeAnswerMode) drillByMeaning = false;
+  syncVocabModeToggles();
+}
+
+function toggleListenMode() {
+  if (!listenMode && !soundAllowed()) return;
+  listenMode = !listenMode;
+  if (listenMode) vocabReversed = false;
   syncVocabModeToggles();
 }
 
@@ -7165,7 +7201,8 @@ function toggleTypeAnswerMode() {
 function syncVocabModeToggles() {
   [['drill-mode-toggle-card', 'drill-mode-toggle-card-l', drillByMeaning],
    ['reversed-mode-toggle-card', 'reversed-mode-toggle-card-l', vocabReversed],
-   ['type-answer-toggle-card', 'type-answer-toggle-card-l', typeAnswerMode]]
+   ['type-answer-toggle-card', 'type-answer-toggle-card-l', typeAnswerMode],
+   ['listen-toggle-card', 'listen-toggle-card-l', listenMode]]
     .forEach(([id, idL, on]) => {
       const card = document.getElementById(id);
       if (card) card.classList.toggle('selected', on);
@@ -7178,11 +7215,15 @@ function syncVocabModeToggles() {
   });
   ['reversed-mode-toggle-card', 'reversed-mode-toggle-card-l'].forEach(id => {
     const card = document.getElementById(id);
-    if (card) card.classList.toggle('disabled', typeAnswerMode);
+    if (card) card.classList.toggle('disabled', listenMode);
   });
   ['type-answer-toggle-card', 'type-answer-toggle-card-l'].forEach(id => {
     const card = document.getElementById(id);
-    if (card) card.classList.toggle('disabled', drillByMeaning || vocabReversed);
+    if (card) card.classList.toggle('disabled', drillByMeaning);
+  });
+  ['listen-toggle-card', 'listen-toggle-card-l'].forEach(id => {
+    const card = document.getElementById(id);
+    if (card) card.classList.toggle('disabled', vocabReversed || !soundAllowed());
   });
 }
 
@@ -7499,6 +7540,7 @@ const vocabTileSelected = {};
 const vocabTileDrillMode = {}; // categoryKey -> boolean, remembered independently per category
 const vocabTileReversedMode = {}; // same idea, for the reversed-direction toggle
 const vocabTileTypeAnswerMode = {}; // same idea, for the typed-answer toggle (2026-09-22)
+const vocabTileListenMode = {}; // same idea, for the listening toggle (2026-10-07)
 // categoryKey -> boolean. When true, a "Select random 20" pick is active: the
 // real selection (used for drilling) is a genuine random 20, but every tile
 // is shown as selected and made non-interactive, so there's no visual way to
@@ -7515,17 +7557,22 @@ function toggleVocabTileDrillMode() {
 function toggleVocabTileReversedMode() {
   const categoryKey = vocabTileCategory;
   vocabTileReversedMode[categoryKey] = !vocabTileReversedMode[categoryKey];
-  if (vocabTileReversedMode[categoryKey]) vocabTileTypeAnswerMode[categoryKey] = false;
+  if (vocabTileReversedMode[categoryKey]) vocabTileListenMode[categoryKey] = false;
   syncVocabTileModeToggles(categoryKey);
 }
 
 function toggleVocabTileTypeAnswerMode() {
   const categoryKey = vocabTileCategory;
   vocabTileTypeAnswerMode[categoryKey] = !vocabTileTypeAnswerMode[categoryKey];
-  if (vocabTileTypeAnswerMode[categoryKey]) {
-    vocabTileDrillMode[categoryKey] = false;
-    vocabTileReversedMode[categoryKey] = false;
-  }
+  if (vocabTileTypeAnswerMode[categoryKey]) vocabTileDrillMode[categoryKey] = false;
+  syncVocabTileModeToggles(categoryKey);
+}
+
+function toggleVocabTileListenMode() {
+  const categoryKey = vocabTileCategory;
+  if (!vocabTileListenMode[categoryKey] && !soundAllowed()) return;
+  vocabTileListenMode[categoryKey] = !vocabTileListenMode[categoryKey];
+  if (vocabTileListenMode[categoryKey]) vocabTileReversedMode[categoryKey] = false;
   syncVocabTileModeToggles(categoryKey);
 }
 
@@ -7538,6 +7585,7 @@ function syncVocabTileModeToggles(categoryKey) {
   const meaningOn = !!vocabTileDrillMode[categoryKey];
   const reversedOn = !!vocabTileReversedMode[categoryKey];
   const typeOn = !!vocabTileTypeAnswerMode[categoryKey];
+  const listenOn = !!vocabTileListenMode[categoryKey];
   const meaningCard = document.getElementById('vocab-tile-drill-mode-card');
   if (meaningCard) {
     meaningCard.classList.toggle('selected', meaningOn);
@@ -7546,12 +7594,17 @@ function syncVocabTileModeToggles(categoryKey) {
   const reversedCard = document.getElementById('vocab-tile-reversed-mode-card');
   if (reversedCard) {
     reversedCard.classList.toggle('selected', reversedOn);
-    reversedCard.classList.toggle('disabled', typeOn);
+    reversedCard.classList.toggle('disabled', listenOn);
   }
   const typeCard = document.getElementById('vocab-tile-type-answer-card');
   if (typeCard) {
     typeCard.classList.toggle('selected', typeOn);
-    typeCard.classList.toggle('disabled', meaningOn || reversedOn);
+    typeCard.classList.toggle('disabled', meaningOn);
+  }
+  const listenCard = document.getElementById('vocab-tile-listen-card');
+  if (listenCard) {
+    listenCard.classList.toggle('selected', listenOn);
+    listenCard.classList.toggle('disabled', reversedOn || !soundAllowed());
   }
 }
 
@@ -8157,6 +8210,7 @@ function drillVocabTileSelection() {
   drillByMeaning = cat.noMeaningMode ? false : !!vocabTileDrillMode[categoryKey];
   vocabReversed = !!vocabTileReversedMode[categoryKey];
   typeAnswerMode = !!vocabTileTypeAnswerMode[categoryKey];
+  listenMode = !!vocabTileListenMode[categoryKey] && soundAllowed();
   const items = cat.items;
   // See BUG FIX (2026-09-12) above allVisibleVocabItems - search results can
   // be smaller than the 3 distractors a drill card needs, unlike every real
@@ -9118,6 +9172,10 @@ function toggleSoundOn() {
   updateSoundButton();
   const speakBtn = document.getElementById('speak-btn');
   if (speakBtn) speakBtn.disabled = !soundAllowed();
+  // Listening needs sound: switching sound off switches it off too.
+  if (!soundAllowed()) { listenMode = false; Object.keys(vocabTileListenMode).forEach(k => { vocabTileListenMode[k] = false; }); }
+  syncVocabModeToggles();
+  if (vocabTileCategory) syncVocabTileModeToggles(vocabTileCategory);
   // Word-tile screen: tap-to-hear card and grid behaviour depend on sound.
   const tileScreen = document.getElementById('screen-vocab-tile-selection');
   if (tileScreen && tileScreen.classList.contains('active') && vocabTileCategory) {
@@ -9180,7 +9238,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-07f';
+const LATEST_CHANGELOG_ENTRY = '2026-10-07g';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -9821,7 +9879,7 @@ function saveDrillSession() {
   try {
     localStorage.setItem(DRILL_SESSION_KEY, JSON.stringify({
       deck, current, score, wrong, hints, missed, missedItems,
-      lastSettingsScreen, drillByMeaning, reversed, vocabReversed,
+      lastSettingsScreen, drillByMeaning, reversed, vocabReversed, typeAnswerMode, listenMode,
       showHiraganaOnKatakana, showHiraganaOnKanji,
       savedAt: Date.now(),
     }));
@@ -9865,6 +9923,8 @@ function tryRestoreDrillSession() {
   drillByMeaning = !!saved.drillByMeaning;
   reversed = !!saved.reversed;
   vocabReversed = !!saved.vocabReversed;
+  typeAnswerMode = !!saved.typeAnswerMode;
+  listenMode = !!saved.listenMode;
   showHiraganaOnKatakana = !!saved.showHiraganaOnKatakana;
   showHiraganaOnKanji = !!saved.showHiraganaOnKanji;
   // "Drill again" after a resumed session re-shuffles this same restored
@@ -10319,7 +10379,7 @@ function updateRandomChoiceUI() {
   // Verb forms is always multiple choice and has no meaning to highlight,
   // so only the Reverse toggle applies - the other two fade (still tappable).
   // Particles has a fixed set of buttons, so none of the three apply.
-  ['drill-mode-toggle-card', 'type-answer-toggle-card'].forEach(id => {
+  ['drill-mode-toggle-card', 'type-answer-toggle-card', 'listen-toggle-card'].forEach(id => {
     const card = document.getElementById(id);
     if (card) card.classList.toggle('not-for-choice', randomChoice === 'verbforms' || randomChoice === 'particles');
   });
@@ -10788,6 +10848,106 @@ function revealRomaji() {
   el.style.display = 'block';
 }
 
+// Shared typed-answer input (romaji forward, Japanese reversed).
+// stopPropagation on Enter matters: the global handleDrillKeydown listener
+// also reacts to Enter (to advance past an answered question) - without it,
+// the same keypress that submits would also fire Next, skipping the feedback.
+// Enter is ignored while a Japanese keyboard is still composing (isComposing),
+// since there Enter just confirms the kana/kanji conversion.
+function renderTypeAnswerInput(container, placeholder, submitFn, japanese) {
+  container.innerHTML = '<div class="type-answer-row">' +
+    `<input type="text" id="type-answer-input" class="type-answer-input${japanese ? ' type-answer-jp' : ''}" ${japanese ? 'lang="ja"' : ''} autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="${placeholder}">` +
+    '<button type="button" class="type-answer-submit" id="type-answer-submit">Check</button>' +
+    '</div>';
+  const input = document.getElementById('type-answer-input');
+  const submitBtn = document.getElementById('type-answer-submit');
+  const submit = () => submitFn(input.value);
+  submitBtn.onclick = submit;
+  input.onkeydown = (e) => {
+    if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) {
+      e.preventDefault();
+      e.stopPropagation();
+      submit();
+    }
+  };
+  setTimeout(() => input.focus(), 30);
+}
+
+// LISTENING (2026-10-07) - the word is hidden behind a play button and said
+// as the question appears (a moment later, so the cancel() in renderQuestion
+// can't swallow it on iPhone). Replaying is free - it's the question, not a
+// hint. revealListenWord() puts the word back once answered.
+const LISTEN_ICON = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 9 8 9 12 5 12 19 8 15 3 15" fill="currentColor"></polygon><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M18.5 5.5a9 9 0 0 1 0 13"></path></svg>';
+function renderListenPrompt(q, charDisplay) {
+  const say = () => speakJapanese(getSpeechText(q));
+  charDisplay.innerHTML = `<button type="button" class="listen-play" aria-label="Play again">${LISTEN_ICON}</button>`;
+  charDisplay.querySelector('.listen-play').onclick = say;
+  document.getElementById('q-prompt').textContent = typeAnswerMode ? 'Type what you hear (romaji)' : (drillByMeaning ? 'What does the word you hear mean?' : 'Which word did you hear?');
+  const speakBtn = document.getElementById('speak-btn');
+  if (speakBtn) speakBtn.style.display = 'none';
+  const romajiBtn = document.getElementById('romaji-btn');
+  if (romajiBtn) romajiBtn.style.display = 'none';
+  setTimeout(() => { if (deck[current] === q && !answered) say(); }, 120);
+}
+function revealListenWord(q) {
+  if (!(q && q.disp === 'word' && listenMode && !vocabReversed)) return;
+  const charDisplay = document.getElementById('q-char');
+  if (!charDisplay || !charDisplay.querySelector('.listen-play')) return;
+  charDisplay.innerHTML = markSmallKana(q.char);
+  charDisplay.style.cursor = 'pointer';
+  charDisplay.onclick = () => speakJapanese(getSpeechText(q));
+}
+
+// TYPED JAPANESE (2026-10-07) - reversed + Type. Lenient the same way the
+// romaji check is: spaces and punctuation ignored, hiragana and katakana
+// treated as the same (びーる for ビール counts, with a note of the usual
+// spelling), and the kanji form counts too, since phone and Mac keyboards
+// convert to kanji on their own (食べます for たべます).
+function normaliseTypedJapanese(str) {
+  return (str || '').normalize('NFKC')
+    .replace(/[\s。、．，.,!?！？・〜~「」()（）]/g, '')
+    .replace(/[\u30A1-\u30F6]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+}
+function chooseTypedJapanese(rawInput, q) {
+  if (answered) return;
+  answered = true;
+  const input = document.getElementById('type-answer-input');
+  const submitBtn = document.getElementById('type-answer-submit');
+  if (input) input.disabled = true;
+  if (submitBtn) submitBtn.disabled = true;
+  const typed = normaliseTypedJapanese(rawInput);
+  const forms = [q.char, q.altForm, q.speakAs, ...String(q.char).split(/\s*[\/／]\s*/)].filter(Boolean);
+  const isCorrect = !!typed && forms.some(f => normaliseTypedJapanese(f) === typed);
+  if (input) input.classList.add(isCorrect ? 'correct' : 'wrong');
+  // Right, but not as it's usually written (other script, or kana for a word
+  // normally in kanji) - say how it's normally written.
+  const asTyped = (rawInput || '').normalize('NFKC').replace(/\s/g, '');
+  const usual = (q.altIsStandard && q.altForm) ? q.altForm : q.char;
+  let note = '';
+  if (isCorrect && asTyped === String(usual).replace(/\s/g, '')) note = '';
+  else if (isCorrect && asTyped !== String(q.char).replace(/\s/g, '')) note = `<div class="feedback-standard-note">Usually written: ${markSmallKana(usual)}</div>`;
+  else if (q.altIsStandard && q.altForm) note = `<div class="feedback-standard-note">Normally shown as: ${markSmallKana(q.altForm)}</div>`;
+  else if (q.altAfterAnswer && q.altForm) note = `<div class="feedback-standard-note">Also seen as: ${markSmallKana(q.altForm)}</div>`;
+  recordKanaResult(q, isCorrect);
+  const fb = document.getElementById('q-feedback');
+  if (isCorrect) {
+    score++;
+    fb.innerHTML = 'Correct!' + note;
+    fb.className = 'feedback good';
+  } else {
+    wrong++;
+    fb.innerHTML = `Not quite — the answer is "${markSmallKana(q.char)}" (${q.answerRomaji})` + note;
+    fb.className = 'feedback bad';
+    const missedKey = q.char + '|' + q.answer;
+    if (!missed.includes(missedKey)) { missed.push(missedKey); missedItems.push(q); }
+  }
+  document.getElementById('stat-correct').textContent = score;
+  document.getElementById('stat-wrong').textContent = wrong;
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.style.visibility = 'visible';
+  nextBtn.innerHTML = (current + 1 < deck.length ? 'Next →' : 'See results →') + '<span class="kbd-hint">space</span>';
+}
+
 function renderQuestion() {
   if (current >= deck.length) { showResults(); return; }
   saveDrillSession();
@@ -10905,6 +11065,7 @@ function renderQuestion() {
   const isTime = q.disp === 'time';
   const isCounterQuiz = q.disp === 'counter';
   const charDisplay = document.getElementById('q-char');
+  charDisplay.onclick = null; charDisplay.style.cursor = '';
   const container = document.getElementById('q-options');
   container.innerHTML = '';
   container.classList.remove('pt-options'); // particle drill's 4-across layout
@@ -10950,8 +11111,12 @@ function renderQuestion() {
     const len = promptText.length;
     charDisplay.style.fontSize = len <= 8 ? '56px' : len <= 16 ? '40px' : '30px';
     charDisplay.textContent = promptText;
-    document.getElementById('q-prompt').textContent = 'Which word matches this meaning?';
+    document.getElementById('q-prompt').textContent = typeAnswerMode ? 'Type this in Japanese' : 'Which word matches this meaning?';
     q.answer = q.char;
+    if (typeAnswerMode) {
+      renderTypeAnswerInput(container, 'type it in Japanese…', raw => chooseTypedJapanese(raw, q), true);
+      return;
+    }
     // The helper text under each option must NOT be the same field as the
     // prompt, or the correct option becomes findable by plain text-matching
     // against the prompt (e.g. prompt "obentou" + an option labelled
@@ -10973,6 +11138,7 @@ function renderQuestion() {
     charDisplay.style.fontSize = len <= 4 ? '72px' : len <= 6 ? '56px' : '40px';
     charDisplay.innerHTML = markSmallKana(q.char);
     document.getElementById('q-prompt').textContent = drillByMeaning ? 'What does this word mean?' : 'How do you read this word?';
+    if (listenMode && soundAllowed()) renderListenPrompt(q, charDisplay);
     const topField = drillByMeaning ? 'en' : 'rd';
     const bottomField = drillByMeaning ? 'rd' : 'en';
     q.answer = drillByMeaning ? q.answerEn : q.answerRomaji;
@@ -10980,27 +11146,7 @@ function renderQuestion() {
       // typeAnswerMode is mutually exclusive with drillByMeaning (see
       // syncVocabModeToggles), so q.answer above is always q.answerRomaji
       // here - this only ever asks for the reading.
-      container.innerHTML = '<div class="type-answer-row">' +
-        '<input type="text" id="type-answer-input" class="type-answer-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="type the romaji…">' +
-        '<button type="button" class="type-answer-submit" id="type-answer-submit">Check</button>' +
-        '</div>';
-      const input = document.getElementById('type-answer-input');
-      const submitBtn = document.getElementById('type-answer-submit');
-      const submit = () => chooseTyped(input.value, q.answer, q.char);
-      submitBtn.onclick = submit;
-      // stopPropagation matters here: the global handleDrillKeydown listener
-      // on window also reacts to Enter (to advance past an answered
-      // question) - without it, the same keypress that submits this answer
-      // would immediately bubble up and also fire Next, skipping the
-      // feedback entirely.
-      input.onkeydown = (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          e.stopPropagation();
-          submit();
-        }
-      };
-      setTimeout(() => input.focus(), 30);
+      renderTypeAnswerInput(container, 'type the romaji…', raw => chooseTyped(raw, q.answer, q.char), false);
     } else {
       q.options.forEach((o, idx) => {
         const btn = document.createElement('button');
@@ -11183,6 +11329,7 @@ function choose(btn, selectedVal, answer, char) {
   // renderQuestion), it's already the next thing in view - no need to
   // print it twice.
   recordKanaResult(currentQ, selectedVal === answer);
+  revealListenWord(currentQ);
   if (currentQ && currentQ.disp === 'particle') {
     const blank = document.querySelector('#q-char .pt-blank');
     if (blank) { blank.textContent = answer; blank.classList.add('filled'); }
@@ -11266,6 +11413,7 @@ function chooseTyped(rawInput, answer, char) {
     ? `<div class="feedback-standard-note">Also seen as: ${markSmallKana(currentQ.altForm)}</div>`
     : '';
   recordKanaResult(currentQ, isCorrect);
+  revealListenWord(currentQ);
   // Show the accepted spelling either way, not just on a miss - per Andrew,
   // the point is to teach the canonical romanization, and what was typed
   // may have matched only after canonicalizeRomaji() folded away a real
