@@ -1332,7 +1332,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.009</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.010</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -6282,12 +6282,12 @@ const THEMES = {
   'theme-occupations': {
     label: 'Occupations',
     chars: 'いしゃ かんごし てんいん…',
-    tagQuery: { any: ['occupations', 'occupations-l3'] },
+    tagQuery: { any: [['occupations', 'occupations-l3']] }, // one list - a job is a job, whatever level it was taught in
   },
   'theme-items-clothing-general': {
     label: 'Everyday items, clothing & general vocab',
     chars: 'かさ くつ かぞく…',
-    tagQuery: { any: ['objects', 'clothing', 'general-l2', 'general-l3'] }, // general-l3 added 2026-10-01
+    tagQuery: { any: ['objects', 'clothing', ['general-l2', 'general-l3']] }, // general-l3 added 2026-10-01; one General group (2026-10-07)
   },
   // New - Verbs/Adjectives/Question words are all "functional" categories
   // (the words a sentence is built FROM) rather than themed nouns, and none
@@ -6334,7 +6334,7 @@ const THEMES = {
     // this list for all five to sit together. Answer options stay within a
     // group (see drillVocabTileSelection), so "always" is never offered for
     // "tomorrow".
-    tagQuery: { any: ['frequency', 'time-l2', 'time-l3'] },
+    tagQuery: { any: ['frequency', ['time-l2', 'time-l3']] }, // L2 + L3 time words as one group (2026-10-07)
   },
   'theme-core-grammar': {
     label: 'Core grammar words',
@@ -6343,7 +6343,7 @@ const THEMES = {
     // are sentence-building words in exactly this sense. L3 verbs need no
     // tag of their own here - all are L2 verbs tagged forward, so verbs-l2
     // already covers them.
-    tagQuery: { any: ['verbs-l2', 'verbs-l3', 'adjectives-l2', 'question-location', 'frequency-l3'] }, // verbs-l3 added 2026-10-06 (first new L3 verbs)
+    tagQuery: { any: [['verbs-l2', 'verbs-l3'], 'adjectives-l2', 'question-location', 'frequency-l3'] }, // verbs-l3 added 2026-10-06; all verbs one group (2026-10-07)
   },
   // BUG FIX (2026-08-31) - this card used to be hidden entirely unless Trip
   // vocabulary was switched on (applyShowTripVocabVisibility), even though
@@ -6649,7 +6649,9 @@ function tagQueryMatches(itemTags, query) {
     // optional `all` (2026-10-07): every one of these too - e.g. any of
     // food-type/drink AND taught, for the taught-only Food & drink Group.
     if (query.all && !query.all.every(tag => itemTags.includes(tag))) return false;
-    return query.any.some(tag => itemTags.includes(tag));
+    // An entry can be a list of tags (2026-10-07) = one divider group, e.g.
+    // ['occupations', 'occupations-l3'] - same kind of word, different level.
+    return query.any.some(entry => (Array.isArray(entry) ? entry : [entry]).some(tag => itemTags.includes(tag)));
   }
   const required = Array.isArray(query) ? query : [query];
   return required.every(tag => itemTags.includes(tag));
@@ -6717,7 +6719,7 @@ function getThemePool(themeKey) {
       return items
         .map((item, idx) => ({
           item, idx,
-          groupIndex: anyQuery.findIndex(tag => item.tags && item.tags.includes(tag)),
+          groupIndex: anyQuery.findIndex(entry => item.tags && (Array.isArray(entry) ? entry : [entry]).some(tag => item.tags.includes(tag))),
         }))
         .sort((a, b) => {
           if (a.groupIndex !== b.groupIndex) return a.groupIndex - b.groupIndex;
