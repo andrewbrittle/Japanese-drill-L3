@@ -425,7 +425,9 @@
      is applied. */
   .small-kana { font-size: 0.65em; }
   .alt-form { font-size: 13px; font-weight: 600; color: var(--accent); text-align: center; margin-top: 0.15rem; margin-bottom: 0.5rem; font-family: 'BIZ UDPGothic', sans-serif; }
-  .counter-quiz-reminder { font-size: 12px; font-weight: 600; color: var(--text-muted); text-align: center; margin-top: 0.15rem; margin-bottom: 0.5rem; }
+  .counter-quiz-reminder { font-size: 12px; font-weight: 600; color: var(--text-muted); text-align: center; margin-top: 0.15rem; margin-bottom: 0.5rem; line-height: 1.9; }
+  .counter-quiz-reminder .cq-chip { display: inline-block; white-space: nowrap; border: 1px solid var(--border); border-radius: 99px; padding: 0 8px; margin: 0 2px; line-height: 1.6; }
+  .counter-quiz-reminder .cq-testing { white-space: nowrap; }
   /* Materials-only "seen in context" card (see q-context-card in
      renderQuestion) - a separate card between the main drill card and Next,
      not a section inside the main card itself. Used to sit inline on the
@@ -1319,7 +1321,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261007.004</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -4696,7 +4698,7 @@ const VOCAB = {
       {jp:'はなや', romaji:'hanaya', en:'florist / flower shop', tags:['L3','occupations-l3','taught','l3-2'], altForm:'花屋', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'けんちくし', romaji:'kenchikushi', en:'architect', tags:['L3','occupations-l3','taught','l3-2'], altForm:'建築士', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'ぜいりし', romaji:'zeirishi', en:'tax accountant', tags:['L3','occupations-l3','taught','l3-2'], altForm:'税理士', altIsStandard:true, dateAdded:'2026-10-06'},
-      {jp:'かんごし', romaji:'kangoshi', en:'nurse', tags:['L3','occupations-l3','taught','l3-2'], altForm:'看護師', altIsStandard:true, dateAdded:'2026-10-06'},
+      {jp:'かんごし', romaji:'kangoshi', en:'nurse', tags:['L3','occupations-l3','taught','l3-2','genki','genki-1-1'], altForm:'看護師', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'まんがか', romaji:'mangaka', en:'manga artist', tags:['L3','occupations-l3','taught','l3-2'], altForm:'漫画家', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'がか', romaji:'gaka', en:'painter (artist)', tags:['L3','occupations-l3','taught','l3-2'], altForm:'画家', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'けいさつかん', romaji:'keisatsukan', en:'police officer', tags:['L3','occupations-l3','taught','l3-2'], altForm:'警察官', altIsStandard:true, dateAdded:'2026-10-06'},
@@ -10589,11 +10591,15 @@ function renderQuestion() {
   const reminderEl = document.getElementById('q-counter-quiz-reminder');
   if (reminderEl) {
     if (isCounterQuiz && q.quizCounters) {
-      const names = q.quizCounters.map(k => {
+      // (2026-10-07) One unbreakable chip per counter - as one running line it
+      // wrapped mid-item ("台 / (Machines, vehicles)", "(Small objects /
+      // (general))"). The "(general)" note is dropped here; it's on the
+      // selection screen.
+      reminderEl.innerHTML = '<span class="cq-testing">Testing:</span> ' + q.quizCounters.map(k => {
         const unit = COUNTER_ITEM_UNITS[k];
-        return unit.label + ' (' + unit.desc.charAt(0).toUpperCase() + unit.desc.slice(1) + ')';
-      }).join(', ');
-      reminderEl.textContent = 'Testing: ' + names;
+        const desc = unit.desc.replace(/\s*\(general\)$/, '');
+        return '<span class="cq-chip">' + markSmallKana(unit.label + ' ' + desc) + '</span>';
+      }).join(' ');
       reminderEl.style.display = 'block';
     } else {
       reminderEl.style.display = 'none';
