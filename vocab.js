@@ -282,6 +282,9 @@ window.JP_DRILL_VOCAB = {
     tagQuery: ['L2','general-l2'],
     items: [
       {jp:'ひとりで', romaji:'hitoride', en:'alone', tags:['L2','general-l2','taught','L3','general-l3','l3-2'], dateAdded:'2026-08-01'},
+      // From the old Horse racing category (removed 2026-10-08 - never taught;
+      // the only word in it with everyday use). Same jp|en, so its score is kept.
+      {jp:'レース', romaji:'reesu', en:'race', tags:['L2','general-l2','taught'], altForm:'れーす', dateAdded:'2026-08-01'},
       {jp:'あさごはん', romaji:'asagohan', en:'breakfast', tags:['L2','general-l2','taught','genki','genki-1-3'], altForm:'朝ご飯', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'ばんごはん', romaji:'bangohan', en:'dinner', tags:['L2','general-l2','taught','genki','genki-1-3'], altForm:'晩ご飯', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'かぞく', romaji:'kazoku', en:'family', tags:['L2','general-l2','taught'], altForm:'家族', altIsStandard:true, dateAdded:'2026-08-01'},
@@ -762,34 +765,6 @@ window.JP_DRILL_VOCAB = {
       {jp:'にじゅうくにち', romaji:'nijuukunichi', en:'29th', tags:['L2','days-of-month-l2','taught'], dateAdded:'2026-08-01'},
       {jp:'さんじゅうにち', romaji:'sanjuunichi', en:'30th', tags:['L2','days-of-month-l2','taught'], dateAdded:'2026-08-01'},
       {jp:'さんじゅういちにち', romaji:'sanjuuichinichi', en:'31st', tags:['L2','days-of-month-l2','taught'], dateAdded:'2026-08-01'},
-    ],
-  },
-  // A classmate asked the tutor about horse racing, so here it is - same
-  // deal as Colours: not covered in the lessons, but harmless and fun
-  // enough that it doesn't need gating behind Trip vocabulary (nobody's
-  // trip depends on knowing 馬券). うま (horse) is the only animal word in
-  // the app right now - not worth inventing a whole Animals category for
-  // one entry when it already has a natural home here.
-  'vocab-horse-racing': {
-    level: 2,
-    hasReference: true,
-    note: 'Not covered in lessons',
-    label: 'Horse racing',
-    chars: 'けいば うま きしゅ…',
-    tagQuery: ['L2','horse-racing'],
-    items: [
-      {jp:'けいば', romaji:'keiba', en:'horse racing', tags:['L2','horse-racing','taught'], altForm:'競馬', altIsStandard:true, dateAdded:'2026-08-01'},
-      // うま/horse removed - duplicate of the Animals entry, consolidated
-      // there since it's minor here.
-      {jp:'けいばじょう', romaji:'keibajou', en:'racecourse', tags:['L2','horse-racing','taught'], altForm:'競馬場', altIsStandard:true, dateAdded:'2026-08-01'},
-      {jp:'きしゅ', romaji:'kishu', en:'jockey', tags:['L2','horse-racing','taught'], altForm:'騎手', altIsStandard:true, dateAdded:'2026-08-01'},
-      {jp:'ばけん', romaji:'baken', en:'betting ticket', tags:['L2','horse-racing','taught'], altForm:'馬券', altIsStandard:true, dateAdded:'2026-08-01'},
-      {jp:'レース', romaji:'reesu', en:'race', tags:['L2','horse-racing','taught'], altForm:'れーす', dateAdded:'2026-08-01'},
-      {jp:'しば', romaji:'shiba', en:'turf (track)', tags:['L2','horse-racing','taught'], altForm:'芝', altIsStandard:true, dateAdded:'2026-08-01'},
-      {jp:'ダート', romaji:'daato', en:'dirt (track)', tags:['L2','horse-racing','taught'], altForm:'だーと', dateAdded:'2026-08-01'},
-      {jp:'かつ', romaji:'katsu', en:'to win', tags:['L2','horse-racing','taught'], altForm:'勝つ', altIsStandard:true, dateAdded:'2026-08-01'},
-      {jp:'かける', romaji:'kakeru', en:'to bet', tags:['L2','horse-racing','taught'], altForm:'賭ける', altIsStandard:true, dateAdded:'2026-08-01'},
-      {jp:'いっちゃく', romaji:'icchaku', en:'first place', tags:['L2','horse-racing','taught'], altForm:'一着', altIsStandard:true, dateAdded:'2026-08-01'},
     ],
   },
   // LEVEL 3 LESSON 1 (2026-09-29) - first L3 content. Words already in the app
