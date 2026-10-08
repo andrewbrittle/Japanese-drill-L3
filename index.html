@@ -1391,7 +1391,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261008.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261008.003</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1494,40 +1494,59 @@
   </div>
 
   <!-- Kanji settings screen -->
-  <div class="screen" id="screen-kanji-selection">
+  <!-- KANJI INDEX (2026-10-08) - same shape as Kana and Vocab: a list of
+       cards, each opening its own selection screen, then Start. It used to be
+       one screen with a row of section pills and the chosen section's tiles
+       underneath, the one place in the app built that way (Andrew). Random
+       20 from all keeps its place at the top. -->
+  <div class="screen" id="screen-kanji-index">
     <div class="settings-title">Kanji</div>
-    <div class="settings-sub">Tap a character to select it for drilling.</div>
-
-    <!-- MOVED (2026-09-22) from the Vocab/Collections screen (theme-all-
-         vocab-card was always right above it there) - it only ever drew
-         from kanji data, nothing to do with vocab, so it belongs on this
-         screen instead. Also fixes a small pre-existing bug for free:
-         startRandomKanji() used to leave lastSettingsScreen pointed at
-         'match-settings' (a leftover of living on the Vocab screen), so
-         finishing this drill landed you back on Vocab instead of Kanji -
-         now set to 'kanji-selection' to match where it actually lives.
-         Styled to match kanji-select-all-card below (.emphasis + arrow),
-         not the cat-tile/bar treatment used elsewhere - this card sits
-         directly above Select all, so Andrew wanted the two visually
-         paired as a matching set rather than one styled like a category
-         tile and the other not. No bar here as a result. -->
-    <div class="group-card emphasis" id="kanji-all-card" onclick="startRandomKanji()" style="cursor:pointer;">
-      <div class="group-info">
+    <div class="settings-sub">Tap a set to choose kanji to drill.</div>
+    <div class="group-card cat-tile" id="kanji-all-card" onclick="startRandomKanji()" style="cursor:pointer;">
+      <div class="cat-tile-top cat-tile-top-stack">
         <div class="group-name">Random 20 from all</div>
+        <div class="random-choice-desc">20 kanji from every set, weakest more often</div>
       </div>
-      <div style="font-size:20px; color:var(--text-muted);">→</div>
+      <div class="cat-bar" id="kanji-index-swatch-all"></div>
     </div>
+    <div class="section-divider"></div>
+    <div class="group-card cat-tile" data-kanji-section="numbers-time" onclick="showKanjiSectionSelection('numbers-time')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">Numbers</div></div>
+      <div class="cat-bar" id="kanji-index-swatch-numbers-time"></div>
+    </div>
+    <div class="group-card cat-tile" data-kanji-section="nature-body" onclick="showKanjiSectionSelection('nature-body')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">Nature</div></div>
+      <div class="cat-bar" id="kanji-index-swatch-nature-body"></div>
+    </div>
+    <div class="group-card cat-tile" data-kanji-section="food" onclick="showKanjiSectionSelection('food')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">Food</div></div>
+      <div class="cat-bar" id="kanji-index-swatch-food"></div>
+    </div>
+    <div class="group-card cat-tile" data-kanji-section="places" onclick="showKanjiSectionSelection('places')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">Places</div></div>
+      <div class="cat-bar" id="kanji-index-swatch-places"></div>
+    </div>
+    <div class="group-card cat-tile" data-kanji-section="directions-travel" onclick="showKanjiSectionSelection('directions-travel')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">Travel</div></div>
+      <div class="cat-bar" id="kanji-index-swatch-directions-travel"></div>
+    </div>
+    <div class="group-card cat-tile" data-kanji-section="people" onclick="showKanjiSectionSelection('people')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">People</div></div>
+      <div class="cat-bar" id="kanji-index-swatch-people"></div>
+    </div>
+    <div class="group-card cat-tile" data-kanji-section="general" onclick="showKanjiSectionSelection('general')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">General</div></div>
+      <div class="cat-bar" id="kanji-index-swatch-general"></div>
+    </div>
+    <div class="group-card cat-tile" data-kanji-section="verbs" onclick="showKanjiSectionSelection('verbs')" style="cursor:pointer;">
+      <div class="cat-tile-top"><div class="group-name">Verbs</div></div>
+      <div class="cat-bar" id="kanji-index-swatch-verbs"></div>
+    </div>
+  </div>
 
-    <div class="pill-grid-2row" id="kanji-section-pills">
-      <button class="level-pill active" data-section="numbers-time" onclick="switchKanjiSection('numbers-time')">Numbers</button>
-      <button class="level-pill" data-section="nature-body" onclick="switchKanjiSection('nature-body')">Nature</button>
-      <button class="level-pill" data-section="food" onclick="switchKanjiSection('food')">Food</button>
-      <button class="level-pill" data-section="places" onclick="switchKanjiSection('places')">Places</button>
-      <button class="level-pill" data-section="directions-travel" onclick="switchKanjiSection('directions-travel')">Travel</button>
-      <button class="level-pill" data-section="people" onclick="switchKanjiSection('people')">People</button>
-      <button class="level-pill" data-section="general" onclick="switchKanjiSection('general')">General</button>
-      <button class="level-pill" data-section="verbs" onclick="switchKanjiSection('verbs')">Verbs</button>
-    </div>
+  <div class="screen" id="screen-kanji-selection">
+    <div class="settings-title" id="kanji-selection-title">Kanji</div>
+    <div class="settings-sub">Tap a character to select it for drilling.</div>
 
     <div class="group-card emphasis" id="kanji-select-all-card" onclick="toggleSelectAllKanji()" style="cursor:pointer;">
       <div class="group-info">
@@ -1554,6 +1573,7 @@
     </div>
 
     <button class="start-btn" id="kanji-selection-drill-btn" onclick="drillKanjiSelection()" disabled style="margin-top:0.5rem;">Drill with this selection</button>
+    <button class="btn-secondary" onclick="showKanjiIndex()">← Back</button>
   </div>
 
   <!-- Vocab tile-selection reference screen (flat categories: colours, trip-prep) -->
@@ -5016,14 +5036,32 @@ const kanjiSelectedTiles = {};
 KANJI_SECTION_KEYS.forEach(k => { kanjiSelectedTiles[k] = new Set(); });
 let activeKanjiSection = 'numbers-time';
 
-function showKanjiSelection() {
+// Kanji index (2026-10-08): cards with confidence bars, like the Kana index.
+function showKanjiIndex() {
+  showScreen('kanji-index');
+}
+function refreshKanjiIndexSwatches() {
+  KANJI_SECTION_KEYS.forEach(key => setupCatBar(document.getElementById('kanji-index-swatch-' + key), getCategoryBandCountsKanji(getKanjiSectionPool(key))));
+  setupCatBar(document.getElementById('kanji-index-swatch-all'), getCategoryBandCountsKanji(getAllKanjiFlat()));
+}
+// One set's selection screen - entered with a fixed section, like
+// showHiraganaSelection(section). The per-section grids stay built and
+// cached as before; only the chosen one is shown.
+function showKanjiSectionSelection(sectionKey) {
+  activeKanjiSection = sectionKey || activeKanjiSection;
   showScreen('kanji-selection');
   KANJI_SECTION_KEYS.forEach(key => {
     buildKanjiTileGrid(key);
     refreshKanaScoreShading('kanji-grid-' + key);
+    const el = document.getElementById('kanji-grid-' + key);
+    if (el) el.style.display = key === activeKanjiSection ? '' : 'none';
   });
+  const titleEl = document.getElementById('kanji-selection-title');
+  if (titleEl) titleEl.textContent = 'Kanji — ' + KANJI_SECTIONS[activeKanjiSection].label;
+  document.getElementById('kanji-selection-drill-btn').disabled = kanjiSelectedTiles[activeKanjiSection].size === 0;
   updateSelectAllKanjiLabel();
 }
+function showKanjiSelection() { showKanjiSectionSelection(activeKanjiSection); }
 
 // Individual-tile selection, unlike kana's row-selection — kanji categories
 // are thematic groupings with no internal structure to select by row.
@@ -5063,18 +5101,9 @@ function toggleKanjiTile(sectionKey, idx, tileEl) {
   updateSelectAllKanjiLabel();
 }
 
-function switchKanjiSection(sectionKey) {
-  activeKanjiSection = sectionKey;
-  document.querySelectorAll('#kanji-section-pills .level-pill').forEach(p => {
-    p.classList.toggle('active', p.dataset.section === sectionKey);
-  });
-  KANJI_SECTION_KEYS.forEach(key => {
-    const el = document.getElementById('kanji-grid-' + key);
-    if (el) el.style.display = key === sectionKey ? 'flex' : 'none';
-  });
-  document.getElementById('kanji-selection-drill-btn').disabled = kanjiSelectedTiles[sectionKey].size === 0;
-  updateSelectAllKanjiLabel();
-}
+// The section pills are gone (2026-10-08); kept as a name for anything
+// that still switches section directly.
+function switchKanjiSection(sectionKey) { showKanjiSectionSelection(sectionKey); }
 
 function toggleSelectAllKanji() {
   const total = getKanjiSectionPool(activeKanjiSection).length;
@@ -5883,7 +5912,7 @@ function buildRandomKanjiPool() {
 }
 
 function startRandomKanji() {
-  lastSettingsScreen = 'kanji-selection'; // MOVED here (2026-09-22) - see the card's own comment on screen-kanji-selection
+  lastSettingsScreen = 'kanji-index'; // back to the Kanji list after a Random 20 (2026-10-08)
   startDrill(buildRandomKanjiPool(), buildRandomKanjiPool);
 }
 
@@ -5901,7 +5930,7 @@ function showScreen(id) {
     // Its own entry point (the gear button above), not part of the nav-pill row.
   } else if (id === 'kana-selection' || id === 'hiragana-selection' || id === 'katakana-selection') {
     const p = document.getElementById('nav-kana'); if (p) p.classList.add('active');
-  } else if (id === 'kanji-selection') {
+  } else if (id === 'kanji-selection' || id === 'kanji-index') {
     const p = document.getElementById('nav-kanji'); if (p) p.classList.add('active');
   } else if (id === 'match-settings' || id === 'vocab-reference' || id === 'vocab-tile-selection') {
     const p = document.getElementById('nav-match'); if (p) p.classList.add('active');
@@ -5914,7 +5943,7 @@ function showScreen(id) {
     // to every drill type - hiragana/katakana/kanji included - since none of
     // them are in the explicit list above either).
     const pillIdByOrigin = { 'kana-selection': 'nav-kana', 'hiragana-selection': 'nav-kana', 'katakana-selection': 'nav-kana',
-      'kanji-selection': 'nav-kanji', 'numbers': 'nav-numbers', 'match-settings': 'nav-match', 'vocab-tile-selection': 'nav-match' };
+      'kanji-selection': 'nav-kanji', 'kanji-index': 'nav-kanji', 'numbers': 'nav-numbers', 'match-settings': 'nav-match', 'vocab-tile-selection': 'nav-match' };
     const p = document.getElementById(pillIdByOrigin[lastSettingsScreen] || 'nav-numbers');
     if (p) p.classList.add('active');
   }
@@ -5966,6 +5995,7 @@ function showScreen(id) {
   else if (id === 'hiragana-selection') Object.keys(HIRAGANA_SECTIONS).forEach(key => refreshKanaScoreShading('hiragana-grid-' + key));
   else if (id === 'katakana-selection') Object.keys(KATAKANA_SECTIONS).forEach(key => refreshKanaScoreShading('katakana-grid-' + key));
   else if (id === 'kanji-selection') KANJI_SECTION_KEYS.forEach(key => refreshKanaScoreShading('kanji-grid-' + key));
+  else if (id === 'kanji-index') refreshKanjiIndexSwatches();
   else if (id === 'vocab-tile-selection' && vocabTileCategory) refreshKanaScoreShading('vocab-tile-grid');
   else if (id === 'match-settings') { buildMatchCategoryList(); if (currentMatchLevel === 'random') refreshRandomView(); }
   else if (id === 'numbers') updateNumberTimeSwatches();
@@ -6008,7 +6038,7 @@ function refreshKanaSelectionSwatches() {
 
 function tryResumeKanji() {
   if (!appSettings.showKanji) return; // backstop - pill is also hidden via CSS
-  showKanjiSelection();
+  showKanjiIndex();
 }
 function goBackToSettings() {
   // Returning here always means "just finished a drill", never a fresh visit
@@ -6834,7 +6864,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-07h';
+const LATEST_CHANGELOG_ENTRY = '2026-10-08a';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -7022,7 +7052,8 @@ function applyShowKanjiVisibility() {
   // If Kanji gets switched off while its selection screen happens to be
   // open, there's nothing sensible left showing - fall back to Vocab.
   const kanjiScreen = document.getElementById('screen-kanji-selection');
-  if (!on && kanjiScreen && kanjiScreen.classList.contains('visible')) showMatchSettings();
+  const kanjiIndex = document.getElementById('screen-kanji-index');
+  if (!on && ((kanjiScreen && kanjiScreen.classList.contains('visible')) || (kanjiIndex && kanjiIndex.classList.contains('visible')))) showMatchSettings();
   const card = document.getElementById('show-kanji-toggle-card');
   if (card) card.classList.toggle('selected', on);
 }
