@@ -779,10 +779,14 @@
   .l3c-row.sentence-slot-off { border-left-color: color-mix(in srgb, var(--slot) 35%, transparent); }
   .l3c-row.l3c-row-active { background: color-mix(in srgb, var(--slot) 28%, var(--surface)); border-color: var(--slot); box-shadow: inset 0 0 0 1.5px var(--slot); }
   .l3c-row.l3c-row-skip { background: color-mix(in srgb, var(--text-dim) 18%, var(--surface)); }
-  .l3c-chunk { background: color-mix(in srgb, var(--slot) 24%, transparent); border-radius: 5px; padding: 1px 3px; cursor: pointer; white-space: nowrap;
-    -webkit-box-decoration-break: clone; box-decoration-break: clone; transition: background 0.25s, opacity 0.25s; }
-  .l3c-playing .l3c-chunk { opacity: 0.4; }
-  .l3c-playing .l3c-chunk.l3c-chunk-active { opacity: 1; background: color-mix(in srgb, var(--slot) 60%, transparent); }
+  /* (2026-10-09, v2) Full-strength colour bar under each slot's words rather
+     than a tinted background, which looked washed out in dark mode. Lit
+     (step through / tap) = solid fill in the slot colour with dark text. */
+  .l3c-chunk { border-bottom: 3px solid var(--slot); border-radius: 0; padding: 1px 3px 0; cursor: pointer; white-space: nowrap;
+    transition: background 0.2s, color 0.2s, opacity 0.2s; }
+  .sentence-structure-example-romaji .l3c-chunk { border-bottom-width: 2px; color: var(--text); }
+  .l3c-playing .l3c-chunk { opacity: 0.35; }
+  .l3c-playing .l3c-chunk.l3c-chunk-active { opacity: 1; background: var(--slot); color: var(--bg); border-radius: 4px; }
   .sentence-structure-example-jp { line-height: 1.7; }
   .l3c-play-btn { margin-top: 12px; }
   .l3c-play-btn + .sentence-shuffle-btn { margin-top: 8px; }
@@ -1407,7 +1411,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261009.001</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261009.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -12525,6 +12529,21 @@ function renderL3SentenceExample() {
 // Ends with the whole sentence lit and said. Any tap on the card stops it.
 var l3cPlay = null; // var, not let: showScreen checks it, and runs before this line at start-up
 const L3C_STEP_MS = 1500, L3C_SKIP_MS = 550;
+// Move on after BOTH minMs has passed and the speech has finished (+ a short
+// pause), so a long chunk - or the whole sentence at the end - is never cut
+// off or un-lit while it's still being read. Falls back to a length-based
+// cap if the browser never reports the end.
+function l3cAfterSpeech(utter, text, minMs, cb) {
+  let spoke = !utter, waited = false, fired = false;
+  const go = () => { if (!fired && spoke && waited) { fired = true; cb(); } };
+  if (utter) {
+    utter.onend = () => setTimeout(() => { spoke = true; go(); }, 350);
+    utter.onerror = () => { spoke = true; go(); };
+  }
+  const cap = setTimeout(() => { spoke = true; waited = true; go(); }, Math.min(15000, minMs + 600 + text.length * 260));
+  setTimeout(() => { waited = true; go(); }, minMs);
+  return cap;
+}
 function l3cMark(slot, on) {
   const row = document.querySelectorAll('#sentence-structure-rows .sentence-slot-row')[slot];
   if (row) row.classList.toggle('l3c-row-active', on);
@@ -12570,10 +12589,11 @@ function l3cTogglePlay() {
     if (!l3cPlay || !document.body.contains(ex)) { l3cStopPlay(); return; }
     const i = l3cPlay.step++;
     if (i > 0) { l3cMark(i - 1, false); const prev = document.querySelectorAll('#sentence-structure-rows .sentence-slot-row')[i - 1]; if (prev) prev.classList.remove('l3c-row-skip'); }
-    if (i === 7) { // finale: the whole sentence
+    if (i === 7) { // finale: the whole sentence, lit until it has been read out
       for (let k = 0; k < 7; k++) l3cMark(k, true);
-      speakJapanese(document.getElementById('sentence-structure-example-jp').textContent.replace(/[\s。]/g, ''));
-      l3cPlay.timer = setTimeout(l3cStopPlay, 2600);
+      const all = document.getElementById('sentence-structure-example-jp').textContent.replace(/[\s。]/g, '');
+      const play = l3cPlay;
+      l3cPlay.timer = l3cAfterSpeech(speakJapanese(all), all, 2000, () => { if (l3cPlay === play) l3cStopPlay(); });
       return;
     }
     const present = !!document.querySelector(`#sentence-structure-example-jp .l3c-chunk[data-slot="${i}"]`);
@@ -12584,8 +12604,8 @@ function l3cTogglePlay() {
       return;
     }
     l3cMark(i, true);
-    speakJapanese(l3cSayText(i));
-    l3cPlay.timer = setTimeout(next, L3C_STEP_MS);
+    const t = l3cSayText(i), play = l3cPlay;
+    l3cPlay.timer = l3cAfterSpeech(speakJapanese(t), t, L3C_STEP_MS, () => { if (l3cPlay === play) next(); });
   };
   next();
 }
