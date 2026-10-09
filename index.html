@@ -788,6 +788,8 @@
   .l3c-playing .l3c-chunk { opacity: 0.35; }
   .l3c-playing .l3c-chunk.l3c-chunk-active { opacity: 1; background: var(--slot); color: var(--bg); border-radius: 4px; }
   .sentence-structure-example-jp { line-height: 1.7; }
+  /* Room between wrapped romaji lines too, or the lit blocks/underlines overlap (2026-10-09). */
+  #sentence-structure-example-romaji { line-height: 2.1; margin-top: 6px; }
   .l3c-play-btn { margin-top: 12px; }
   .l3c-play-btn + .sentence-shuffle-btn { margin-top: 8px; }
   /* Guarded to real-mouse devices only - on a touchscreen, a plain :hover
@@ -1411,7 +1413,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261009.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261009.003</div>
   </div>
 
   <!-- Katakana settings screen -->
