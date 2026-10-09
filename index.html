@@ -54,6 +54,8 @@
   :root {
     /* Proverb category colours (2026-10-03) - same palette as the Japan trip app's proverb cards. */
     --cat-rose:#D98BA5; --cat-teal:#4FB3A9; --cat-wood:#B98553; --cat-sky:#6FC3D9; --cat-lavender:#B79AE0;
+    /* Sentence order slots 1-7 (2026-10-09) - the proverb colours plus two more. */
+    --slot-1:#D98BA5; --slot-2:#6FC3D9; --slot-3:#B79AE0; --slot-4:#4FB3A9; --slot-5:#C99563; --slot-6:#8FCB6B; --slot-7:#E3C468;
     --bg: #0f0f0f;
     --surface: #1a1a1a;
     --surface2: #242424;
@@ -124,6 +126,7 @@
      stays the default for everyone unless they switch this on themselves. */
   :root[data-theme="light"] {
     --cat-rose:#B23E63; --cat-teal:#1E7F73; --cat-wood:#8A5A2E; --cat-sky:#2C7A94; --cat-lavender:#6A4FA0;
+    --slot-1:#B23E63; --slot-2:#2C7A94; --slot-3:#6A4FA0; --slot-4:#1E7F73; --slot-5:#8A5A2E; --slot-6:#4E8A2C; --slot-7:#9A7A12;
     --bg: #f7f5f0;
     --surface: #ffffff;
     --surface2: #efece4;
@@ -770,6 +773,19 @@
     transition: all 0.15s;
   }
   .sentence-shuffle-btn:active { background: var(--accent); color: var(--bg); }
+  /* Coloured slots on the Level 3 Sentence order card (2026-10-09). */
+  .l3c-row { border-left: 5px solid var(--slot); }
+  .l3c-row .vocab-ref-num-big { color: var(--slot); }
+  .l3c-row.sentence-slot-off { border-left-color: color-mix(in srgb, var(--slot) 35%, transparent); }
+  .l3c-row.l3c-row-active { background: color-mix(in srgb, var(--slot) 28%, var(--surface)); border-color: var(--slot); box-shadow: inset 0 0 0 1.5px var(--slot); }
+  .l3c-row.l3c-row-skip { background: color-mix(in srgb, var(--text-dim) 18%, var(--surface)); }
+  .l3c-chunk { background: color-mix(in srgb, var(--slot) 24%, transparent); border-radius: 5px; padding: 1px 3px; cursor: pointer; white-space: nowrap;
+    -webkit-box-decoration-break: clone; box-decoration-break: clone; transition: background 0.25s, opacity 0.25s; }
+  .l3c-playing .l3c-chunk { opacity: 0.4; }
+  .l3c-playing .l3c-chunk.l3c-chunk-active { opacity: 1; background: color-mix(in srgb, var(--slot) 60%, transparent); }
+  .sentence-structure-example-jp { line-height: 1.7; }
+  .l3c-play-btn { margin-top: 12px; }
+  .l3c-play-btn + .sentence-shuffle-btn { margin-top: 8px; }
   /* Guarded to real-mouse devices only - on a touchscreen, a plain :hover
      rule fires on tap but never gets a "pointer left" event to clear it
      afterward, so the button stays stuck fully gold until something else
@@ -1391,7 +1407,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261008.004</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261009.001</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1972,7 +1988,7 @@
 
       <div class="group-card cat-tile" data-theme-key="theme-transport-uk" onclick="showVocabTileSelection('theme-transport-uk')" style="cursor:pointer;">
         <div class="cat-tile-top">
-          <div class="group-name">Transport and UK Places</div>
+          <div class="group-name">Transport &amp; UK Places</div>
         </div>
         <div class="cat-bar"></div>
       </div>
@@ -1989,7 +2005,7 @@
 
       <div class="group-card cat-tile" data-theme-key="theme-items-clothing-general" onclick="showVocabTileSelection('theme-items-clothing-general')" style="cursor:pointer;">
         <div class="cat-tile-top">
-          <div class="group-name">Everyday items, clothing & general vocab</div>
+          <div class="group-name">Everyday items &amp; general vocab</div>
         </div>
         <div class="cat-bar"></div>
       </div>
@@ -3940,7 +3956,7 @@ const THEMES = {
   // still separates Transport from UK Places, same as groups did - see the
   // {any:[...]} branch of getThemePool.
   'theme-transport-uk': {
-    label: 'Transport and UK Places',
+    label: 'Transport & UK Places',
     chars: 'でんしゃ ロンドン…',
     tagQuery: { any: ['transport', 'places-uk'] },
   },
@@ -3992,9 +4008,9 @@ const THEMES = {
     tagQuery: { any: [['occupations', 'occupations-l3']] }, // one list - a job is a job, whatever level it was taught in
   },
   'theme-items-clothing-general': {
-    label: 'Everyday items, clothing & general vocab',
+    label: 'Everyday items & general vocab',
     chars: 'かさ くつ かぞく…',
-    tagQuery: { any: ['objects', 'clothing', ['general-l2', 'general-l3']] }, // general-l3 added 2026-10-01; one General group (2026-10-07)
+    tagQuery: { any: ['objects', ['general-l2', 'general-l3']] }, // clothing folded into objects 2026-10-08; // general-l3 added 2026-10-01; one General group (2026-10-07)
   },
   // New - Verbs/Adjectives/Question words are all "functional" categories
   // (the words a sentence is built FROM) rather than themed nouns, and none
@@ -5917,6 +5933,7 @@ function startRandomKanji() {
 }
 
 function showScreen(id) {
+  if (l3cPlay) l3cStopPlay(); // leaving the Sentence order card mid-step-through
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('visible'));
   document.getElementById('screen-' + id).classList.add('visible');
   document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
@@ -6875,7 +6892,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-08b';
+const LATEST_CHANGELOG_ENTRY = '2026-10-09a';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -11792,7 +11809,6 @@ const OBJECT_SENTENCE_VERB_POOLS = {
   kakimasu: [vItem('vocab-general-l2', 'tegami'), vItem('vocab-general-l2', 'ii meeru')],
   kaimasu: [
     ...VOCAB['vocab-objects'].items.filter(i => hasCleanGloss(i) && !['ryouri', 'rekishi'].includes(i.romaji)),
-    ...VOCAB['vocab-clothing'].items.filter(hasCleanGloss),
     ...VOCAB['vocab-food-drink-l2'].items.filter(hasCleanGloss),
   ],
   suimasu: [vItem('vocab-objects', 'tabako')],
@@ -12201,6 +12217,12 @@ function showL3SentenceOrderReference() {
   shuffleBtn.className = 'sentence-shuffle-btn';
   shuffleBtn.textContent = '🔀 Try another example';
   shuffleBtn.onclick = shuffleL3SentenceExample;
+  const playBtn = document.createElement('button');
+  playBtn.className = 'sentence-shuffle-btn l3c-play-btn';
+  playBtn.id = 'l3c-play-btn';
+  playBtn.textContent = '▶ Step through';
+  playBtn.onclick = l3cTogglePlay;
+  list.appendChild(playBtn);
   list.appendChild(shuffleBtn);
 
   l3Note(list, 'One order for both kinds of sentence: <strong>who → when → how often → with whom → where / how → what / where to → verb</strong>. Doing something uses place で + object を; going somewhere uses means で + destination に (or へ). Anything you skip just drops out — the order of the rest never changes.');
@@ -12321,7 +12343,8 @@ function renderL3SentenceRows() {
   L3C_SLOTS[l3cMode].forEach((slot, idx) => {
     const state = l3SentStates[idx];
     const row = document.createElement('div');
-    row.className = 'vocab-ref-row minute-row sentence-slot-row' + (state === 'off' ? ' sentence-slot-off' : '');
+    row.className = 'vocab-ref-row minute-row sentence-slot-row l3c-row' + (state === 'off' ? ' sentence-slot-off' : '');
+    row.style.setProperty('--slot', `var(--slot-${idx + 1})`);
     row.onclick = () => cycleL3SentenceSlot(idx);
     let badgeText, badgeClass = 'sentence-particle-badge', stateLabel = '';
     if (idx === 6) {
@@ -12357,6 +12380,7 @@ function renderL3SentenceRows() {
 }
 
 function cycleL3SentenceSlot(idx) {
+  l3cStopPlay();
   if (idx === 6) {
     l3SentStates[6] = l3SentStates[6] === 'q' ? 'stmt' : 'q';
     if (l3SentStates[6] === 'q' && ((l3SentWords && l3SentWords.subj.me) || (l3SentStates[2] === 'on' && L3_FREQ_WORDS[l3FreqIdx].neg))) pickFreshL3SentenceWords();
@@ -12395,19 +12419,25 @@ function buildL3SentenceExample() {
   const neg = !!(f && f.neg);
   const isQ = st[6] === 'q';
   const tense = f ? 'hab' : w.tense;
-  const jp = [], ro = [];
-  const add = segs => segs.forEach(s => { jp.push(l3cJp(s)); ro.push(s.ro); });
-  const addQ = i => { const q = S[i].q; jp.push(q[0] + q[2]); ro.push((q[1] + ' ' + q[3]).trim()); };
-  if (st[0] === 'on') add(l3cSubjectSegs(w.subj)); else if (st[0] === 'q') addQ(0);
-  if (st[1] === 'on') add([w.time.seg]); else if (st[1] === 'q') addQ(1);
-  if (f) { jp.push(f.jp); ro.push(f.romaji); }
-  if (st[3] === 'on') add(w.comp.segs || [w.comp.seg]); else if (st[3] === 'q') addQ(3);
-  if (st[4] === 'on') add([w.slot4.seg]); else if (st[4] === 'q') addQ(4);
-  if (st[5] === 'on') add([w.slot5.seg]); else if (st[5] === 'q') addQ(5);
+  // Each piece remembers its slot (0-6), so the sentence can be coloured
+  // and stepped through slot by slot (2026-10-09).
+  const parts = [];
+  const add = (slot, segs) => segs.forEach(s => parts.push({ slot, jp: l3cJp(s), ro: s.ro }));
+  const addQ = i => { const q = S[i].q; parts.push({ slot: i, jp: q[0] + q[2], ro: (q[1] + ' ' + q[3]).trim() }); };
+  if (st[0] === 'on') add(0, l3cSubjectSegs(w.subj)); else if (st[0] === 'q') addQ(0);
+  if (st[1] === 'on') add(1, [w.time.seg]); else if (st[1] === 'q') addQ(1);
+  if (f) parts.push({ slot: 2, jp: f.jp, ro: f.romaji });
+  if (st[3] === 'on') add(3, w.comp.segs || [w.comp.seg]); else if (st[3] === 'q') addQ(3);
+  if (st[4] === 'on') add(4, [w.slot4.seg]); else if (st[4] === 'q') addQ(4);
+  if (st[5] === 'on') add(5, [w.slot5.seg]); else if (st[5] === 'q') addQ(5);
   const v = sgVerb(w.verb, tense === 'past' ? 'past' : 'hab', neg);
-  jp.push(v.jp + (isQ ? 'か' : ''));
-  ro.push(v.ro + (isQ ? ' ka' : ''));
-  return { jp: jp.join(' ') + '。', romaji: sgCap(ro.join(' ')) + (isQ ? '?' : '.'), en: l3cEnglish(w, st, f, tense, isQ) };
+  parts.push({ slot: 6, jp: v.jp + (isQ ? 'か' : ''), ro: v.ro + (isQ ? ' ka' : '') });
+  parts[0].ro = sgCap(parts[0].ro);
+  return {
+    parts, end: isQ ? ['。', '?'] : ['。', '.'],
+    jp: parts.map(x => x.jp).join(' ') + '。', romaji: parts.map(x => x.ro).join(' ') + (isQ ? '?' : '.'),
+    en: l3cEnglish(w, st, f, tense, isQ),
+  };
 }
 
 // English for any combination of slots. Habitual uses the present ("always
@@ -12461,14 +12491,103 @@ function l3cEnglish(w, st, f, tense, isQ) {
   return sgCap(`${S}${vp.startsWith("'") ? '' : ' '}${vp}${T}.`);
 }
 
+// COLOURED SLOTS (2026-10-09): each slot has its own colour (--slot-1..7),
+// shown on its row and as a highlighter behind its words in the Japanese
+// and romaji, so a skipped slot shows up as a missing colour. Pieces of one
+// slot (ともだちの おかあさんは) are joined into one coloured run. Tapping a
+// run lights up its slot (and says it).
 function renderL3SentenceExample() {
-  const { jp, romaji, en } = buildL3SentenceExample();
+  l3cStopPlay();
+  const { parts, end, en } = buildL3SentenceExample();
+  const runs = [];
+  parts.forEach(p => {
+    const last = runs[runs.length - 1];
+    if (last && last.slot === p.slot) { last.jp.push(p.jp); last.ro.push(p.ro); }
+    else runs.push({ slot: p.slot, jp: [p.jp], ro: [p.ro] });
+  });
+  const html = (field, sep, endMark, kana) => runs.map((r, i) =>
+    `<span class="l3c-chunk" data-slot="${r.slot}" style="--slot:var(--slot-${r.slot + 1})">${kana ? markSmallKana(r[field].join(sep)) : r[field].join(sep)}${i === runs.length - 1 ? endMark : ''}</span>`
+  ).join(' ');
   const jpEl = document.getElementById('sentence-structure-example-jp');
   const romajiEl = document.getElementById('sentence-structure-example-romaji');
   const enEl = document.getElementById('sentence-structure-example-en');
-  if (jpEl) jpEl.innerHTML = markSmallKana(jp);
-  if (romajiEl) romajiEl.textContent = romaji;
+  if (jpEl) jpEl.innerHTML = html('jp', ' ', end[0], true);
+  if (romajiEl) romajiEl.innerHTML = html('ro', ' ', end[1], false);
   if (enEl) enEl.textContent = `"${en}"`;
+  document.querySelectorAll('#sentence-structure-example-jp .l3c-chunk, #sentence-structure-example-romaji .l3c-chunk').forEach(el => {
+    el.onclick = () => l3cFlashSlot(+el.dataset.slot, true);
+  });
+}
+
+// --- Step through (2026-10-09) ---
+// Lights each switched-on slot in turn (row + its words), saying it if sound
+// is on; skipped slots get a brief grey flash, so the fixed order still shows.
+// Ends with the whole sentence lit and said. Any tap on the card stops it.
+var l3cPlay = null; // var, not let: showScreen checks it, and runs before this line at start-up
+const L3C_STEP_MS = 1500, L3C_SKIP_MS = 550;
+function l3cMark(slot, on) {
+  const row = document.querySelectorAll('#sentence-structure-rows .sentence-slot-row')[slot];
+  if (row) row.classList.toggle('l3c-row-active', on);
+  document.querySelectorAll(`.sentence-structure-example .l3c-chunk[data-slot="${slot}"]`).forEach(el => el.classList.toggle('l3c-chunk-active', on));
+}
+function l3cClearMarks() {
+  document.querySelectorAll('.l3c-row-active, .l3c-row-skip').forEach(el => el.classList.remove('l3c-row-active', 'l3c-row-skip'));
+  document.querySelectorAll('.l3c-chunk-active').forEach(el => el.classList.remove('l3c-chunk-active'));
+  const ex = document.querySelector('.sentence-structure-example');
+  if (ex) ex.classList.remove('l3c-playing');
+}
+function l3cSayText(slot) {
+  return [...document.querySelectorAll(`#sentence-structure-example-jp .l3c-chunk[data-slot="${slot}"]`)].map(e => e.textContent).join('').replace(/[\s。]/g, '');
+}
+function l3cFlashSlot(slot, say) {
+  if (l3cPlay) return;
+  l3cClearMarks();
+  const ex = document.querySelector('.sentence-structure-example');
+  if (ex) ex.classList.add('l3c-playing');
+  l3cMark(slot, true);
+  if (say) speakJapanese(l3cSayText(slot));
+  clearTimeout(l3cFlashSlot.t);
+  l3cFlashSlot.t = setTimeout(l3cClearMarks, L3C_STEP_MS);
+}
+function l3cStopPlay() {
+  if (l3cPlay) { clearTimeout(l3cPlay.timer); l3cPlay = null; }
+  l3cClearMarks();
+  const btn = document.getElementById('l3c-play-btn');
+  if (btn) btn.textContent = '▶ Step through';
+}
+function l3cTogglePlay() {
+  if (l3cPlay) { l3cStopPlay(); return; }
+  clearTimeout(l3cFlashSlot.t);
+  l3cClearMarks();
+  const ex = document.querySelector('.sentence-structure-example');
+  if (!ex) return;
+  const rows = document.getElementById('sentence-structure-rows');
+  if (rows) rows.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  ex.classList.add('l3c-playing');
+  document.getElementById('l3c-play-btn').textContent = '■ Stop';
+  l3cPlay = { step: 0, timer: null };
+  const next = () => {
+    if (!l3cPlay || !document.body.contains(ex)) { l3cStopPlay(); return; }
+    const i = l3cPlay.step++;
+    if (i > 0) { l3cMark(i - 1, false); const prev = document.querySelectorAll('#sentence-structure-rows .sentence-slot-row')[i - 1]; if (prev) prev.classList.remove('l3c-row-skip'); }
+    if (i === 7) { // finale: the whole sentence
+      for (let k = 0; k < 7; k++) l3cMark(k, true);
+      speakJapanese(document.getElementById('sentence-structure-example-jp').textContent.replace(/[\s。]/g, ''));
+      l3cPlay.timer = setTimeout(l3cStopPlay, 2600);
+      return;
+    }
+    const present = !!document.querySelector(`#sentence-structure-example-jp .l3c-chunk[data-slot="${i}"]`);
+    if (!present) {
+      const row = document.querySelectorAll('#sentence-structure-rows .sentence-slot-row')[i];
+      if (row) row.classList.add('l3c-row-skip');
+      l3cPlay.timer = setTimeout(next, L3C_SKIP_MS);
+      return;
+    }
+    l3cMark(i, true);
+    speakJapanese(l3cSayText(i));
+    l3cPlay.timer = setTimeout(next, L3C_STEP_MS);
+  };
+  next();
 }
 
 function shuffleL3SentenceExample() {
