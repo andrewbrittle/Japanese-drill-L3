@@ -12,7 +12,7 @@
 // stamp (in index.html) is bumped, so old cached files get cleared out and
 // replaced next time an offline-enabled user is back online. Forgetting
 // this is exactly how a PWA ends up stuck showing someone a stale version.
-const CACHE_VERSION = 'jp-drill-v261010-002';
+const CACHE_VERSION = 'jp-drill-v261011-002';
 
 const PRECACHE_URLS = [
   './',
@@ -76,7 +76,17 @@ const NETWORK_TIMEOUT_MS = 3000;
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  const networkFetch = fetch(event.request).then((response) => {
+  // Always check with the server (2026-10-11). A plain fetch could be
+  // answered from the browser's own HTTP cache (GitHub Pages lets it keep a
+  // file ~10 minutes), so a phone could get a new index.html with the old
+  // vocab.js. 'no-cache' revalidates every file - usually a tiny "not
+  // modified" reply - so the files always match. Navigations can't be
+  // re-made with options, so those are fetched by URL.
+  const sameOrigin = new URL(event.request.url).origin === self.location.origin;
+  const fresh = !sameOrigin ? event.request
+    : event.request.mode === 'navigate' ? new Request(event.request.url, { cache: 'no-cache', credentials: 'same-origin' })
+    : new Request(event.request, { cache: 'no-cache' });
+  const networkFetch = fetch(fresh).then((response) => {
     // Only cache genuinely successful responses. Opaque cross-origin
     // responses (status 0) are also cached best-effort - the Google
     // Font request falls in this category on some browsers - since a

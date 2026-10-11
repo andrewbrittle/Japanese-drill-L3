@@ -633,6 +633,8 @@
   .match-card-select.selected { border-color: var(--accent); background: var(--accent-dim); }
   .match-card-select .group-name { font-size: 15px; font-weight: 700; }
   .section-divider { height: 1px; background: var(--accent); opacity: 0.45; margin: 0.25rem 0; }
+  .tile-group-heading { flex-basis: 100%; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; color: var(--accent); border-top: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); padding-top: 0.45rem; margin-top: 0.4rem; }
+  .tile-group-heading.first { border-top: none; padding-top: 0; margin-top: 0; }
   .vocab-ref-card {
     display: flex; justify-content: space-between; align-items: center;
     background: transparent; border: 1px solid var(--border);
@@ -1413,7 +1415,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261010.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261011.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -4044,10 +4046,13 @@ const THEMES = {
     label: 'Tourist essentials',
     note: 'Start here for a trip',
     chars: 'いくらですか えき すし…',
-    // {any:[...]} ordering = phrase group first, then every other curated
-    // word, each alphabetical, with the tile grid's divider between them
-    // (dividerGroup, see getThemePool) - so phrases are easy to find.
-    tagQuery: { any: ['phrase', 'curated'] },
+    // Sections (2026-10-11): every word carries exactly one te-* tag naming
+    // its section, so the card is a quick reference split under headings
+    // (groupLabels, drawn by buildVocabTileGrid). Answer options stay within
+    // a section. A new trip word joins by getting one te-* tag. 187 existing
+    // words + 79 added from the Portuguese-test gap list = 266.
+    tagQuery: { any: ['te-phrases', 'te-little', 'te-food', 'te-around', 'te-hotel', 'te-shops', 'te-health', 'te-weather'] },
+    groupLabels: ['Phrases', 'Little words', 'Food & drink', 'Getting around', 'Hotel & travel kit', 'Shops & money', 'Health & emergencies', 'Weather, seasons & signs'],
   },
   // Time words (2026-10-01) - L2 Time vocabulary + L3's time expressions
   // (けさ/こんばん/まいあさ/やすみのひ, tagged time-l3; they stay in L3's
@@ -4804,28 +4809,43 @@ let typeAnswerMode = false;
 //   Listen            - off while reversed, or with sound off
 let listenMode = false;
 
+// DICE PAGE SWITCHES (2026-10-11): the dice page keeps its OWN copy of the
+// four switches (randomModes). They used to be the shared globals above,
+// which every category drill overwrites with its own per-category settings -
+// so after drilling a category with Reverse on, the dice page showed Reverse
+// off but ran its next drill reversed. Copied into the globals only when the
+// dice page's Start is pressed (applyRandomModes). Found by the Portuguese
+// test app, confirmed in L3.
+const randomModes = { meaning: false, reversed: false, type: false, listen: false };
+function applyRandomModes() {
+  drillByMeaning = randomModes.meaning;
+  vocabReversed = randomModes.reversed;
+  typeAnswerMode = randomModes.type;
+  listenMode = randomModes.listen && soundAllowed();
+}
+
 function toggleDrillByMeaning() {
-  drillByMeaning = !drillByMeaning;
-  if (drillByMeaning) typeAnswerMode = false;
+  randomModes.meaning = !randomModes.meaning;
+  if (randomModes.meaning) randomModes.type = false;
   syncVocabModeToggles();
 }
 
 function toggleVocabReversed() {
-  vocabReversed = !vocabReversed;
-  if (vocabReversed) listenMode = false;
+  randomModes.reversed = !randomModes.reversed;
+  if (randomModes.reversed) randomModes.listen = false;
   syncVocabModeToggles();
 }
 
 function toggleTypeAnswerMode() {
-  typeAnswerMode = !typeAnswerMode;
-  if (typeAnswerMode) drillByMeaning = false;
+  randomModes.type = !randomModes.type;
+  if (randomModes.type) randomModes.meaning = false;
   syncVocabModeToggles();
 }
 
 function toggleListenMode() {
-  if (!listenMode && !soundAllowed()) return;
-  listenMode = !listenMode;
-  if (listenMode) vocabReversed = false;
+  if (!randomModes.listen && !soundAllowed()) return;
+  randomModes.listen = !randomModes.listen;
+  if (randomModes.listen) randomModes.reversed = false;
   syncVocabModeToggles();
 }
 
@@ -4837,10 +4857,11 @@ function toggleListenMode() {
 // "Reverse the drill direction" and "Type the reading" grey each other out
 // the same way, for the same reason.
 function syncVocabModeToggles() {
-  [['drill-mode-toggle-card', 'drill-mode-toggle-card-l', drillByMeaning],
-   ['reversed-mode-toggle-card', 'reversed-mode-toggle-card-l', vocabReversed],
-   ['type-answer-toggle-card', 'type-answer-toggle-card-l', typeAnswerMode],
-   ['listen-toggle-card', 'listen-toggle-card-l', listenMode]]
+  const m = randomModes; // the dice page's own switches (see applyRandomModes)
+  [['drill-mode-toggle-card', 'drill-mode-toggle-card-l', m.meaning],
+   ['reversed-mode-toggle-card', 'reversed-mode-toggle-card-l', m.reversed],
+   ['type-answer-toggle-card', 'type-answer-toggle-card-l', m.type],
+   ['listen-toggle-card', 'listen-toggle-card-l', m.listen]]
     .forEach(([id, idL, on]) => {
       const card = document.getElementById(id);
       if (card) card.classList.toggle('selected', on);
@@ -4849,19 +4870,19 @@ function syncVocabModeToggles() {
     });
   ['drill-mode-toggle-card', 'drill-mode-toggle-card-l'].forEach(id => {
     const card = document.getElementById(id);
-    if (card) card.classList.toggle('disabled', vocabReversed || typeAnswerMode);
+    if (card) card.classList.toggle('disabled', m.reversed || m.type);
   });
   ['reversed-mode-toggle-card', 'reversed-mode-toggle-card-l'].forEach(id => {
     const card = document.getElementById(id);
-    if (card) card.classList.toggle('disabled', listenMode);
+    if (card) card.classList.toggle('disabled', m.listen);
   });
   ['type-answer-toggle-card', 'type-answer-toggle-card-l'].forEach(id => {
     const card = document.getElementById(id);
-    if (card) card.classList.toggle('disabled', drillByMeaning);
+    if (card) card.classList.toggle('disabled', m.meaning);
   });
   ['listen-toggle-card', 'listen-toggle-card-l'].forEach(id => {
     const card = document.getElementById(id);
-    if (card) card.classList.toggle('disabled', vocabReversed || !soundAllowed());
+    if (card) card.classList.toggle('disabled', m.reversed || !soundAllowed());
   });
 }
 
@@ -5674,7 +5695,16 @@ function buildVocabTileGrid(categoryKey) {
     // gold divider marks the boundary between one source category's
     // alphabetized block and the next. Regular categories and noSort themes
     // never set dividerGroup, so this never fires for them.
-    if (idx > 0 && item.dividerGroup !== undefined && item.dividerGroup !== items[idx - 1].dividerGroup) {
+    // groupLabels (2026-10-11, Tourist essentials): a small heading per
+    // section, including above the first one.
+    const groupLabels = (THEMES[categoryKey] && THEMES[categoryKey].groupLabels) || null;
+    const newGroup = item.dividerGroup !== undefined && (idx === 0 || item.dividerGroup !== items[idx - 1].dividerGroup);
+    if (newGroup && groupLabels && groupLabels[item.dividerGroup]) {
+      const head = document.createElement('div');
+      head.className = 'tile-group-heading' + (idx === 0 ? ' first' : '');
+      head.textContent = groupLabels[item.dividerGroup];
+      grid.appendChild(head);
+    } else if (idx > 0 && newGroup) {
       const divider = document.createElement('div');
       divider.className = 'section-divider';
       divider.style.flexBasis = '100%';
@@ -6848,7 +6878,7 @@ function toggleSoundOn() {
   const speakBtn = document.getElementById('speak-btn');
   if (speakBtn) speakBtn.disabled = !soundAllowed();
   // Listening needs sound: switching sound off switches it off too.
-  if (!soundAllowed()) { listenMode = false; Object.keys(vocabTileListenMode).forEach(k => { vocabTileListenMode[k] = false; }); }
+  if (!soundAllowed()) { listenMode = false; randomModes.listen = false; Object.keys(vocabTileListenMode).forEach(k => { vocabTileListenMode[k] = false; }); }
   syncVocabModeToggles();
   if (vocabTileCategory) syncVocabTileModeToggles(vocabTileCategory);
   // Word-tile screen: tap-to-hear card and grid behaviour depend on sound.
@@ -6913,7 +6943,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-09a';
+const LATEST_CHANGELOG_ENTRY = '2026-10-11a';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -8066,6 +8096,7 @@ function updateRandomChoiceUI() {
   if (revCard) revCard.classList.toggle('not-for-choice', randomChoice === 'particles');
 }
 function startSelectedRandom() {
+  applyRandomModes(); // the dice page's own switches, not whatever a category drill left behind
   if (randomChoice === 'all') startRandomMatchEverything();
   else if (randomChoice === 'weakest') startWeakestVocab();
   else if (randomChoice === 'untested') startUntestedVocab();
