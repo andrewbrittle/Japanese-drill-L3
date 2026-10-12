@@ -2,6 +2,7 @@
   "name": "Japanese Drill",
   "short_name": "JP Drill",
   "description": "Kana, kanji, and vocab drilling for the Japanese course.",
+  "id": "./index.html",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

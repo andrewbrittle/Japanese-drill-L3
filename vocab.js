@@ -2481,3 +2481,435 @@ window.JP_DRILL_VOCAB = {
     ],
   },
 };
+
+// GROUPS (moved here from index.html's THEMES on 2026-10-12, from the
+// Portuguese-test handover). Each Group is pure data: label, chars, and how
+// its words are found (tagQuery, or latestWords). `show` says where its card
+// appears:
+//   'groups'        - the Groups pill on the Vocab screen (ordered by newest word)
+//   'untaught-top'  - top of the Untaught list (Tourist essentials)
+//   'untaught'      - the Untaught list, alphabetical by label
+// Optional: note (small line under the label), groupLabels (a heading per
+// {any:[...]} section, see Tourist essentials), level (border colour).
+// index.html reads this as THEMES and builds every Group card from it, so a
+// new Group is an edit here only.
+// Themes bring together items from several existing VOCAB categories into one
+// selectable/drillable screen, without touching or duplicating the source
+// categories' own data. A theme's item pool is computed fresh each time its
+// screen is opened (see getThemePool), not stored - so it always reflects the
+// current custom-content toggle and the latest source-category contents.
+// Deliberately starting with just 2 concrete themes rather than a full set -
+// this is the pilot that will show what the mechanism needs to handle before
+// more themes get added.
+// Each theme declares its source categories either as `groups` (a list of
+// visual/divider blocks - every category within one block is merged together
+// and alphabetized as a single unit, with a gold divider drawn between
+// blocks) or as `noSort: true` with a flat `sources` list (left completely
+// untouched, in original insertion order, no dividers) - used for themes
+// like Days and times where the taught order IS the content and sorting
+// would actively hurt reference use.
+window.JP_DRILL_GROUPS = {
+  // Converted from groups:[['vocab-transport'],['vocab-places-uk']] to a
+  // tagQuery OR (2026-08-27) - both categories already carry their own
+  // exclusive topic tag, so this needs no new tagging at all. dividerGroup
+  // still separates Transport from UK Places, same as groups did - see the
+  // {any:[...]} branch of getThemePool.
+  'theme-transport-uk': {
+    show: 'groups',
+    label: 'Transport & UK Places',
+    chars: 'でんしゃ ロンドン…',
+    tagQuery: { any: ['transport', 'places-uk'] },
+  },
+  'theme-world': {
+    show: 'groups',
+    label: 'Around the world',
+    chars: 'アメリカ とうきょう…',
+    tagQuery: { any: ['countries', 'cities'] },
+  },
+  // REMOVED (2026-08-27) - unlike Core grammar or Getting around, Days/
+  // Months/Days-of-month/Time don't get used together in a way that makes
+  // mixing them a useful drill (you don't confuse "Monday" with "March" the
+  // way you might confuse a verb with an adjective), and each of the four
+  // is already a solid standalone category (7/12/31/32 words). Checking
+  // pickDistractorItems/distractorSimilarity confirmed a real downside too:
+  // distractors are drawn from the whole combined pool by pure text shape
+  // (first letter + length), with no concept of semantic category - so a
+  // "Monday" question could get a month name as a wrong answer, trivially
+  // dismissible on sight in meaning mode without knowing any Japanese,
+  // undermining the exact thing distractor-biasing exists to prevent. This
+  // one had a place when it was built (Months/Days-of-month had no
+  // Collection of their own yet) but not a reason to exist now - the four
+  // source categories (vocab-days-l2, vocab-months-l2,
+  // vocab-days-of-month-l2, vocab-time-l2) are completely untouched and
+  // still fully drillable on their own under Level 2, exactly as before.
+  //
+  // Converted from groups to a tagQuery OR (2026-08-27) - see
+  // theme-transport-uk above for why this is safe with no new tagging.
+  // (2026-10-07) Latest words - words NEW to the app in the most recent
+  // batch: taught words whose dateAdded is within 6 days of the newest taught
+  // dateAdded (so it stays full until the next lesson's words arrive). Words
+  // that already existed and were only tagged forward keep their old date, so
+  // they don't count - Andrew's call: "if it was in L1 or L2 it's an old word".
+  'theme-latest-words': {
+    show: 'groups',
+    label: 'Latest words',
+    chars: '',
+    latestWords: true,
+  },
+  // (2026-10-07) Food & drink for TAUGHT words only (the Untaught tab has its
+  // own Food and Drink). Two groups: food, then drink.
+  'theme-food-drink-taught': {
+    show: 'groups',
+    label: 'Food & drink',
+    chars: 'パン すし おちゃ…',
+    tagQuery: { any: ['food-type', 'drink'], all: ['taught'] },
+  },
+  // (2026-10-07) Level 1 jobs + Level 3 Lesson 2's homework jobs, together.
+  'theme-occupations': {
+    show: 'groups',
+    label: 'Occupations',
+    chars: 'いしゃ かんごし てんいん…',
+    tagQuery: { any: [['occupations', 'occupations-l3']] }, // one list - a job is a job, whatever level it was taught in
+  },
+  'theme-items-clothing-general': {
+    show: 'groups',
+    label: 'Everyday items & general vocab',
+    chars: 'かさ くつ かぞく…',
+    tagQuery: { any: ['objects', ['general-l2', 'general-l3']] }, // clothing folded into objects 2026-10-08; // general-l3 added 2026-10-01; one General group (2026-10-07)
+  },
+  // New - Verbs/Adjectives/Question words are all "functional" categories
+  // (the words a sentence is built FROM) rather than themed nouns, and none
+  // of the three had a Collection either. Grouped (not noSort) since there's
+  // no single taught order spanning all three the way the calendar has -
+  // each block alphabetizes on its own, with a divider between blocks.
+  // Converted from groups to a tagQuery OR (2026-08-27), keeping the
+  // divider between Verbs/Adjectives/Question & location - a flat
+  // interleaved list mixing verbs and adjectives read badly here in
+  // testing, unlike some of the other Collections. Uses 'adjectives-l2'
+  // (not the level-agnostic 'adjectives' tag) deliberately, so this stays
+  // exactly the same 5 L2 adjectives it always was rather than also
+  // pulling in Trip prep's adjectives.
+  // Tourist essentials (2026-10-01) - the original hand-picked trip set
+  // brought back as one card: every 'curated' word (food & drink,
+  // accommodation, money & shopping, directions, emergency, weather,
+  // signage, polite tourist phrases, trip prep - ~165 words and phrases),
+  // WITHOUT the ~680 photo-sourced 'encountered' words those same topics
+  // now share Collections with. Built for classmates going to Japan who
+  // only have Level 1, so it leads the Untaught list (see
+  // buildMatchCategoryList). Pure tag query - no word data changed. Curated
+  // words that have since been taught (e.g. ラーメン, えび) still carry
+  // 'curated' and stay in, which is right for a trip list.
+  'theme-tourist-essentials': {
+    show: 'untaught-top',
+    label: 'Tourist essentials',
+    note: 'Start here for a trip',
+    chars: 'いくらですか えき すし…',
+    // Sections (2026-10-11): every word carries exactly one te-* tag naming
+    // its section, so the card is a quick reference split under headings
+    // (groupLabels, drawn by buildVocabTileGrid). Answer options stay within
+    // a section. A new trip word joins by getting one te-* tag. 187 existing
+    // words + 79 added from the Portuguese-test gap list = 266.
+    tagQuery: { any: ['te-phrases', 'te-little', 'te-food', 'te-around', 'te-hotel', 'te-shops', 'te-health', 'te-weather'] },
+    groupLabels: ['Phrases', 'Little words', 'Food & drink', 'Getting around', 'Hotel & travel kit', 'Shops & money', 'Health & emergencies', 'Weather, seasons & signs'],
+  },
+  // Time words (2026-10-01) - L2 Time vocabulary + L3's time expressions
+  // (けさ/こんばん/まいあさ/やすみのひ, tagged time-l3; they stay in L3's
+  // Frequency & linking category too). Deliberately NOT a revival of the
+  // retired Calendar & time: days/months/days-of-month stay out, so the
+  // text-shape distractor problem that sank that one doesn't apply - these
+  // are all same-slot time expressions that genuinely get confused.
+  'theme-time-words': {
+    show: 'groups',
+    label: 'Time words',
+    chars: 'きのう けさ こんばん…',
+    // (2026-10-07) + the five frequency words (tag 'frequency'), as their own
+    // group first - ときどき is also time-l2, so 'frequency' must come first in
+    // this list for all five to sit together. Answer options stay within a
+    // group (see drillVocabTileSelection), so "always" is never offered for
+    // "tomorrow".
+    tagQuery: { any: ['frequency', ['time-l2', 'time-l3']] }, // L2 + L3 time words as one group (2026-10-07)
+  },
+  'theme-core-grammar': {
+    show: 'groups',
+    label: 'Core grammar words',
+    chars: 'きます あたらしい ここ…',
+    // + frequency-l3 (2026-10-01): いつも/よく/ぜんぜん/それから/そして/なにも
+    // are sentence-building words in exactly this sense. L3 verbs need no
+    // tag of their own here - all are L2 verbs tagged forward, so verbs-l2
+    // already covers them.
+    tagQuery: { any: [['verbs-l2', 'verbs-l3'], 'adjectives-l2', 'question-location', 'frequency-l3'] }, // verbs-l3 added 2026-10-06; all verbs one group (2026-10-07)
+  },
+  // BUG FIX (2026-08-31) - this card used to be hidden entirely unless Trip
+  // vocabulary was switched on (applyShowTripVocabVisibility), even though
+  // only its `directions` slice is actually Untaught-tier - `transport` and
+  // `places-to-go` are ordinary taught Level 2 content. getThemePool's
+  // itemTierVisible check already drops the directions slice from the
+  // pool on its own when Untaught is off, the same mechanism theme-
+  // question-words relies on for its Untaught-tier slice - so hiding the
+  // whole card was needlessly hiding the L2 words too. `level: 'untaught'`
+  // below is not read by getThemePool (kept as a field only so this reads
+  // the same way VOCAB categories do); the card is unconditionally visible
+  // now, same as Question words. Converted from groups to a tagQuery OR
+  // (2026-08-27) - divider still separates Transport/Places to go/
+  // Directions. Directions' own tag came from the full-coverage baseline
+  // pass and is exclusive to that category, so no new tagging needed here.
+  'theme-getting-around': {
+    show: 'groups',
+    level: 'untaught',
+    label: 'Getting around',
+    chars: 'でんしゃ ひだり きっぷ…',
+    // (2026-10-07) L3 Lesson 2's destinations (やま, うみ, どうぶつえん...) now
+    // also carry 'places-to-go' so they're here too. The L2 Places to go
+    // category is unaffected (it asks for L2 AND places-to-go). Rooms (いま,
+    // だいどころ...) deliberately not - you don't "go" to them. パブ/カフェ left
+    // as they were: tagging them would also have added them to L2's category.
+    tagQuery: { any: ['transport', 'places-to-go', 'directions'] },
+  },
+  // REMOVED (2026-08-27) - this Collection was always "all of Trip prep +
+  // all of Emergency" as whole categories, not a tag concept (see the old
+  // comment this replaced: only 4 of trip-prep's 26 words were actually
+  // emergency-flavoured, the rest was food/tickets/shops). Once trip-prep
+  // itself retired (see vocab-trip-prep - every word already had a real
+  // purpose tag), there was no tag left to rebuild this from - the
+  // emergency quarter is already the existing 'emergency' combined pool,
+  // the rest is already covered by Food & drink/Shopping/Adjectives/
+  // Places/Stations. Nothing lost: every word this used to show is still
+  // fully drillable through those. If a genuinely tag-shaped "survival"
+  // concept is ever wanted, build it fresh from actual use rather than
+  // recreating this exact old boundary.
+  //
+  // First Collection built from a tag rather than a hand-picked list of
+  // source categories - see getThemePool's tagQuery branch. Pulls every
+  // item anywhere carrying tags:['question-word'], which right now means
+  // the 4 already-taught L2 duplicates (いつ/どこ/だれ/いくら, tagged in
+  // place in Question & location words - no duplication, same score either
+  // way) plus the 13 new ones in Reference - Question words. No level set
+  // here deliberately, unlike the Trip-only Collections above: this card
+  // always shows, and the pool itself grows or shrinks depending on the
+  // Untaught toggle (the 13 reference words carry the 'untaught' tag, so
+  // itemTierVisible drops them from the pool the moment Untaught is off,
+  // same as it would drop them from their own category -
+  // nothing extra to wire on the card itself for that to work).
+  'theme-question-words': {
+    show: 'groups',
+    label: 'Question words',
+    chars: 'なに どこ いつ…',
+    tagQuery: 'question-word',
+  },
+  // PROMOTED FROM TEST (2026-08-31) - this was the first proving ground for
+  // merging Trip and Andrew via tags instead of two separate gated tiers; it
+  // felt right, so it's now the real, standard version rather than living
+  // alongside the categories it was tested against. Materials — Stations &
+  // trains (vocab-materials-stations, standaloneCard:false now) is fully
+  // subsumed - all 89 of its items carry `stations`, verified with zero
+  // gaps before retiring it as its own tile. Also pulls in the
+  // station-specific words in Directions and navigation (ICカード,
+  // かたみちきっぷ, おうふくきっぷ, ろせんず, かいさつぐち, the two "where
+  // is/which platform" phrases) and three from trip-prep (いりぐち, でぐち,
+  // のりかえ) - words that had no natural home under the old category model
+  // without duplication. Nothing deleted: every item still physically lives
+  // in its original category, only the standalone tiles for Materials —
+  // Stations & trains went away (data + tag scans + includeItems all
+  // unaffected by that).
+  'theme-stations-combined': {
+    show: 'untaught',
+    label: 'Stations & trains',
+    chars: 'ホーム きっぷ かいさつ…',
+    tagQuery: 'stations',
+  },
+  // SPLIT INTO FIVE (2026-08-31) - this single combined card (built earlier
+  // the same day, see the superseded comment this replaced) was 218 items
+  // by the time it was retired - the single biggest pool in the app by a
+  // wide margin, and flagged the same day in the FUTURE DIRECTION log as
+  // the "distractor pool too broad" problem that already got Calendar &
+  // time retired outright: not just size, but mixing genuinely different
+  // parts of speech in one multiple-choice pool (dish/drink nouns,
+  // adjectives like からい/あまい, prep verbs like 焼く/煮る, and full dining
+  // phrases like かんぱい, all as each other's distractors). Andrew asked
+  // for separate cards; the five sub-tags below already existed and already
+  // sorted every one of the 218 items with zero gaps (checked directly, not
+  // assumed) - splitting needed zero new tagging, just five tagQuery cards
+  // instead of one. Each query is AND'd with `food-drink` deliberately, not
+  // left bare, to keep this a pure split of the same 218 items rather than
+  // widening scope - food-type and drink happen to already be dual-tagged
+  // on a handful of taught vocab-food-drink-l2 words too (りんご/パン/たまご/
+  // くだもの/シリアル/トースト, おさけ/ビール/ワイン - 9 words, clearly tagged on
+  // purpose for cross-tier reuse, same pattern as Core grammar/Question
+  // words), which a bare tagQuery would have pulled in as a free bonus -
+  // noted here rather than done, since blending taught content in changes
+  // more than just the split (these five all currently live under the
+  // Untaught tab only, same as the card they replace; a taught+untaught
+  // blend would arguably belong in Collections instead, like Getting around
+  // does - a placement decision, not just a tagging one, left for later).
+  // Nothing deleted: every item still physically lives in its original
+  // category, only the standalone Food & drink tile is gone.
+  //
+  // CONSOLIDATED (2026-09-03) - the "left for later" above is now done, on
+  // Andrew's go-ahead ("now the big changes have happened we can do this
+  // kind of consolidation"). theme-food and theme-drink only (the two that
+  // actually had taught overlap) had their `food-drink` AND-condition
+  // dropped - bare `food-type`/`drink` now, same as Core grammar/Question
+  // words already do for their own cross-tier tags. Verified directly: this
+  // pulls in exactly the 9 words named above (6 into Food, 3 into Drink)
+  // and nothing else - no other item anywhere carries food-type or drink
+  // without also carrying food-drink. Food goes 128→134, Drink 16→19; still
+  // Untaught-tab-only cards for now (a taught word appearing there reads
+  // fine - "this word you already know also shows up in the wild" - so no
+  // placement change needed after all). Dining phrases/descriptions/
+  // preparation are untouched: no taught words carry those three tags.
+  'theme-food': {
+    show: 'untaught',
+    label: 'Food',
+    chars: 'たべもの ラーメン すし…',
+    tagQuery: 'food-type',
+  },
+  'theme-drink': {
+    show: 'untaught',
+    label: 'Drink',
+    chars: 'おちゃ さけ ウーロンちゃ…',
+    tagQuery: 'drink',
+  },
+  'theme-dining-phrases': {
+    show: 'untaught',
+    label: 'Dining phrases',
+    chars: 'かんぱい おかいけい おねがいします…',
+    tagQuery: ['food-drink', 'dining-phrase'],
+  },
+  'theme-food-descriptions': {
+    show: 'untaught',
+    label: 'Food descriptions',
+    chars: 'おいしい からい あまい…',
+    tagQuery: ['food-drink', 'food-adjective'],
+  },
+  'theme-food-preparation': {
+    show: 'untaught',
+    label: 'Preparation & cooking',
+    chars: '炙り 発酵 熟成…',
+    tagQuery: ['food-drink', 'preparation'],
+  },
+  // PROMOTED FROM TEST (2026-08-31) - same reasoning as theme-stations-
+  // combined above. Source category vocab-materials-shops is retired as a
+  // standalone tile (standaloneCard:false, see VOCAB) now that all 70 of
+  // its items carry `shopping` or `signage` (the last 12 - parking lot,
+  // pets, crows, studying-in-seat, and other facility/policy notices - were
+  // tagged `signage` on 2026-08-31 to close the gap); vocab-money-shopping
+  // (Trip) was already tagged wholesale. Nothing deleted.
+  'theme-shopping-combined': {
+    show: 'untaught',
+    label: 'Shopping',
+    chars: 'ねだん わりびき レシート…',
+    tagQuery: 'shopping',
+  },
+  // NEW (2026-08-31) - the drilling screen for the service-ops tag carved
+  // out of the old "Ordering & policy" grouping the same day: generic
+  // shop/restaurant/business-operations vocabulary (tax, payment, staff,
+  // coupons, waste disposal) that shouldn't be siloed by which kind of
+  // premises it was photographed at. 66 items, pulled from across
+  // vocab-materials-restaurants-ops (51) and scattered single items in
+  // stations/airport/shops/entertainment/hotel-appliances/hotel-
+  // facilities/street (15) - see the SERVICE-OPS entry in FUTURE DIRECTION
+  // for the full breakdown.
+  'theme-service-ops': {
+    show: 'untaught',
+    label: 'Service & shop operations',
+    chars: '税込 営業時間 係員…',
+    tagQuery: 'service-ops',
+  },
+  // NEW (2026-08-31) - drilling screen for the `profile-words` tag split out
+  // of Materials - Entertainment the same day: 14 words that turned out to
+  // be a self-introduction/profile-card set (name, date of birth, height,
+  // weight, hobby, special skill, strong point, charm point, favourite
+  // food/word/colour, important thing, debut, company) rather than genuine
+  // entertainment vocabulary - all 14 photographed together at the Sapporo
+  // TV Tower gift shop (likely a mascot/character profile board), plus
+  // 企業 from nearby Odori Park the same day that reads as the same set's
+  // "company/agency" field. Splitting these out is what let Materials -
+  // Entertainment retire cleanly (see theme-entertainment-combined below) -
+  // without this tag those 14 words would have been stranded with no
+  // drilling screen once Entertainment's own tile stopped showing anything
+  // not tagged `entertainment`. Label/tag name are both provisional - "self
+  // -introduction" fits the content but "profile-words" was chosen to stay
+  // neutral about whether this is a person introducing themselves or a
+  // character/mascot profile card, since the true context isn't certain.
+  'theme-profile-words': {
+    show: 'untaught',
+    label: 'Profile & self-introduction words',
+    chars: '名前 趣味 デビュー…',
+    tagQuery: 'profile-words',
+  },
+  // PROMOTED FROM TEST (2026-08-31) - same reasoning as theme-stations-
+  // combined above: felt right, now the real version. Both vocab-
+  // accommodation (14/14 items carry `accommodation`) and vocab-materials-
+  // hotel-facilities (76/76 - 73 via `accommodation`, the other 3 - いか焼き,
+  // うまいもん, ご当地, a hotel-lobby local-food advert - via `food-drink`)
+  // are retired as standalone tiles (standaloneCard:false). The latter was
+  // briefly a case of a comment claiming a retirement that hadn't actually
+  // happened yet (an earlier draft of this comment said so; caught and
+  // corrected the same day, then the retirement itself done as a same-day
+  // follow-up rather than left dangling). This is also the pairing that
+  // motivated the whole tag approach: にもつ and よやく are
+  // Trip-canonical words that physically live in vocab-accommodation but
+  // get pulled into vocab-materials-airport and vocab-materials-street via
+  // includeItems - under the old category model they'd have no natural home
+  // under "Accommodation" at all without that wiring. Tagging vocab-
+  // accommodation wholesale picks them both up automatically, no extra
+  // includeItems bookkeeping needed - still true and unaffected by today's
+  // retirement, since includeItems and tag scans both read from the
+  // category data directly, not from whether it has a standalone tile.
+  'theme-accommodation-combined': {
+    show: 'untaught',
+    label: 'Accommodation',
+    chars: 'ホテル よやく タオル…',
+    tagQuery: 'accommodation',
+  },
+  // PROMOTED FROM TEST (2026-08-31) - same reasoning as theme-stations-
+  // combined above, and needed no further data work to get here: vocab-
+  // emergency-survival already had standaloneCard:false set from
+  // 2026-08-27 (before this session), and all 16 of its items plus the 7
+  // scattered across four Andrew categories (事故防止 in Materials -
+  // Stations, 避難 in Materials - Street, 警告/感電 in Materials - Hotel:
+  // Appliances, 避難経路/消火器/非常時 in Materials - Hotel: Facilities)
+  // already carried `emergency`. A word can carry more than one topic tag
+  // at once - the three Hotel: Facilities items also carry `accommodation`
+  // and show up correctly in both combined pools. Nothing deleted.
+  'theme-emergency-combined': {
+    show: 'untaught',
+    label: 'Emergency & survival',
+    chars: 'じしん けが たいふう…',
+    tagQuery: 'emergency',
+  },
+  // PROMOTED FROM TEST (2026-08-31) - same reasoning as theme-stations-
+  // combined above. Source category vocab-signage-warnings is retired as a
+  // standalone tile (standaloneCard:false, see VOCAB) - all 11 of its items
+  // carry `signage` wholesale. Also pulls in 5 items scattered across
+  // Materials - Stations (かけ込み禁止) and Materials - Shops (お断り,
+  // 持込品, 補助犬, ご協力), plus the 12 Materials-shops items sorted into
+  // `signage` on 2026-08-31 (駐車場, 道民, 固く, 長時間, 勉強, 給電, こちら,
+  // 捨てる, ペット, ご同伴, カラス, 可能性) that closed out
+  // vocab-materials-shops's coverage gap. Nothing deleted.
+  'theme-signage-combined': {
+    show: 'untaught',
+    label: 'Signage & warnings',
+    chars: 'きんえん おす ちゅうい…',
+    tagQuery: 'signage',
+  },
+  // NEW / PROMOTED (2026-08-31) - Materials - Entertainment retires as a
+  // standalone tile now that the words that didn't fit `entertainment` have
+  // somewhere else to go: 39 items keep `entertainment`, 10 already carried
+  // `emergency` (a 9-item heatstroke-warning block plus 避難, tagged back on
+  // 2026-08-27 and already drillable via theme-emergency-combined), and the
+  // remaining 19 split into `profile-words` (14, see THEMES entry above),
+  // `stations` (鉄道駅), `street` (停止線, 開発局 - roadside signage from
+  // Muroran), and `places` (市役所, 名称 - the loosest fit of the lot; 名称
+  // in particular is a standalone label word with no natural home, folded
+  // in here rather than left stranded). Unlike the six categories promoted
+  // earlier today, this one is a genuine two-source combine, not a solo
+  // flip - vocab-tourist-phrases already had 2 items tagged `entertainment`
+  // from before this split, so this pool is 41 items, not 39.
+  'theme-entertainment-combined': {
+    show: 'untaught',
+    label: 'Entertainment',
+    chars: 'パチンコ 全台 計数機…',
+    tagQuery: 'entertainment',
+  },
+};

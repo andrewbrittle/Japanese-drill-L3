@@ -1032,7 +1032,8 @@
   #vocab-level-filter-row.showing-theme-colours #level-pill-3:not(.active) { color: #a0684d; border-color: rgba(160,104,77,0.4); }
   #vocab-level-filter-row.showing-theme-colours #level-pill-untaught:not(.active) { color: #9b59d0; border-color: rgba(155,89,208,0.4); }
   #vocab-level-filter-row.showing-theme-colours #level-pill-random:not(.active) { color: var(--green); border-color: rgba(111,207,151,0.4); }
-  .latest-range-row { justify-content: center; }
+  .latest-range-row { justify-content: center; gap: 6px; flex-wrap: nowrap; }
+  .latest-range-row .level-pill { padding-left: 12px; padding-right: 12px; white-space: nowrap; }
 
   /* "Specific time" lookup tool, under Reading times on the Vocab page */
   .time-tool-row {
@@ -1415,7 +1416,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261011.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261012.001</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1983,102 +1984,9 @@
     <div class="vocab-search-message" id="vocab-search-message" style="display:none;"></div>
 
 
-    <div id="match-theme-view">
-      <!-- Latest words (2026-10-07) - first Group: words new to the app in the
-           most recent batch (by dateAdded), see theme-latest-words. The random
-           drills that used to sit above here moved to the Random page. -->
-      <div class="group-card cat-tile" data-theme-key="theme-latest-words" onclick="showVocabTileSelection('theme-latest-words')" style="cursor:pointer;">
-        <div class="cat-tile-top">
-          <div class="group-name">Latest words</div>
-        </div>
-        <div class="cat-bar"></div>
-      </div>
-
-      <div class="group-card cat-tile" data-theme-key="theme-transport-uk" onclick="showVocabTileSelection('theme-transport-uk')" style="cursor:pointer;">
-        <div class="cat-tile-top">
-          <div class="group-name">Transport &amp; UK Places</div>
-        </div>
-        <div class="cat-bar"></div>
-      </div>
-      <div class="group-card cat-tile" data-theme-key="theme-world" onclick="showVocabTileSelection('theme-world')" style="cursor:pointer;">
-        <div class="cat-tile-top">
-          <div class="group-name">Around the world</div>
-        </div>
-        <div class="cat-bar"></div>
-      </div>
-      <!-- Calendar & time card removed 2026-08-27 - see the "REMOVED"
-           comment above theme-days-times's old spot in THEMES for why.
-           Days of the week/Months/Days of the month/Time vocabulary are
-           all still there under Level 2, untouched. -->
-
-      <div class="group-card cat-tile" data-theme-key="theme-items-clothing-general" onclick="showVocabTileSelection('theme-items-clothing-general')" style="cursor:pointer;">
-        <div class="cat-tile-top">
-          <div class="group-name">Everyday items &amp; general vocab</div>
-        </div>
-        <div class="cat-bar"></div>
-      </div>
-      <div class="group-card cat-tile" data-theme-key="theme-food-drink-taught" onclick="showVocabTileSelection('theme-food-drink-taught')" style="cursor:pointer;">
-        <div class="cat-tile-top">
-          <div class="group-name">Food & drink</div>
-        </div>
-        <div class="cat-bar"></div>
-      </div>
-      <div class="group-card cat-tile" data-theme-key="theme-occupations" onclick="showVocabTileSelection('theme-occupations')" style="cursor:pointer;">
-        <div class="cat-tile-top">
-          <div class="group-name">Occupations</div>
-        </div>
-        <div class="cat-bar"></div>
-      </div>
-      <div class="group-card cat-tile" data-theme-key="theme-core-grammar" onclick="showVocabTileSelection('theme-core-grammar')" style="cursor:pointer;">
-        <div class="cat-tile-top">
-          <div class="group-name">Core grammar words</div>
-        </div>
-        <div class="cat-bar"></div>
-      </div>
-      <!-- First tag-driven Collection - see theme-question-words in THEMES
-           and getThemePool's tagQuery branch. Always visible since part of
-           its pool is ordinary L2 content; the Untaught-tier portion
-           appears/disappears from the pool on its own via itemTierVisible,
-           no card-level hiding needed - the pattern Getting around below
-           was fixed to match on 2026-08-31. -->
-      <div class="group-card cat-tile" data-theme-key="theme-question-words" onclick="showVocabTileSelection('theme-question-words')" style="cursor:pointer;">
-        <div class="cat-tile-top">
-          <div class="group-name">Question words</div>
-        </div>
-        <div class="cat-bar"></div>
-      </div>
-      <!-- BUG FIX (2026-08-31) - this card used to be hidden entirely
-           unless Trip vocabulary was switched on (id="theme-getting-
-           around-card", toggled in applyShowTripVocabVisibility), on the
-           reasoning that "part of its pool is Trip-tier content". That
-           reasoning was wrong: 2 of its 3 source tags (transport, places-
-           to-go) are ordinary taught Level 2 content with zero Trip
-           dependency - only `directions` was Trip-tier (now Untaught-tier,
-           since Trip and Andrew merged the same day), and getThemePool's
-           tagQuery branch already drops Untaught-tier items from the pool
-           on its own via itemTierVisible the moment Untaught is off,
-           the exact same mechanism theme-question-words below already
-           relies on for its own Untaught-tier slice. Hiding the whole card
-           was needlessly also hiding the L2 words for anyone with Untaught
-           off. Now always visible, same pattern as Question words - no
-           card-level hiding needed, the id and JS toggle are gone. -->
-      <div class="group-card cat-tile" data-theme-key="theme-getting-around" onclick="showVocabTileSelection('theme-getting-around')" style="cursor:pointer;">
-        <div class="cat-tile-top">
-          <div class="group-name">Getting around</div>
-        </div>
-        <div class="cat-bar"></div>
-      </div>
-      <!-- Time words (2026-10-01) - see theme-time-words in THEMES. -->
-      <div class="group-card cat-tile" data-theme-key="theme-time-words" onclick="showVocabTileSelection('theme-time-words')" style="cursor:pointer;">
-        <div class="cat-tile-top">
-          <div class="group-name">Time words</div>
-        </div>
-        <div class="cat-bar"></div>
-      </div>
-      <!-- Survival vocab card removed 2026-08-27 - see the "REMOVED" comment
-           above theme-survival-vocab's old spot in THEMES for why. -->
-
-    </div>
+    <!-- Groups pill: cards built from vocab.js's JP_DRILL_GROUPS (show:'groups')
+         by renderGroupCards() - see the GROUPS note in vocab.js. -->
+    <div id="match-theme-view"></div>
 
     <div id="match-vocab-view" style="display:none;">
       <div id="match-category-list"></div>
@@ -2208,6 +2116,7 @@
 
 <!-- The course vocabulary (2026-10-08) - must load before the app script below. -->
 <script src="vocab.js"></script>
+<script src="grammar.js"></script>
 <script>
 const DATA = {
   'hiragana-base': [
@@ -3942,402 +3851,11 @@ function validatePrivateVocabPack(pack) {
   } catch (e) { /* storage unavailable or corrupt - app runs without the pack */ }
 })();
 
-// Themes bring together items from several existing VOCAB categories into one
-// selectable/drillable screen, without touching or duplicating the source
-// categories' own data. A theme's item pool is computed fresh each time its
-// screen is opened (see getThemePool), not stored - so it always reflects the
-// current custom-content toggle and the latest source-category contents.
-// Deliberately starting with just 2 concrete themes rather than a full set -
-// this is the pilot that will show what the mechanism needs to handle before
-// more themes get added.
-// Each theme declares its source categories either as `groups` (a list of
-// visual/divider blocks - every category within one block is merged together
-// and alphabetized as a single unit, with a gold divider drawn between
-// blocks) or as `noSort: true` with a flat `sources` list (left completely
-// untouched, in original insertion order, no dividers) - used for themes
-// like Days and times where the taught order IS the content and sorting
-// would actively hurt reference use.
-const THEMES = {
-  // Converted from groups:[['vocab-transport'],['vocab-places-uk']] to a
-  // tagQuery OR (2026-08-27) - both categories already carry their own
-  // exclusive topic tag, so this needs no new tagging at all. dividerGroup
-  // still separates Transport from UK Places, same as groups did - see the
-  // {any:[...]} branch of getThemePool.
-  'theme-transport-uk': {
-    label: 'Transport & UK Places',
-    chars: 'でんしゃ ロンドン…',
-    tagQuery: { any: ['transport', 'places-uk'] },
-  },
-  'theme-world': {
-    label: 'Around the world',
-    chars: 'アメリカ とうきょう…',
-    tagQuery: { any: ['countries', 'cities'] },
-  },
-  // REMOVED (2026-08-27) - unlike Core grammar or Getting around, Days/
-  // Months/Days-of-month/Time don't get used together in a way that makes
-  // mixing them a useful drill (you don't confuse "Monday" with "March" the
-  // way you might confuse a verb with an adjective), and each of the four
-  // is already a solid standalone category (7/12/31/32 words). Checking
-  // pickDistractorItems/distractorSimilarity confirmed a real downside too:
-  // distractors are drawn from the whole combined pool by pure text shape
-  // (first letter + length), with no concept of semantic category - so a
-  // "Monday" question could get a month name as a wrong answer, trivially
-  // dismissible on sight in meaning mode without knowing any Japanese,
-  // undermining the exact thing distractor-biasing exists to prevent. This
-  // one had a place when it was built (Months/Days-of-month had no
-  // Collection of their own yet) but not a reason to exist now - the four
-  // source categories (vocab-days-l2, vocab-months-l2,
-  // vocab-days-of-month-l2, vocab-time-l2) are completely untouched and
-  // still fully drillable on their own under Level 2, exactly as before.
-  //
-  // Converted from groups to a tagQuery OR (2026-08-27) - see
-  // theme-transport-uk above for why this is safe with no new tagging.
-  // (2026-10-07) Latest words - words NEW to the app in the most recent
-  // batch: taught words whose dateAdded is within 6 days of the newest taught
-  // dateAdded (so it stays full until the next lesson's words arrive). Words
-  // that already existed and were only tagged forward keep their old date, so
-  // they don't count - Andrew's call: "if it was in L1 or L2 it's an old word".
-  'theme-latest-words': {
-    label: 'Latest words',
-    chars: '',
-    latestWords: true,
-  },
-  // (2026-10-07) Food & drink for TAUGHT words only (the Untaught tab has its
-  // own Food and Drink). Two groups: food, then drink.
-  'theme-food-drink-taught': {
-    label: 'Food & drink',
-    chars: 'パン すし おちゃ…',
-    tagQuery: { any: ['food-type', 'drink'], all: ['taught'] },
-  },
-  // (2026-10-07) Level 1 jobs + Level 3 Lesson 2's homework jobs, together.
-  'theme-occupations': {
-    label: 'Occupations',
-    chars: 'いしゃ かんごし てんいん…',
-    tagQuery: { any: [['occupations', 'occupations-l3']] }, // one list - a job is a job, whatever level it was taught in
-  },
-  'theme-items-clothing-general': {
-    label: 'Everyday items & general vocab',
-    chars: 'かさ くつ かぞく…',
-    tagQuery: { any: ['objects', ['general-l2', 'general-l3']] }, // clothing folded into objects 2026-10-08; // general-l3 added 2026-10-01; one General group (2026-10-07)
-  },
-  // New - Verbs/Adjectives/Question words are all "functional" categories
-  // (the words a sentence is built FROM) rather than themed nouns, and none
-  // of the three had a Collection either. Grouped (not noSort) since there's
-  // no single taught order spanning all three the way the calendar has -
-  // each block alphabetizes on its own, with a divider between blocks.
-  // Converted from groups to a tagQuery OR (2026-08-27), keeping the
-  // divider between Verbs/Adjectives/Question & location - a flat
-  // interleaved list mixing verbs and adjectives read badly here in
-  // testing, unlike some of the other Collections. Uses 'adjectives-l2'
-  // (not the level-agnostic 'adjectives' tag) deliberately, so this stays
-  // exactly the same 5 L2 adjectives it always was rather than also
-  // pulling in Trip prep's adjectives.
-  // Tourist essentials (2026-10-01) - the original hand-picked trip set
-  // brought back as one card: every 'curated' word (food & drink,
-  // accommodation, money & shopping, directions, emergency, weather,
-  // signage, polite tourist phrases, trip prep - ~165 words and phrases),
-  // WITHOUT the ~680 photo-sourced 'encountered' words those same topics
-  // now share Collections with. Built for classmates going to Japan who
-  // only have Level 1, so it leads the Untaught list (see
-  // buildMatchCategoryList). Pure tag query - no word data changed. Curated
-  // words that have since been taught (e.g. ラーメン, えび) still carry
-  // 'curated' and stay in, which is right for a trip list.
-  'theme-tourist-essentials': {
-    label: 'Tourist essentials',
-    note: 'Start here for a trip',
-    chars: 'いくらですか えき すし…',
-    // Sections (2026-10-11): every word carries exactly one te-* tag naming
-    // its section, so the card is a quick reference split under headings
-    // (groupLabels, drawn by buildVocabTileGrid). Answer options stay within
-    // a section. A new trip word joins by getting one te-* tag. 187 existing
-    // words + 79 added from the Portuguese-test gap list = 266.
-    tagQuery: { any: ['te-phrases', 'te-little', 'te-food', 'te-around', 'te-hotel', 'te-shops', 'te-health', 'te-weather'] },
-    groupLabels: ['Phrases', 'Little words', 'Food & drink', 'Getting around', 'Hotel & travel kit', 'Shops & money', 'Health & emergencies', 'Weather, seasons & signs'],
-  },
-  // Time words (2026-10-01) - L2 Time vocabulary + L3's time expressions
-  // (けさ/こんばん/まいあさ/やすみのひ, tagged time-l3; they stay in L3's
-  // Frequency & linking category too). Deliberately NOT a revival of the
-  // retired Calendar & time: days/months/days-of-month stay out, so the
-  // text-shape distractor problem that sank that one doesn't apply - these
-  // are all same-slot time expressions that genuinely get confused.
-  'theme-time-words': {
-    label: 'Time words',
-    chars: 'きのう けさ こんばん…',
-    // (2026-10-07) + the five frequency words (tag 'frequency'), as their own
-    // group first - ときどき is also time-l2, so 'frequency' must come first in
-    // this list for all five to sit together. Answer options stay within a
-    // group (see drillVocabTileSelection), so "always" is never offered for
-    // "tomorrow".
-    tagQuery: { any: ['frequency', ['time-l2', 'time-l3']] }, // L2 + L3 time words as one group (2026-10-07)
-  },
-  'theme-core-grammar': {
-    label: 'Core grammar words',
-    chars: 'きます あたらしい ここ…',
-    // + frequency-l3 (2026-10-01): いつも/よく/ぜんぜん/それから/そして/なにも
-    // are sentence-building words in exactly this sense. L3 verbs need no
-    // tag of their own here - all are L2 verbs tagged forward, so verbs-l2
-    // already covers them.
-    tagQuery: { any: [['verbs-l2', 'verbs-l3'], 'adjectives-l2', 'question-location', 'frequency-l3'] }, // verbs-l3 added 2026-10-06; all verbs one group (2026-10-07)
-  },
-  // BUG FIX (2026-08-31) - this card used to be hidden entirely unless Trip
-  // vocabulary was switched on (applyShowTripVocabVisibility), even though
-  // only its `directions` slice is actually Untaught-tier - `transport` and
-  // `places-to-go` are ordinary taught Level 2 content. getThemePool's
-  // itemTierVisible check already drops the directions slice from the
-  // pool on its own when Untaught is off, the same mechanism theme-
-  // question-words relies on for its Untaught-tier slice - so hiding the
-  // whole card was needlessly hiding the L2 words too. `level: 'untaught'`
-  // below is not read by getThemePool (kept as a field only so this reads
-  // the same way VOCAB categories do); the card is unconditionally visible
-  // now, same as Question words. Converted from groups to a tagQuery OR
-  // (2026-08-27) - divider still separates Transport/Places to go/
-  // Directions. Directions' own tag came from the full-coverage baseline
-  // pass and is exclusive to that category, so no new tagging needed here.
-  'theme-getting-around': {
-    level: 'untaught',
-    label: 'Getting around',
-    chars: 'でんしゃ ひだり きっぷ…',
-    // (2026-10-07) L3 Lesson 2's destinations (やま, うみ, どうぶつえん...) now
-    // also carry 'places-to-go' so they're here too. The L2 Places to go
-    // category is unaffected (it asks for L2 AND places-to-go). Rooms (いま,
-    // だいどころ...) deliberately not - you don't "go" to them. パブ/カフェ left
-    // as they were: tagging them would also have added them to L2's category.
-    tagQuery: { any: ['transport', 'places-to-go', 'directions'] },
-  },
-  // REMOVED (2026-08-27) - this Collection was always "all of Trip prep +
-  // all of Emergency" as whole categories, not a tag concept (see the old
-  // comment this replaced: only 4 of trip-prep's 26 words were actually
-  // emergency-flavoured, the rest was food/tickets/shops). Once trip-prep
-  // itself retired (see vocab-trip-prep - every word already had a real
-  // purpose tag), there was no tag left to rebuild this from - the
-  // emergency quarter is already the existing 'emergency' combined pool,
-  // the rest is already covered by Food & drink/Shopping/Adjectives/
-  // Places/Stations. Nothing lost: every word this used to show is still
-  // fully drillable through those. If a genuinely tag-shaped "survival"
-  // concept is ever wanted, build it fresh from actual use rather than
-  // recreating this exact old boundary.
-  //
-  // First Collection built from a tag rather than a hand-picked list of
-  // source categories - see getThemePool's tagQuery branch. Pulls every
-  // item anywhere carrying tags:['question-word'], which right now means
-  // the 4 already-taught L2 duplicates (いつ/どこ/だれ/いくら, tagged in
-  // place in Question & location words - no duplication, same score either
-  // way) plus the 13 new ones in Reference - Question words. No level set
-  // here deliberately, unlike the Trip-only Collections above: this card
-  // always shows, and the pool itself grows or shrinks depending on the
-  // Untaught toggle (the 13 reference words carry the 'untaught' tag, so
-  // itemTierVisible drops them from the pool the moment Untaught is off,
-  // same as it would drop them from their own category -
-  // nothing extra to wire on the card itself for that to work).
-  'theme-question-words': {
-    label: 'Question words',
-    chars: 'なに どこ いつ…',
-    tagQuery: 'question-word',
-  },
-  // PROMOTED FROM TEST (2026-08-31) - this was the first proving ground for
-  // merging Trip and Andrew via tags instead of two separate gated tiers; it
-  // felt right, so it's now the real, standard version rather than living
-  // alongside the categories it was tested against. Materials — Stations &
-  // trains (vocab-materials-stations, standaloneCard:false now) is fully
-  // subsumed - all 89 of its items carry `stations`, verified with zero
-  // gaps before retiring it as its own tile. Also pulls in the
-  // station-specific words in Directions and navigation (ICカード,
-  // かたみちきっぷ, おうふくきっぷ, ろせんず, かいさつぐち, the two "where
-  // is/which platform" phrases) and three from trip-prep (いりぐち, でぐち,
-  // のりかえ) - words that had no natural home under the old category model
-  // without duplication. Nothing deleted: every item still physically lives
-  // in its original category, only the standalone tiles for Materials —
-  // Stations & trains went away (data + tag scans + includeItems all
-  // unaffected by that).
-  'theme-stations-combined': {
-    label: 'Stations & trains',
-    chars: 'ホーム きっぷ かいさつ…',
-    tagQuery: 'stations',
-  },
-  // SPLIT INTO FIVE (2026-08-31) - this single combined card (built earlier
-  // the same day, see the superseded comment this replaced) was 218 items
-  // by the time it was retired - the single biggest pool in the app by a
-  // wide margin, and flagged the same day in the FUTURE DIRECTION log as
-  // the "distractor pool too broad" problem that already got Calendar &
-  // time retired outright: not just size, but mixing genuinely different
-  // parts of speech in one multiple-choice pool (dish/drink nouns,
-  // adjectives like からい/あまい, prep verbs like 焼く/煮る, and full dining
-  // phrases like かんぱい, all as each other's distractors). Andrew asked
-  // for separate cards; the five sub-tags below already existed and already
-  // sorted every one of the 218 items with zero gaps (checked directly, not
-  // assumed) - splitting needed zero new tagging, just five tagQuery cards
-  // instead of one. Each query is AND'd with `food-drink` deliberately, not
-  // left bare, to keep this a pure split of the same 218 items rather than
-  // widening scope - food-type and drink happen to already be dual-tagged
-  // on a handful of taught vocab-food-drink-l2 words too (りんご/パン/たまご/
-  // くだもの/シリアル/トースト, おさけ/ビール/ワイン - 9 words, clearly tagged on
-  // purpose for cross-tier reuse, same pattern as Core grammar/Question
-  // words), which a bare tagQuery would have pulled in as a free bonus -
-  // noted here rather than done, since blending taught content in changes
-  // more than just the split (these five all currently live under the
-  // Untaught tab only, same as the card they replace; a taught+untaught
-  // blend would arguably belong in Collections instead, like Getting around
-  // does - a placement decision, not just a tagging one, left for later).
-  // Nothing deleted: every item still physically lives in its original
-  // category, only the standalone Food & drink tile is gone.
-  //
-  // CONSOLIDATED (2026-09-03) - the "left for later" above is now done, on
-  // Andrew's go-ahead ("now the big changes have happened we can do this
-  // kind of consolidation"). theme-food and theme-drink only (the two that
-  // actually had taught overlap) had their `food-drink` AND-condition
-  // dropped - bare `food-type`/`drink` now, same as Core grammar/Question
-  // words already do for their own cross-tier tags. Verified directly: this
-  // pulls in exactly the 9 words named above (6 into Food, 3 into Drink)
-  // and nothing else - no other item anywhere carries food-type or drink
-  // without also carrying food-drink. Food goes 128→134, Drink 16→19; still
-  // Untaught-tab-only cards for now (a taught word appearing there reads
-  // fine - "this word you already know also shows up in the wild" - so no
-  // placement change needed after all). Dining phrases/descriptions/
-  // preparation are untouched: no taught words carry those three tags.
-  'theme-food': {
-    label: 'Food',
-    chars: 'たべもの ラーメン すし…',
-    tagQuery: 'food-type',
-  },
-  'theme-drink': {
-    label: 'Drink',
-    chars: 'おちゃ さけ ウーロンちゃ…',
-    tagQuery: 'drink',
-  },
-  'theme-dining-phrases': {
-    label: 'Dining phrases',
-    chars: 'かんぱい おかいけい おねがいします…',
-    tagQuery: ['food-drink', 'dining-phrase'],
-  },
-  'theme-food-descriptions': {
-    label: 'Food descriptions',
-    chars: 'おいしい からい あまい…',
-    tagQuery: ['food-drink', 'food-adjective'],
-  },
-  'theme-food-preparation': {
-    label: 'Preparation & cooking',
-    chars: '炙り 発酵 熟成…',
-    tagQuery: ['food-drink', 'preparation'],
-  },
-  // PROMOTED FROM TEST (2026-08-31) - same reasoning as theme-stations-
-  // combined above. Source category vocab-materials-shops is retired as a
-  // standalone tile (standaloneCard:false, see VOCAB) now that all 70 of
-  // its items carry `shopping` or `signage` (the last 12 - parking lot,
-  // pets, crows, studying-in-seat, and other facility/policy notices - were
-  // tagged `signage` on 2026-08-31 to close the gap); vocab-money-shopping
-  // (Trip) was already tagged wholesale. Nothing deleted.
-  'theme-shopping-combined': {
-    label: 'Shopping',
-    chars: 'ねだん わりびき レシート…',
-    tagQuery: 'shopping',
-  },
-  // NEW (2026-08-31) - the drilling screen for the service-ops tag carved
-  // out of the old "Ordering & policy" grouping the same day: generic
-  // shop/restaurant/business-operations vocabulary (tax, payment, staff,
-  // coupons, waste disposal) that shouldn't be siloed by which kind of
-  // premises it was photographed at. 66 items, pulled from across
-  // vocab-materials-restaurants-ops (51) and scattered single items in
-  // stations/airport/shops/entertainment/hotel-appliances/hotel-
-  // facilities/street (15) - see the SERVICE-OPS entry in FUTURE DIRECTION
-  // for the full breakdown.
-  'theme-service-ops': {
-    label: 'Service & shop operations',
-    chars: '税込 営業時間 係員…',
-    tagQuery: 'service-ops',
-  },
-  // NEW (2026-08-31) - drilling screen for the `profile-words` tag split out
-  // of Materials - Entertainment the same day: 14 words that turned out to
-  // be a self-introduction/profile-card set (name, date of birth, height,
-  // weight, hobby, special skill, strong point, charm point, favourite
-  // food/word/colour, important thing, debut, company) rather than genuine
-  // entertainment vocabulary - all 14 photographed together at the Sapporo
-  // TV Tower gift shop (likely a mascot/character profile board), plus
-  // 企業 from nearby Odori Park the same day that reads as the same set's
-  // "company/agency" field. Splitting these out is what let Materials -
-  // Entertainment retire cleanly (see theme-entertainment-combined below) -
-  // without this tag those 14 words would have been stranded with no
-  // drilling screen once Entertainment's own tile stopped showing anything
-  // not tagged `entertainment`. Label/tag name are both provisional - "self
-  // -introduction" fits the content but "profile-words" was chosen to stay
-  // neutral about whether this is a person introducing themselves or a
-  // character/mascot profile card, since the true context isn't certain.
-  'theme-profile-words': {
-    label: 'Profile & self-introduction words',
-    chars: '名前 趣味 デビュー…',
-    tagQuery: 'profile-words',
-  },
-  // PROMOTED FROM TEST (2026-08-31) - same reasoning as theme-stations-
-  // combined above: felt right, now the real version. Both vocab-
-  // accommodation (14/14 items carry `accommodation`) and vocab-materials-
-  // hotel-facilities (76/76 - 73 via `accommodation`, the other 3 - いか焼き,
-  // うまいもん, ご当地, a hotel-lobby local-food advert - via `food-drink`)
-  // are retired as standalone tiles (standaloneCard:false). The latter was
-  // briefly a case of a comment claiming a retirement that hadn't actually
-  // happened yet (an earlier draft of this comment said so; caught and
-  // corrected the same day, then the retirement itself done as a same-day
-  // follow-up rather than left dangling). This is also the pairing that
-  // motivated the whole tag approach: にもつ and よやく are
-  // Trip-canonical words that physically live in vocab-accommodation but
-  // get pulled into vocab-materials-airport and vocab-materials-street via
-  // includeItems - under the old category model they'd have no natural home
-  // under "Accommodation" at all without that wiring. Tagging vocab-
-  // accommodation wholesale picks them both up automatically, no extra
-  // includeItems bookkeeping needed - still true and unaffected by today's
-  // retirement, since includeItems and tag scans both read from the
-  // category data directly, not from whether it has a standalone tile.
-  'theme-accommodation-combined': {
-    label: 'Accommodation',
-    chars: 'ホテル よやく タオル…',
-    tagQuery: 'accommodation',
-  },
-  // PROMOTED FROM TEST (2026-08-31) - same reasoning as theme-stations-
-  // combined above, and needed no further data work to get here: vocab-
-  // emergency-survival already had standaloneCard:false set from
-  // 2026-08-27 (before this session), and all 16 of its items plus the 7
-  // scattered across four Andrew categories (事故防止 in Materials -
-  // Stations, 避難 in Materials - Street, 警告/感電 in Materials - Hotel:
-  // Appliances, 避難経路/消火器/非常時 in Materials - Hotel: Facilities)
-  // already carried `emergency`. A word can carry more than one topic tag
-  // at once - the three Hotel: Facilities items also carry `accommodation`
-  // and show up correctly in both combined pools. Nothing deleted.
-  'theme-emergency-combined': {
-    label: 'Emergency & survival',
-    chars: 'じしん けが たいふう…',
-    tagQuery: 'emergency',
-  },
-  // PROMOTED FROM TEST (2026-08-31) - same reasoning as theme-stations-
-  // combined above. Source category vocab-signage-warnings is retired as a
-  // standalone tile (standaloneCard:false, see VOCAB) - all 11 of its items
-  // carry `signage` wholesale. Also pulls in 5 items scattered across
-  // Materials - Stations (かけ込み禁止) and Materials - Shops (お断り,
-  // 持込品, 補助犬, ご協力), plus the 12 Materials-shops items sorted into
-  // `signage` on 2026-08-31 (駐車場, 道民, 固く, 長時間, 勉強, 給電, こちら,
-  // 捨てる, ペット, ご同伴, カラス, 可能性) that closed out
-  // vocab-materials-shops's coverage gap. Nothing deleted.
-  'theme-signage-combined': {
-    label: 'Signage & warnings',
-    chars: 'きんえん おす ちゅうい…',
-    tagQuery: 'signage',
-  },
-  // NEW / PROMOTED (2026-08-31) - Materials - Entertainment retires as a
-  // standalone tile now that the words that didn't fit `entertainment` have
-  // somewhere else to go: 39 items keep `entertainment`, 10 already carried
-  // `emergency` (a 9-item heatstroke-warning block plus 避難, tagged back on
-  // 2026-08-27 and already drillable via theme-emergency-combined), and the
-  // remaining 19 split into `profile-words` (14, see THEMES entry above),
-  // `stations` (鉄道駅), `street` (停止線, 開発局 - roadside signage from
-  // Muroran), and `places` (市役所, 名称 - the loosest fit of the lot; 名称
-  // in particular is a standalone label word with no natural home, folded
-  // in here rather than left stranded). Unlike the six categories promoted
-  // earlier today, this one is a genuine two-source combine, not a solo
-  // flip - vocab-tourist-phrases already had 2 items tagged `entertainment`
-  // from before this split, so this pool is 41 items, not 39.
-  'theme-entertainment-combined': {
-    label: 'Entertainment',
-    chars: 'パチンコ 全台 計数機…',
-    tagQuery: 'entertainment',
-  },
-};
+// Groups (THEMES) live in vocab.js as window.JP_DRILL_GROUPS (moved 2026-10-12)
+// - see the GROUPS note there for the fields. Each Group brings together words
+// from several VOCAB categories into one drillable screen without copying
+// them; its word list is worked out fresh each time (see getThemePool).
+const THEMES = window.JP_DRILL_GROUPS || {};
 
 // Every source category above is Level 2 or Trip - itemTierVisible
 // below is the single gate that applies to any tier an item's tags
@@ -4409,6 +3927,8 @@ function getThemePool(themeKey) {
     const dated = taught.filter(i => i.dateAdded);
     if (!dated.length) return [];
     const newest = dated.reduce((m, i) => (i.dateAdded > m ? i.dateAdded : m), '');
+    // 'batch' (2026-10-12, from the Portuguese app): only the newest dateAdded.
+    if (range === 'batch') return dated.filter(i => i.dateAdded === newest).sort(byEn);
     const from = new Date(newest + 'T00:00:00Z'); from.setUTCDate(from.getUTCDate() - (range === '2w' ? 13 : 6));
     const cutoff = from.toISOString().slice(0, 10);
     return dated.filter(i => i.dateAdded >= cutoff).sort(byEn);
@@ -5344,7 +4864,7 @@ function showVocabTileSelection(categoryKey) {
       const row = document.createElement('div');
       row.className = 'level-filter-row latest-range-row';
       const cur = appSettings.latestWordsRange || '1w';
-      [['1w', '1 week'], ['2w', '2 weeks'], ['level', 'This level']].forEach(([key, label]) => {
+      [['batch', 'Newest'], ['1w', '1 week'], ['2w', '2 weeks'], ['level', 'This level']].forEach(([key, label]) => {
         const btn = document.createElement('button');
         btn.className = 'level-pill' + (key === cur ? ' active' : '');
         btn.textContent = label;
@@ -8007,6 +7527,32 @@ const CAT_CONF_CLASSES = CONFIDENCE_BANDS.map(b => 'cat-conf-' + b);
 // computed over each theme's freshly-computed pool (getThemePool) rather
 // than a single VOCAB category's items, "so it's calculated in a very
 // similar way to the others" per Andrew - just a different item source.
+// Builds the Groups pill's cards from the data (2026-10-12) - replaces the
+// cards that used to be written into the HTML by hand.
+function renderGroupCards() {
+  const view = document.getElementById('match-theme-view');
+  if (!view) return;
+  view.innerHTML = '';
+  Object.keys(THEMES).filter(key => THEMES[key].show === 'groups').forEach(key => {
+    const card = document.createElement('div');
+    card.className = 'group-card cat-tile';
+    card.dataset.themeKey = key;
+    card.style.cursor = 'pointer';
+    card.onclick = () => showVocabTileSelection(key);
+    const top = document.createElement('div');
+    top.className = 'cat-tile-top';
+    const name = document.createElement('div');
+    name.className = 'group-name';
+    name.textContent = THEMES[key].label;
+    top.appendChild(name);
+    const bar = document.createElement('div');
+    bar.className = 'cat-bar';
+    card.append(top, bar);
+    view.appendChild(card);
+  });
+}
+renderGroupCards();
+
 function refreshThemeCategorySwatches() {
   orderThemeCards();
   document.querySelectorAll('#match-theme-view .group-card[data-theme-key]').forEach(card => {
@@ -9736,7 +9282,8 @@ function buildMatchCategoryList() {
     // TOURIST ESSENTIALS FIRST (2026-10-01) - ahead of Genki for anyone
     // switching Untaught on just to prepare for a trip (see
     // theme-tourist-essentials in THEMES).
-    container.appendChild(buildCategoryTile('theme-tourist-essentials'));
+    Object.keys(THEMES).filter(key => THEMES[key].show === 'untaught-top')
+      .forEach(key => container.appendChild(buildCategoryTile(key)));
     // Private vocab pack categories (e.g. Genki) - only present on a device
     // where the pack file has been loaded (see PRIVATE VOCAB PACKS).
     PRIVATE_VOCAB_KEYS.forEach(key => container.appendChild(buildCategoryTile(key)));
@@ -9756,11 +9303,8 @@ function buildMatchCategoryList() {
     // by label, then hands off to buildCategoryTile exactly as before. The
     // Object.keys(VOCAB).forEach loop below skips 'untaught' entirely now
     // so these five don't render a second time.
-    const untaughtThemeKeys = ['theme-stations-combined', 'theme-accommodation-combined',
-      'theme-emergency-combined', 'theme-food', 'theme-drink', 'theme-dining-phrases',
-      'theme-food-descriptions', 'theme-food-preparation', 'theme-shopping-combined',
-      'theme-signage-combined', 'theme-service-ops', 'theme-entertainment-combined',
-      'theme-profile-words'];
+    // Untaught Groups come from the data (show:'untaught', see vocab.js) - 2026-10-12.
+    const untaughtThemeKeys = Object.keys(THEMES).filter(key => THEMES[key].show === 'untaught');
     const untaughtVocabKeys = Object.keys(VOCAB).filter(key =>
       (VOCAB[key].level || 1) === 'untaught' && VOCAB[key].standaloneCard !== false);
     untaughtThemeKeys.concat(untaughtVocabKeys)
@@ -11099,32 +10643,7 @@ function showZodiacClockReference() {
 // attached to their own category, since a hub would just add an extra tap
 // to something that's already exactly where you'd look for it.
 function showGrammarNotesHub() {
-  vocabRefBackTarget = 'match-settings';
-  document.getElementById('vocab-ref-title').textContent = 'Grammar notes';
-  const list = document.getElementById('vocab-ref-list');
-  list.className = '';
-  list.innerHTML = '';
-  const entries = [
-    { label: 'を — the object particle', fn: showObjectParticleReference },
-    { label: 'で — two jobs (means vs. location of action)', fn: showLocationOfActionReference },
-    { label: 'だれも/どこも/なにも + negative', fn: showQuestionNegationReference },
-    { label: 'Sentence order (motion sentences)', fn: showSentenceStructureReference },
-    { label: 'Sentence order (を + object)', fn: showObjectSentenceOrderReference },
-    // Plain descriptions rather than embedding example verbs in hiragana -
-    // this list is already busy with real kana/kanji in several of the
-    // other labels above, and split into two cards (see
-    // VERB_CONJUGATION_TABLE_CORE's comment for why that split is real
-    // grammar, not just a fix for a crowded pill row).
-    { label: 'Verb tense & affirmative/negative', fn: showVerbConjugationReference },
-    { label: 'Object-taking verbs — tense & affirmative/negative', fn: showObjectVerbConjugationReference },
-  ];
-  entries.forEach(entry => {
-    const card = document.createElement('div');
-    card.className = 'vocab-ref-card';
-    card.innerHTML = `<span>${entry.label}</span><span class="vocab-ref-arrow">→</span>`;
-    card.onclick = entry.fn;
-    list.appendChild(card);
-  });
+  const list = renderGrammarHub(2);
   // The two external notes docs (sentence structure, Japanese vs English)
   // used to be Andrew-only, appended directly in buildMatchCategoryList
   // rather than living here - Andrew originally wanted them kept out of
@@ -11159,162 +10678,7 @@ function showGrammarNotesHub() {
   showScreen('vocab-reference');
 }
 
-// を marks the direct object of a verb - the thing being eaten, read,
-// bought, written, etc. New in Week 6 alongside the first batch of
-// object-taking verbs (see vocab-verbs-l2). The existing "Sentence order"
-// reference deliberately isn't extended to include を - that card models
-// one specific, standard teaching pattern (the Lesson 5 motion sentence:
-// topic/time/companion/means/destination/verb), and an object-taking
-// sentence (これはパンをたべます type patterns) is a genuinely different
-// sentence shape, not just one more slot bolted onto that one. Worth its
-// own interactive version eventually rather than forcing it into a shape
-// it doesn't fit - flagged separately rather than done here.
-const OBJECT_PARTICLE_EXAMPLES = [
-  { jp: 'パンを たべます。', romaji: 'Pan wo (o) tabemasu.', en: 'I eat bread.' },
-  { jp: 'コーヒーを のみます。', romaji: 'Koohii wo (o) nomimasu.', en: 'I drink coffee.' },
-  { jp: 'しんぶんを よみます。', romaji: 'Shinbun wo (o) yomimasu.', en: 'I read the newspaper.' },
-  { jp: 'てがみを かきます。', romaji: 'Tegami wo (o) kakimasu.', en: 'I write a letter.' },
-  { jp: 'しゃしんを とります。', romaji: 'Shashin wo (o) torimasu.', en: 'I take a photo.' },
-];
-function showObjectParticleReference() {
-  // Only reachable through the Grammar notes hub - see showGrammarNotesHub().
-  vocabRefBackTarget = 'grammar-notes-hub';
-  document.getElementById('vocab-ref-title').textContent = 'を — the object particle';
-  const list = document.getElementById('vocab-ref-list');
-  list.className = 'tight-list';
-  list.innerHTML = '';
-
-  const intro = document.createElement('div');
-  intro.className = 'verb-conj-note';
-  intro.textContent = 'を marks the thing a verb acts on - what\'s being eaten, drunk, read, bought, written, watched, listened to, taken, done, or smoked. It sits right after the object and right before the verb.';
-  list.appendChild(intro);
-
-  OBJECT_PARTICLE_EXAMPLES.forEach(ex => {
-    const row = document.createElement('div');
-    row.className = 'vocab-ref-row minute-row';
-    row.innerHTML = `
-      <div class="vocab-ref-jp minute-jp">${markSmallKana(ex.jp)}</div>
-      <div class="vocab-ref-romaji minute-romaji">${ex.romaji} — ${ex.en}</div>
-    `;
-    list.appendChild(row);
-  });
-
-  // Romaji note (2026-10-06): Level 2 was taught with を written "wo"; from
-  // Level 3 the class writes it "o". Kept as taught, with the newer form shown.
-  const romajiNote = document.createElement('div');
-  romajiNote.className = 'verb-conj-note';
-  romajiNote.textContent = 'Romaji: "wo (o)" - Level 2 wrote を as "wo", as it was taught then. From Level 3 it\'s written "o", which is how it\'s actually said. Same particle, same sound.';
-  list.appendChild(romajiNote);
-
-  const exception = document.createElement('div');
-  exception.className = 'verb-conj-note';
-  exception.innerHTML = `<strong>The one exception in this batch:</strong> あいます (to meet) takes に, not を - ともだちに あいます (I meet a friend), not ともだちを あいます. Meeting someone is treated as a shared/mutual action rather than something done to an object, which is why に (the same particle used for destinations and points in time) shows up instead.`;
-  list.appendChild(exception);
-
-  const l3Pointer = document.createElement('div');
-  l3Pointer.className = 'verb-conj-note';
-  l3Pointer.textContent = 'Level 3 builds on this - のみます with soup and medicine, and なにを vs なにも. See Level 3 → Grammar notes → "を — Level 3 additions".';
-  list.appendChild(l3Pointer);
-
-  showScreen('vocab-reference');
-}
-
-// で's second job. The Sentence order reference already covers で as
-// "means/how" (でんしゃで/くるまで - travelling BY some method) - this covers
-// its other, unrelated job: marking WHERE an action happens. Easy to
-// confuse with に, which marks where something/someone EXISTS or a
-// destination, not where an action takes place.
-const LOCATION_OF_ACTION_EXAMPLES = [
-  { jp: 'カフェで コーヒーを のみます。', romaji: 'Kafe de koohii wo (o) nomimasu.', en: 'I drink coffee at the café.', particle: 'で', note: 'the café is where the drinking happens' },
-  { jp: 'カフェに います。', romaji: 'Kafe ni imasu.', en: 'I am at the café.', particle: 'に', note: 'the café is just where I exist, no action happening to it' },
-  { jp: 'しょくどうで ひるごはんを たべます。', romaji: 'Shokudou de hirugohan wo (o) tabemasu.', en: 'I eat lunch at the canteen.', particle: 'で', note: 'the canteen is where the eating happens' },
-  { jp: 'がっこうに いきます。', romaji: 'Gakkou ni ikimasu.', en: 'I go to school.', particle: 'に', note: 'destination of a motion verb, not an action happening there' },
-];
-function showLocationOfActionReference() {
-  // Only reachable through the Grammar notes hub - see showGrammarNotesHub().
-  vocabRefBackTarget = 'grammar-notes-hub';
-  document.getElementById('vocab-ref-title').textContent = 'で — means vs. location of action';
-  const list = document.getElementById('vocab-ref-list');
-  list.className = 'tight-list';
-  list.innerHTML = '';
-
-  const intro = document.createElement('div');
-  intro.className = 'verb-conj-note';
-  intro.textContent = 'で already marks the method/tool for getting somewhere (でんしゃで, くるまで). Its other job: marking WHERE an action takes place. Contrast that with に, which marks where something exists, or a destination - never where an action happens.';
-  list.appendChild(intro);
-
-  const l3Pointer = document.createElement('div');
-  l3Pointer.className = 'verb-conj-note';
-  l3Pointer.textContent = 'Level 3 builds on this with the places and rooms from Lesson 2, and how to ask どこで…? / [place]で なにを…? See Level 3 → Grammar notes → "Place + で".';
-  list.appendChild(l3Pointer);
-
-  LOCATION_OF_ACTION_EXAMPLES.forEach(ex => {
-    const row = document.createElement('div');
-    row.className = 'vocab-ref-row two-col minute-row';
-    row.innerHTML = `
-      <div class="vocab-ref-col-left">
-        <div>
-          <div class="vocab-ref-jp minute-jp">${markSmallKana(ex.jp)}</div>
-          <div class="vocab-ref-romaji minute-romaji">${ex.romaji}</div>
-        </div>
-      </div>
-      <div class="vocab-ref-col-right">
-        <div class="vocab-ref-romaji minute-romaji">${ex.en}</div>
-        <div class="vocab-ref-romaji minute-romaji">${markSmallKana(ex.particle)} — ${ex.note}</div>
-      </div>
-    `;
-    list.appendChild(row);
-  });
-
-  showScreen('vocab-reference');
-}
-
-// Question word + も + negative = "deny everything" - だれも/どこも/なにも all
-// work this way with a negative verb (だれも きません, どこも いきません, なにも
-// たべません). いつ deliberately isn't included here even though it's one of
-// the same question words used elsewhere in the app (vocab-question-location,
-// and the sentence-order reference's Time slot) - いつも is already a fixed
-// idiom meaning "always", not "never", so showing it alongside だれも/どこも/
-// なにも as if it followed the same pattern would be teaching something
-// actively wrong. Better to flag the gap explicitly than paper over it.
-const QUESTION_NEGATION_TABLE = [
-  { combined: 'だれも', combinedRomaji: 'dare mo', en: 'nobody', example: { jp: 'だれも きません。', romaji: 'Dare mo kimasen.', en: 'Nobody is coming.' } },
-  // どこ keeps its particle before も in careful speech - どこへも / どこにも
-  // (Minna no Nihongo writes どこ[へ]も: the へ is optional). (2026-10-06 audit)
-  { combined: 'どこ(へ)も', combinedRomaji: 'doko (e) mo', en: 'nowhere', example: { jp: 'どこ(へ)も いきません。', romaji: 'Doko (e) mo ikimasen.', en: "I'm not going anywhere." } },
-  { combined: 'なにも', combinedRomaji: 'nani mo', en: 'nothing', example: { jp: 'なにも たべません。', romaji: 'Nani mo tabemasen.', en: "I'm not eating anything." } },
-];
-
-function showQuestionNegationReference() {
-  // Only reachable through the Grammar notes hub now - see showGrammarNotesHub().
-  vocabRefBackTarget = 'grammar-notes-hub';
-  document.getElementById('vocab-ref-title').textContent = 'Question word + も + negative';
-  const list = document.getElementById('vocab-ref-list');
-  list.className = 'tight-list';
-  list.innerHTML = '';
-  QUESTION_NEGATION_TABLE.forEach(q => {
-    const row = document.createElement('div');
-    row.className = 'vocab-ref-row two-col minute-row';
-    row.innerHTML = `
-      <div class="vocab-ref-col-left">
-        <div>
-          <div class="vocab-ref-jp minute-jp">${markSmallKana(q.combined)}</div>
-          <div class="vocab-ref-romaji minute-romaji">${q.combinedRomaji} — ${q.en}</div>
-        </div>
-      </div>
-      <div class="vocab-ref-col-right">
-        <div class="vocab-ref-jp minute-jp qneg-example-jp">${markSmallKana(q.example.jp)}</div>
-        <div class="vocab-ref-romaji minute-romaji">${q.example.en}</div>
-      </div>
-    `;
-    list.appendChild(row);
-  });
-  const note = document.createElement('div');
-  note.className = 'verb-conj-note';
-  note.textContent = 'いつ (when) is deliberately left out here - いつも already means "always" as a fixed idiom, not "never", so it doesn\'t follow this pattern the way だれ/どこ/なに do. Watch out for that one.';
-  list.appendChild(note);
-  showScreen('vocab-reference');
-}
+// を / で two jobs / question word + も cards moved to grammar.js (2026-10-12).
 
 // The standard Minna no Nihongo Lesson 5 "motion sentence" slot order -
 // [topic]は [time]に [companion]と [means]で [destination]に 行きます(か)。
@@ -12039,34 +11403,59 @@ function shuffleObjectSentenceExample() {
 // here. Back from any card below returns to this hub via the
 // 'grammar-notes-hub-l3' target (see closeVocabReference).
 function showGrammarNotesHubL3() {
+  renderGrammarHub(3);
+  showScreen('vocab-reference');
+}
+
+// GRAMMAR NOTES AS DATA (2026-10-12) - hubs and plain cards come from
+// grammar.js (window.JP_DRILL_GRAMMAR); see the note at the top of that file.
+const GRAMMAR = window.JP_DRILL_GRAMMAR || { hubs: {}, cards: {} };
+function renderGrammarHub(level) {
+  const hub = GRAMMAR.hubs[level] || { title: 'Grammar notes', entries: [] };
   vocabRefBackTarget = 'match-settings';
-  document.getElementById('vocab-ref-title').textContent = 'Grammar notes — Level 3';
+  document.getElementById('vocab-ref-title').textContent = hub.title;
   const list = document.getElementById('vocab-ref-list');
   list.className = '';
   list.innerHTML = '';
-  const entries = [
-    { label: 'Frequency words — いつも/よく/ときどき/あまり/ぜんぜん', fn: showFrequencyReference },
-    { label: 'Sentence order — doing something / going somewhere', fn: showL3SentenceOrderReference },
-    { label: 'を — Level 3 additions', fn: showObjectParticleL3Reference },
-    { label: 'と vs や — "and" in a list', fn: showToYaReference },
-    { label: 'それから / そして — "and then" vs "and also"', fn: showSorekaraReference },
-    { label: 'なん vs なに — two ways to say "what"', fn: showNanNaniReference },
-    { label: 'Noun + します', fn: showNounShimasuReference },
-    { label: 'お / ご — the polite prefix (ごしゅみ, おなまえ…)', fn: showPolitePrefixReference },
-    // Lesson 2 (2026-10-06)
-    { label: 'どんな — "what kind of…?"', fn: showDonnaReference },
-    { label: 'Place + で — where something happens', fn: showPlaceDeReference },
-    { label: 'My family vs someone else\'s (+ と "with")', fn: showFamilyL3Reference },
-    // 2026-10-07: replaces per-verb pill screens - every verb's own forms
-    // are one hold-and-slide away on any word list (showVerbFormsPopup).
-    { label: 'How verbs conjugate — ます / ません / ました / ませんでした', fn: showVerbConjugationL3Reference },
-  ];
-  entries.forEach(entry => {
+  hub.entries.forEach(entry => {
+    const fn = entry.card ? () => showGrammarCard(entry.card) : window[entry.fn];
+    if (typeof fn !== 'function') return;
     const card = document.createElement('div');
     card.className = 'vocab-ref-card';
     card.innerHTML = `<span>${entry.label}</span><span class="vocab-ref-arrow">→</span>`;
-    card.onclick = entry.fn;
+    card.onclick = fn;
     list.appendChild(card);
+  });
+  return list;
+}
+function showGrammarCard(key) {
+  const card = GRAMMAR.cards[key];
+  if (!card) return;
+  const level = Object.keys(GRAMMAR.hubs).find(l => GRAMMAR.hubs[l].entries.some(e => e.card === key));
+  const list = l3RefOpen(card.title);
+  vocabRefBackTarget = String(level) === '3' ? 'grammar-notes-hub-l3' : 'grammar-notes-hub';
+  card.blocks.forEach(([type, a, b, c, d]) => {
+    if (type === 'heading') l3Heading(list, a);
+    else if (type === 'note') l3Note(list, a);
+    else if (type === 'ex') l3Example(list, a, b, c);
+    else if (type === 'two') l3TwoCol(list, a, b, c, d);
+    else if (type === 'two-en') {
+      const row = document.createElement('div');
+      row.className = 'vocab-ref-row two-col minute-row';
+      row.innerHTML = `
+      <div class="vocab-ref-col-left">
+        <div>
+          <div class="vocab-ref-jp minute-jp">${markSmallKana(a)}</div>
+          <div class="vocab-ref-romaji minute-romaji">${b}</div>
+        </div>
+      </div>
+      <div class="vocab-ref-col-right">
+        <div class="vocab-ref-romaji minute-romaji">${c}</div>
+        <div class="vocab-ref-romaji minute-romaji">${markSmallKana(d)}</div>
+      </div>
+    `;
+      list.appendChild(row);
+    }
   });
   showScreen('vocab-reference');
 }
@@ -12133,27 +11522,8 @@ const L3_FREQ_WORDS = [
   { jp: 'あまり', romaji: 'amari', en: 'not often / seldom', neg: true },
   { jp: 'ぜんぜん', romaji: 'zenzen', en: 'never / not at all', neg: true },
 ];
-function showFrequencyReference() {
-  const list = l3RefOpen('Frequency words');
-  l3Note(list, 'Frequency words say how often you do something. They go after the topic (and after a time word like あさ, if there is one), before the object — and they take no particle.');
-  L3_FREQ_WORDS.forEach(f => l3TwoCol(list, f.jp, `${f.romaji} — ${f.en}`, f.neg ? '…ません' : '…ます', f.neg ? 'negative verb only' : 'positive verb'));
-  l3Note(list, '<strong>The rule:</strong> いつも, よく and ときどき go with a positive verb (…ます). あまり and ぜんぜん only ever go with a negative verb (…ません) — あまり たべます is wrong. English "never" is negative on its own ("I never eat meat"), but in Japanese the verb has to be negative as well: ぜんぜん たべません.');
-  l3Heading(list, 'Examples');
-  l3Example(list, 'わたしは いつも コーヒーを のみます。', 'Watashi wa itsumo koohii o nomimasu.', 'I always drink coffee.');
-  l3Example(list, 'わたしは よく パスタを たべます。', 'Watashi wa yoku pasuta o tabemasu.', 'I often eat pasta.');
-  l3Example(list, 'わたしは ときどき ざっしを よみます。', 'Watashi wa tokidoki zasshi o yomimasu.', 'I sometimes read magazines.');
-  l3Example(list, 'わたしは あまり にくを たべません。', 'Watashi wa amari niku o tabemasen.', "I don't eat meat much.");
-  l3Example(list, 'わたしは ぜんぜん ゴルフを しません。', 'Watashi wa zenzen gorufu o shimasen.', 'I never play golf.');
-  l3Example(list, 'わたしは あさ いつも ヨーグルトや くだものを たべます。', 'Watashi wa asa itsumo yooguruto ya kudamono o tabemasu.', 'In the morning I always eat things like yoghurt and fruit.');
-  l3Heading(list, 'Answering a question');
-  l3Example(list, 'コーヒーを のみますか。', 'Koohii o nomimasu ka.', 'Do you drink coffee?');
-  l3Example(list, 'はい、よく のみます。', 'Hai, yoku nomimasu.', 'Yes, often.');
-  l3Example(list, 'いいえ、あまり のみません。', 'Iie, amari nomimasen.', 'No, not often.');
-  l3Example(list, 'いいえ、ぜんぜん のみません。', 'Iie, zenzen nomimasen.', 'No, never.');
-  l3Note(list, 'In a short answer the object is usually dropped — just はい/いいえ + frequency word + verb. はい goes with いつも/よく/ときどき, いいえ with あまり/ぜんぜん.');
-  l3Note(list, 'まいにち (every day) and まいあさ (every morning) are time words rather than frequency words — they don\'t force the verb either way, so it can be positive or negative, whichever is true.');
-  showScreen('vocab-reference');
-}
+// Frequency words card: grammar.js ('frequency'). L3_FREQ_WORDS above stays -
+// the sentence engine uses it (SG_FREQ).
 
 // --- Sentence order, L3 version (を + object + frequency) ---
 // Extends the L2 "Sentence order (を + object)" card (showObjectSentence
@@ -12670,212 +12040,8 @@ function shuffleL3SentenceExample() {
   renderL3SentenceExample();
 }
 
-// --- を, Level 3 additions ---
-function showObjectParticleL3Reference() {
-  const list = l3RefOpen('を — Level 3 additions');
-  l3Note(list, 'Everything on the Level 2 を card still applies. Lesson 1 added these.');
-  l3Heading(list, 'のみます is wider than "drink"');
-  l3Example(list, 'よる スープを のみます。', 'Yoru suupu o nomimasu.', 'I have soup in the evening.');
-  l3Example(list, 'まいあさ くすりを のみます。', 'Maiasa kusuri o nomimasu.', 'I take medicine every morning.');
-  l3Note(list, 'Medicine is "drunk" in Japanese — くすりを のみます, never とります. Soup can take either verb: のみます or たべます.');
-  l3Heading(list, 'なにを vs なにも');
-  l3Example(list, 'なにを のみますか。', 'Nani o nomimasu ka.', 'What do you drink?');
-  l3Example(list, 'なにも のみません。', 'Nani mo nomimasen.', "I don't drink anything.");
-  l3Note(list, 'も replaces を — it\'s なにも, never なにをも — and the verb must be negative. The Level 2 "だれも/どこも/なにも + negative" card has the full pattern.');
-  l3Heading(list, 'Past tense question and answers');
-  l3Example(list, 'けさ コーヒーを のみましたか。', 'Kesa koohii o nomimashita ka.', 'Did you drink coffee this morning?');
-  l3Example(list, 'はい、のみました。', 'Hai, nomimashita.', 'Yes, I did.');
-  l3Example(list, 'いいえ、のみませんでした。', 'Iie, nomimasen deshita.', "No, I didn't.");
-  l3Note(list, 'All four forms of every verb are on the Level 2 verb tense cards.');
-  showScreen('vocab-reference');
-}
-
-// --- と vs や ---
-function showToYaReference() {
-  const list = l3RefOpen('と vs や — "and" in a list');
-  l3Note(list, 'Both join nouns in a list, like "and" — but they say different things about the list.');
-  l3Example(list, 'ピザと サラダ', 'piza to sarada', 'と = the complete list: pizza and salad — that\'s all');
-  l3Example(list, 'ピザや サラダ', 'piza ya sarada', 'や = examples from a longer list: things like pizza and salad (and pasta, soup…)');
-  l3Heading(list, 'Examples');
-  l3Example(list, 'よる ピザと サラダを たべます。', 'Yoru piza to sarada o tabemasu.', 'In the evening I eat pizza and salad.');
-  l3Example(list, 'よる ピザや サラダを たべます。', 'Yoru piza ya sarada o tabemasu.', 'In the evening I eat things like pizza and salad.');
-  l3Example(list, 'しゅうまつは テニスや ゴルフを します。', 'Shuumatsu wa tenisu ya gorufu o shimasu.', 'At weekends I play things like tennis and golf.');
-  l3Example(list, 'しゅみは どくしょと りょこうです。', 'Shumi wa dokusho to ryokou desu.', 'My hobbies are reading and travel.');
-  l3Note(list, 'You can chain more than two: カラオケと ダンスと ガーデニング. Neither と nor や can join two sentences — to say "and then" between two actions, use それから (see its card).');
-  l3Note(list, 'Don\'t mix up this と ("and") with the と from Level 2\'s motion sentences, which means "with": ともだちと いきます — I go with a friend.');
-  showScreen('vocab-reference');
-}
-
-// --- それから ---
-function showSorekaraReference() {
-  const list = l3RefOpen('それから and そして');
-  l3Note(list, 'それから means "and then / after that". It starts the second sentence, linking two actions in the order they happen.');
-  l3Example(list, 'しごとを します。それから ジムへ いきます。', 'Shigoto o shimasu. Sorekara jimu e ikimasu.', 'I work. Then I go to the gym.');
-  l3Example(list, 'ばんごはんを たべました。それから ニュースを みました。', 'Bangohan o tabemashita. Sorekara nyuusu o mimashita.', 'I had dinner. After that I watched the news.');
-  l3Example(list, 'どようびに こうえんへ いきました。それから カフェで コーヒーを のみました。', 'Doyoubi ni kouen e ikimashita. Sorekara kafe de koohii o nomimashita.', 'On Saturday I went to the park. Then I had a coffee at a café.');
-  l3Note(list, 'The first sentence ends with 。 as normal and それから begins the next one. It works in any tense — both sentences usually share it (both ます, or both ました). This is how to join two actions, since と and や can only join nouns.');
-  l3Heading(list, 'そして — "and (also)"');
-  l3Example(list, 'パンを たべます。そして コーヒーを のみます。', 'Pan o tabemasu. Soshite koohii o nomimasu.', 'I eat bread, and I drink coffee.');
-  l3Note(list, 'そして also starts the second sentence, but it <strong>adds</strong> rather than putting things in order: "and / and also". それから stresses order: "after that, next". If one thing clearly happens after the other, それから is the safer choice; そして sounds a little more formal or written.');
-  l3Note(list, 'They overlap a bit: in conversation それから can also mean "and also…" when you\'re adding to a list. そして can show order too, especially in writing, but its core idea is adding.');
-  l3Heading(list, 'Time words from the lesson');
-  l3Example(list, 'けさ', 'kesa', 'this morning');
-  l3Example(list, 'おととい', 'ototoi', 'the day before yesterday');
-  l3Example(list, 'しゅうまつ', 'shuumatsu', 'the weekend');
-  l3Example(list, 'よる', 'yoru', 'evening / night');
-  l3Example(list, 'にちようび', 'nichiyoubi', 'Sunday');
-  l3Example(list, 'あさって', 'asatte', 'the day after tomorrow');
-  l3Note(list, 'The time word decides the tense: a past one (けさ, おととい) needs ました, a future one (あさって) needs ます, and しゅうまつ, よる and にちようび can go either way depending on which one you mean.');
-  showScreen('vocab-reference');
-}
-
-// --- なん vs なに ---
-function showNanNaniReference() {
-  const list = l3RefOpen('なん vs なに');
-  l3Note(list, 'Both mean "what". Which one you use depends on what comes straight after it.');
-  l3Heading(list, 'なん (1) — before た/だ/な-row sounds');
-  l3Note(list, 'That\'s た ち つ て と, だ ぢ づ で ど, な に ぬ ね の — in practice, before です, の and と.');
-  l3Example(list, 'これは なんですか。', 'Kore wa nan desu ka.', 'What is this?');
-  l3Example(list, 'なんの ほんですか。', 'Nan no hon desu ka.', 'What book is it?');
-  l3Example(list, 'これは えいごで なんと いいますか。', 'Kore wa eigo de nan to iimasu ka.', 'What is this called in English?');
-  l3Heading(list, 'なん (2) — before a counter');
-  l3Example(list, 'なんじ', 'nanji', 'what time');
-  l3Example(list, 'なんさい', 'nansai', 'how old');
-  l3Example(list, 'なんがい', 'nangai', 'which floor');
-  l3Example(list, 'なんがつ', 'nangatsu', 'which month');
-  l3Example(list, 'なんにち', 'nannichi', 'which day of the month');
-  l3Heading(list, 'なに — everything else');
-  l3Example(list, 'なにを よみますか。', 'Nani o yomimasu ka.', 'What do you read?');
-  l3Example(list, 'なにを しますか。', 'Nani o shimasu ka.', 'What will you do?');
-  l3Example(list, 'なにも かいません。', 'Nani mo kaimasen.', "I'm not buying anything.");
-  l3Note(list, '<strong>Quick check:</strong> if the next sound is です, の, と or a counter → なん. Before を, も and anything else → なに.');
-  showScreen('vocab-reference');
-}
-
-// ==== LEVEL 3 LESSON 2 GRAMMAR CARDS (2026-10-06) ====
-// Example sentences written fresh (not copied from the handout), and kept
-// clear of that week's homework (にわ/ロビー/それから picture story).
-// --- どんな ---
-function showDonnaReference() {
-  const list = l3RefOpen('どんな — "what kind of…?"');
-  l3Note(list, 'どんな goes straight in front of a noun and asks <strong>what kind</strong> of that thing. To answer, put the kind where どんな was.');
-  l3Example(list, 'どんな おんがくを ききますか。', 'Donna ongaku o kikimasu ka.', 'What kind of music do you listen to?');
-  l3Example(list, 'ポップスを ききます。', 'Poppusu o kikimasu.', 'I listen to pop music.');
-  l3Example(list, 'どんな スポーツを しますか。', 'Donna supootsu o shimasu ka.', 'What kind of sport do you do?');
-  l3Example(list, 'テニスを します。', 'Tenisu o shimasu.', 'I play tennis.');
-  l3Heading(list, 'Naming the kind');
-  l3Note(list, 'Often the kind is just another noun in front: みそ ラーメン, とんこつ ラーメン, しょうゆ ラーメン. Or use の: にほんの えいが, "Japanese films".');
-  l3Example(list, 'どんな ドラマを みますか。', 'Donna dorama o mimasu ka.', 'What kind of dramas do you watch?');
-  l3Example(list, 'かんこくの ドラマを みます。', 'Kankoku no dorama o mimasu.', 'I watch Korean dramas.');
-  l3Example(list, 'きのう どんな ラーメンを たべましたか。', 'Kinou donna raamen o tabemashita ka.', 'What kind of ramen did you eat yesterday?');
-  l3Example(list, 'とんこつ ラーメンを たべました。', 'Tonkotsu raamen o tabemashita.', 'I ate tonkotsu ramen.');
-  l3Heading(list, 'サンド — short for サンドイッチ');
-  l3Example(list, 'たまごサンド', 'tamago sando', 'egg sandwich');
-  l3Example(list, 'ツナサンド', 'tsuna sando', 'tuna sandwich');
-  l3Example(list, 'ハムサンド', 'hamu sando', 'ham sandwich');
-  l3Note(list, 'Filling + サンド, written as one word. サンドイッチ on its own is the general word.');
-  l3Heading(list, 'どんな vs なに');
-  l3Example(list, 'なにを たべますか。', 'Nani o tabemasu ka.', 'What do you eat? (ramen? pizza?)');
-  l3Example(list, 'どんな ラーメンを たべますか。', 'Donna raamen o tabemasu ka.', 'What kind of ramen do you eat?');
-  l3Note(list, 'なに asks which thing; どんな already knows the thing and asks what kind. どんな can\'t stand alone — it always needs its noun after it (never ✗ どんなを).');
-  showScreen('vocab-reference');
-}
-
-// --- Place + で ---
-function showPlaceDeReference() {
-  const list = l3RefOpen('Place + で');
-  l3Note(list, 'で after a place says <strong>where the action happens</strong>. It goes after the time word and before the object.');
-  l3Example(list, 'としょかんで ほんを よみます。', 'Toshokan de hon o yomimasu.', 'I read books at the library.');
-  l3Example(list, 'うみで およぎます。', 'Umi de oyogimasu.', 'I swim in the sea.');
-  l3Example(list, 'ちちは まいあさ こうえんで うんどうします。', 'Chichi wa maiasa kouen de undoushimasu.', 'My father exercises in the park every morning.');
-  l3Example(list, 'ともだちは にちようびに いなかで ドライブを します。', 'Tomodachi wa nichiyoubi ni inaka de doraibu o shimasu.', 'My friend goes for a drive in the countryside on Sundays.');
-  l3Heading(list, 'で vs に / へ');
-  l3Example(list, 'こうえんに いきます。', 'Kouen ni ikimasu.', 'I go to the park. (where you\'re going)');
-  l3Example(list, 'こうえんで ジョギングを します。', 'Kouen de jogingu o shimasu.', 'I go jogging in the park. (where it happens)');
-  l3Note(list, 'いきます, きます and かえります take に or へ — the place is a destination. います / あります ("to be", "there is") take に too — where something <em>is</em>. Almost every other verb, when it happens somewhere, takes で.');
-  l3Heading(list, 'Asking where, and what');
-  l3Example(list, 'どこで しゃしんを とりますか。', 'Doko de shashin o torimasu ka.', 'Where do you take photos?');
-  l3Example(list, 'どうぶつえんで とります。', 'Doubutsuen de torimasu.', 'At the zoo.');
-  l3Example(list, 'だいどころで なにを しますか。', 'Daidokoro de nani o shimasu ka.', 'What do you do in the kitchen?');
-  l3Example(list, 'りょうりを します。', 'Ryouri o shimasu.', 'I cook.');
-  l3Note(list, 'Answering, you can drop what the question already said: どこで…? → just the place + で + verb.');
-  l3Heading(list, 'Two things to watch');
-  l3Note(list, 'This is the same で as Level 2\'s でんしゃで ("by train") — one particle, two jobs; the noun in front tells you which. (The Level 2 で card has both side by side.)');
-  l3Note(list, 'いま is two words: "now" (今) and "living room" (居間). いまで テレビを みます can only be the room — "now" never takes で.');
-  showScreen('vocab-reference');
-}
-
-// --- Family: mine vs someone else's ---
-function showFamilyL3Reference() {
-  const list = l3RefOpen('My family vs someone else\'s');
-  l3Note(list, 'Japanese has two sets of family words. Use the <strong>plain</strong> word for your own family when talking to someone outside it, and the <strong>polite</strong> word for anyone else\'s family. The plain word already means "my" — no わたしの needed.');
-  [['ちち', 'chichi — my father', 'おとうさん', 'otousan — father'], ['はは', 'haha — my mother', 'おかあさん', 'okaasan — mother'],
-   ['あに', 'ani — my older brother', 'おにいさん', 'oniisan — older brother'], ['あね', 'ane — my older sister', 'おねえさん', 'oneesan — older sister'],
-   ['おとうと', 'otouto — my younger brother', 'おとうとさん', 'otoutosan — younger brother'], ['いもうと', 'imouto — my younger sister', 'いもうとさん', 'imoutosan — younger sister'],
-   ['そふ', 'sofu — my grandfather', 'おじいさん', 'ojiisan — grandfather'], ['そぼ', 'sobo — my grandmother', 'おばあさん', 'obaasan — grandmother'],
-   ['しゅじん / おっと', 'shujin / otto — my husband', 'ごしゅじん', 'goshujin — husband'], ['かない / つま', 'kanai / tsuma — my wife', 'おくさん', 'okusan — wife'],
-   ['むすこ', 'musuko — my son', 'むすこさん', 'musukosan — son'], ['むすめ', 'musume — my daughter', 'むすめさん', 'musumesan — daughter']]
-    .forEach(([a, as, b, bs]) => l3TwoCol(list, a, as, b, bs));
-  l3Note(list, 'Left: my own family. Right: someone else\'s.');
-  l3Example(list, 'ははは まいにち こうえんに いきます。', 'Haha wa mainichi kouen ni ikimasu.', 'My mother goes to the park every day.');
-  l3Example(list, 'たなかさんの おかあさんは まいにち こうえんに いきます。', 'Tanaka-san no okaasan wa mainichi kouen ni ikimasu.', 'Tanaka-san\'s mother goes to the park every day.');
-  l3Note(list, 'Talking <strong>to</strong> your own mother, you call her おかあさん — the polite word is also what you use to address older members of your own family.');
-  l3Heading(list, 'しゅじん / おっと and かない / つま');
-  l3Note(list, 'Both pairs mean "my husband" and "my wife". しゅじん and かない are the traditional words (literally "master" and "inside the house"); many people now prefer the neutral おっと and つま. The app marks them (traditional) and (neutral) so they don\'t count as the same answer.');
-  l3Heading(list, 'と — who you do it with');
-  l3Example(list, 'わたしは あねと えいがかんに いきます。', 'Watashi wa ane to eigakan ni ikimasu.', 'I\'m going to the cinema with my older sister.');
-  l3Example(list, 'だれと いきますか。', 'Dare to ikimasu ka.', 'Who are you going with?');
-  l3Example(list, 'どうりょうと いきます。', 'Douryou to ikimasu.', 'With a colleague.');
-  l3Example(list, 'ひとりで いきます。', 'Hitori de ikimasu.', 'On my own.');
-  l3Note(list, '<strong>One topic only.</strong> ✗ わたしと あねは… makes two people the topic. Keep one person as the topic with は and put the other with と: ✓ わたしは あねと…');
-  showScreen('vocab-reference');
-}
-
-// --- お / ご polite prefix (ごしゅみ on the September 2026 sheet) ---
-// Written as rules on purpose - Andrew asked for the rule behind phrases the
-// class is otherwise just expected to remember.
-function showPolitePrefixReference() {
-  const list = l3RefOpen('お / ご — the polite prefix');
-  l3Note(list, 'お and ご go on the front of a noun to make it polite. When you ask about someone else\'s things, they do the job of "your". (The September sheet calls ご a suffix, but it always goes at the front.)');
-  l3Heading(list, 'Rule 1 — their things, never yours');
-  l3Example(list, 'ごしゅみは？', 'Go-shumi wa?', 'What are your hobbies?');
-  l3Example(list, 'わたしの しゅみは カラオケです。', 'Watashi no shumi wa karaoke desu.', 'My hobby is karaoke.');
-  l3Example(list, 'おなまえは？', 'O-namae wa?', "What's your name?");
-  l3Note(list, 'Asking → add it. Answering about yourself → drop it. Putting ご on your own hobby is like calling your own name "your honourable name".');
-  l3Heading(list, 'Rule 2 — お or ご?');
-  l3Note(list, '<strong>ご</strong> goes on words that came into Japanese from Chinese — usually two kanji read the Chinese way. <strong>お</strong> goes on native Japanese words. You can\'t always tell yet, so learn each word together with its prefix.');
-  l3TwoCol(list, 'ごしゅみ', 'go-shumi — hobbies', 'ごかぞく', 'go-kazoku — family');
-  l3TwoCol(list, 'おなまえ', 'o-namae — name', 'おしごと', 'o-shigoto — job');
-  l3TwoCol(list, 'おくに', 'o-kuni — country', 'おでんわ', 'o-denwa — phone ⚠');
-  l3Note(list, '⚠ Exceptions: でんわ and べんきょう are Chinese-origin words but take お (おでんわ, おべんきょう). Very everyday words are the ones most likely to break the rule.');
-  l3Heading(list, 'Rule 3 — some words always have お');
-  l3TwoCol(list, 'おちゃ', 'o-cha — tea', 'おさけ', 'o-sake — alcohol');
-  l3TwoCol(list, 'おはなみ', 'o-hanami — flower viewing', 'おつきみ', 'o-tsukimi — moon viewing');
-  l3Note(list, 'Here お doesn\'t mean "your" at all — it\'s just part of how the word is normally said, to sound nicer. You say おちゃを のみます about your own tea. In compound words the お drops off: にほんちゃ and こうちゃ, not おにほんちゃ.');
-  l3Heading(list, 'Rule 4 — not on katakana words');
-  l3Note(list, 'Loanwords in katakana almost never take お/ご: it\'s テニス, never おテニス. The one you\'ll hear most is おトイレ, used to sound polite.');
-  l3Note(list, 'The same お/ご is fixed into greetings you already know: おはようございます, おねがいします, ごちそうさまでした.');
-  showScreen('vocab-reference');
-}
-
-// --- Noun + します ---
-function showNounShimasuReference() {
-  const list = l3RefOpen('Noun + します');
-  l3Note(list, 'します means "do". Put a noun in front with を and it becomes "do [that thing]" — sport, study, work, and lots of activities.');
-  l3Example(list, 'しゅうまつに サッカーを します。', 'Shuumatsu ni sakkaa o shimasu.', 'I play football at the weekend.');
-  l3Example(list, 'よる べんきょうを します。', 'Yoru benkyou o shimasu.', 'I study in the evening.');
-  l3Example(list, 'あした しごとを します。', 'Ashita shigoto o shimasu.', "I'm working tomorrow.");
-  l3Example(list, 'ときどき ゲームを します。', 'Tokidoki geemu o shimasu.', 'I sometimes play games.');
-  l3Heading(list, 'Two ways to say "I study English"');
-  l3Example(list, 'えいごを べんきょうします。', 'Eigo o benkyou shimasu.', 'object えいご + verb べんきょうします');
-  l3Example(list, 'えいごの べんきょうを します。', 'Eigo no benkyou o shimasu.', '"English study" as one noun + を します');
-  l3Note(list, 'Same meaning. In the first, べんきょうします is one verb and えいご is its object. In the second, べんきょう is a noun, えいごの describes it, and the whole thing is the object of します. What you can\'t do is put two を in one sentence: えいごを べんきょうを します ✗.');
-  l3Heading(list, 'Activities used with します');
-  [['バーベキュー', 'baabekyuu', 'have a barbecue'], ['ピクニック', 'pikunikku', 'have a picnic'], ['アフタヌーンティー', 'afutanuun tii', 'have afternoon tea'], ['パーティー', 'paatii', 'have a party'], ['ドライブ', 'doraibu', 'go for a drive'], ['サイクリング', 'saikuringu', 'go cycling'], ['ウォーキング', 'wookingu', 'go walking'], ['すいえい', 'suiei', 'go swimming'], ['スキー', 'sukii', 'go skiing'], ['ゴルフ', 'gorufu', 'play golf'], ['サッカー', 'sakkaa', 'play football'], ['ゲーム', 'geemu', 'play games'], ['じゅうどう', 'juudou', 'do judo'], ['ダンス', 'dansu', 'dance'], ['カラオケ', 'karaoke', 'do karaoke'], ['ガーデニング', 'gaadeningu', 'do gardening'], ['りょうり', 'ryouri', 'cook']]
-    .forEach(([jp, ro, en]) => l3Example(list, jp + 'を します', ro + ' o shimasu', en));
-  l3Note(list, 'Not every hobby word works this way — えいが and おんがく use their own verbs: えいがを みます, おんがくを ききます.');
-  showScreen('vocab-reference');
-}
+// Level 3 plain grammar cards (を additions, と/や, それから, なん/なに, どんな,
+// place + で, family, お/ご, noun + します) moved to grammar.js (2026-10-12).
 
 function showVocabReference(categoryKey) {
   // vocab-tile-selection (2026-08-31, was match-settings) - this generic
