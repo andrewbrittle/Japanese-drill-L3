@@ -17,17 +17,19 @@
 window.JP_DRILL_GRAMMAR = {
   hubs: {
     2: { title: "Grammar notes", entries: [
-      {"label": "を — the object particle", "card": "object-particle"},
-      {"label": "で — two jobs (means vs. location of action)", "card": "de-two-jobs"},
-      {"label": "だれも/どこも/なにも + negative", "card": "question-negation"},
       {"label": "Sentence order (motion sentences)", "fn": "showSentenceStructureReference"},
       {"label": "Sentence order (を + object)", "fn": "showObjectSentenceOrderReference"},
       {"label": "Verb tense & affirmative/negative", "fn": "showVerbConjugationReference"},
       {"label": "Object-taking verbs — tense & affirmative/negative", "fn": "showObjectVerbConjugationReference"},
+      {"label": "を — the object particle", "card": "object-particle"},
+      {"label": "で — two jobs (means vs. location of action)", "card": "de-two-jobs"},
+      {"label": "だれも/どこも/なにも + negative", "card": "question-negation"},
     ] },
     3: { title: "Grammar notes — Level 3", entries: [
-      {"label": "Frequency words — いつも/よく/ときどき/あまり/ぜんぜん", "card": "frequency"},
       {"label": "Sentence order — doing something / going somewhere", "fn": "showL3SentenceOrderReference"},
+      {"label": "How verbs conjugate — ます / ません / ました / ませんでした", "fn": "showVerbConjugationL3Reference"},
+      {"label": "Inviting — ませんか / ましょう / 〜は どうですか", "card": "inviting"},
+      {"label": "Frequency words — いつも/よく/ときどき/あまり/ぜんぜん", "card": "frequency"},
       {"label": "を — Level 3 additions", "card": "object-particle-l3"},
       {"label": "と vs や — \"and\" in a list", "card": "to-ya"},
       {"label": "それから / そして — \"and then\" vs \"and also\"", "card": "sorekara"},
@@ -37,8 +39,6 @@ window.JP_DRILL_GRAMMAR = {
       {"label": "どんな — \"what kind of…?\"", "card": "donna"},
       {"label": "Place + で — where something happens", "card": "place-de"},
       {"label": "My family vs someone else's (+ と \"with\")", "card": "family-l3"},
-      {"label": "Inviting — ませんか / ましょう / 〜は どうですか", "card": "inviting"},
-      {"label": "How verbs conjugate — ます / ません / ました / ませんでした", "fn": "showVerbConjugationL3Reference"},
     ] },
   },
   cards: {
