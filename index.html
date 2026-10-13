@@ -637,6 +637,77 @@
   .install-card { align-items: center; gap: 12px; }
   .install-card .install-why { margin-top: 4px; }
   .install-btn { flex-shrink: 0; padding: 8px 16px; border-radius: 99px; border: 1px solid var(--accent); background: var(--accent-dim); color: var(--accent); font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
+  /* DESK SHEETS */
+  #screen-desk-sheets { max-width: none; }
+  .ds-toolbar { max-width: 640px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 0.6rem; }
+  .ds-buttons { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .ds-btn { font-size: 13px; font-weight: 600; color: var(--text-muted); border: 1px solid var(--border); border-radius: 99px; padding: 8px 18px; background: transparent; cursor: pointer; font-family: inherit; }
+  .ds-btn-main { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+  .ds-scroll { width: 100%; overflow-x: auto; }
+  #desk-sheets { display: flex; flex-direction: column; gap: 24px; width: max-content; margin: 0 auto; }
+  .ds-page { width: 1080px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+  .ds-page-title { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+  .ds-page-title span { color: var(--text-muted); font-weight: 600; font-size: 12px; margin-left: 8px; }
+  .ds-page-title { margin-bottom: 8px; }
+  .ds-page-title .ds-example { font-family: 'BIZ UDPGothic', sans-serif; font-size: 13px; color: var(--text-muted); margin-left: 14px; font-weight: 500; }
+  .ds-cols { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; align-items: start; }
+  .ds-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .ds-col.wide { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; align-content: start; }
+  .ds-col.wide .ds-head, .ds-col.wide .ds-note, .ds-col.wide .ds-group-head { grid-column: span 2; }
+  .ds-group-head { border-radius: 6px; padding: 2px 6px; margin-top: 2px; background: color-mix(in srgb, var(--slot-7) 16%, transparent); border-left: 3px solid var(--slot-7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ds-group-head .ds-jp { font-size: 13px; }
+  .ds-head { border-radius: 8px; padding: 5px 6px; background: color-mix(in srgb, var(--slot) 22%, transparent); border-left: 4px solid var(--slot); }
+  .ds-head-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+  .ds-num { font-weight: 800; color: var(--slot); font-size: 15px; }
+  .ds-role { font-size: 11px; font-weight: 700; line-height: 1.2; flex: 1; }
+  .ds-particle { font-family: 'BIZ UDPGothic', sans-serif; font-weight: 700; font-size: 16px; border: 1.5px solid var(--slot); border-radius: 6px; padding: 0 5px; min-width: 22px; text-align: center; }
+  .ds-note { font-size: 10px; color: var(--text-muted); line-height: 1.25; padding: 0 2px; }
+  .ds-card { border: 1px solid var(--border); border-left: 3px solid var(--slot); border-radius: 7px; padding: 2px 4px; text-align: center; background: var(--bg); break-inside: avoid; }
+  .ds-jp { font-family: 'BIZ UDPGothic', sans-serif; font-size: 14.5px; font-weight: 700; line-height: 1.15; }
+  .ds-ro { font-size: 9.5px; color: var(--text-muted); line-height: 1.15; }
+  .ds-en { font-size: 9.5px; line-height: 1.15; }
+  .ds-verb { background: color-mix(in srgb, var(--slot-7) 16%, transparent); border-left-color: var(--slot-7); }
+  .ds-verb .ds-jp { font-size: 13px; }
+  .ds-ends { border: 1px solid var(--border); border-left: 3px solid var(--slot-7); border-radius: 7px; padding: 3px 5px; margin-top: 4px; background: var(--bg); }
+  .ds-end { display: flex; flex-direction: column; padding: 2px 0; border-bottom: 1px dotted var(--border); }
+  .ds-end:last-child { border-bottom: none; }
+  .ds-end-jp { font-family: 'BIZ UDPGothic', sans-serif; font-weight: 700; font-size: 13px; }
+  .ds-end-en { font-size: 9.5px; color: var(--text-muted); }
+  @media print {
+    @page { size: A4 landscape; margin: 7mm; }
+    html, body { background: #fff !important; color: #000 !important; }
+    header, .ds-toolbar, .screen:not(#screen-desk-sheets) { display: none !important; }
+    main { padding: 0 !important; display: block !important; }
+    #screen-desk-sheets { display: block !important; max-width: none !important; }
+    .ds-scroll { overflow: visible !important; }
+    #desk-sheets { display: block !important; min-width: 0 !important; width: auto !important; margin: 0 !important; }
+    .ds-page { width: auto !important; height: 194mm; border: none !important; border-radius: 0; padding: 0 !important; background: #fff !important; color: #000 !important; break-after: page; page-break-after: always; overflow: hidden; }
+    .ds-page:last-child { break-after: auto; page-break-after: auto; }
+    .ds-page, .ds-page * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .ds-head { background: #e4e4e4 !important; border-left-color: #555 !important; }
+    .ds-num, .ds-particle { color: #000 !important; border-color: #333 !important; }
+    .ds-card { background: #fff !important; border-color: #aaa !important; border-left-color: #666 !important; padding: 1px 3px !important; }
+    .ds-col { gap: 3px !important; }
+    .ds-verb, .ds-group-head { background: #f0f0f0 !important; border-left-color: #666 !important; }
+    .ds-ro, .ds-note, .ds-example, .ds-page-title span { color: #444 !important; }
+    .ds-en, .ds-jp, .ds-role, .ds-page-title { color: #000 !important; }
+    /* Bigger print text (2026-10-13, Andrew: "quite small") - long words step down so columns keep their width. */
+    .ds-jp { font-size: 18px !important; line-height: 1.12 !important; }
+    .ds-jp.long { font-size: 15px !important; }
+    .ds-jp.xlong { font-size: 12.5px !important; }
+    .ds-ro { font-size: 10.5px !important; }
+    .ds-en { font-size: 11px !important; font-weight: 600; }
+    .ds-group-head .ds-jp { font-size: 14px !important; }
+    .ds-group-head { padding: 0 6px !important; margin-top: 0 !important; line-height: 1.25; }
+    .ds-verb .ds-jp { font-size: 15px !important; }
+    .ds-verb .ds-jp.xlong { font-size: 12px !important; }
+    .ds-ends { background: #fff !important; border-color: #aaa !important; border-left-color: #666 !important; }
+    .ds-end-jp { font-size: 14px !important; color: #000 !important; }
+    .ds-end-en { font-size: 10.5px !important; color: #333 !important; }
+    .ds-role { font-size: 12.5px !important; }
+    .ds-note { font-size: 10.5px !important; }
+    .ds-particle { font-size: 17px !important; }
+  }
   .tile-group-heading.first { border-top: none; padding-top: 0; margin-top: 0; }
   .sk-reveal { font-size: 56px; line-height: 1.2; }
   .sk-reveal-sub { font-size: 15px; color: var(--text-muted); margin-top: 4px; }
@@ -1333,6 +1404,7 @@
 
     <div style="text-align:center; margin-top:0.9rem; margin-bottom:0.4rem; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
       <a href="./instructions.html" target="_blank" style="display:inline-block; font-size:13px; font-weight:600; color:var(--text-muted); text-decoration:none; border:1px solid var(--border); border-radius:99px; padding:8px 18px;">How this app works →</a>
+      <button type="button" onclick="showDeskSheets()" style="display:inline-block; font-size:13px; font-weight:600; color:var(--text-muted); border:1px solid var(--border); border-radius:99px; padding:8px 18px; background:transparent; cursor:pointer; font-family:inherit;">Desk sheets →</button>
       <a href="./changelog.html" target="_blank" id="whats-new-link" style="display:inline-block; font-size:13px; font-weight:600; color:var(--text-muted); text-decoration:none; border:1px solid var(--border); border-radius:99px; padding:8px 18px; background:transparent;">What's new →</a>
     </div>
 
@@ -1440,7 +1512,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261013.006</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261013.009</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2147,6 +2219,22 @@
     <div class="settings-sub">A quick look — tap Back when you're done.</div>
     <div id="vocab-ref-list"></div>
     <button class="btn-secondary" onclick="closeVocabReference()">← Back</button>
+  </div>
+
+  <!-- DESK SHEETS (2026-10-13): two printable A4 landscape pages - the
+       sentence skeleton across the top, word cards under each slot. See
+       buildDeskSheets(). -->
+  <div class="screen" id="screen-desk-sheets">
+    <div class="ds-toolbar">
+      <div class="settings-title">Desk sheets</div>
+      <div class="settings-sub">Two pages to keep in front of you in class: pick a word from each column and put the sentence together. Every word here has been taught. Shuffle for a different selection, then print or save as a PDF (A4, landscape).</div>
+      <div class="ds-buttons">
+        <button type="button" class="ds-btn" onclick="buildDeskSheets()">Shuffle words</button>
+        <button type="button" class="ds-btn ds-btn-main" onclick="window.print()">Print / save PDF</button>
+        <button type="button" class="ds-btn" onclick="showSettingsScreen(); showScreen('settings');">← Back</button>
+      </div>
+    </div>
+    <div class="ds-scroll"><div id="desk-sheets"></div></div>
   </div>
 
   <!-- Match game screen -->
@@ -13648,6 +13736,121 @@ function sgGiftQA() {
   const l4 = { jp: `この ${g[0]} は どうです か。`, ro: `Kono ${sgW(g[0]).ro} wa dou desu ka?`, en: `How about this ${g[1]}?` };
   const l5 = { jp: `${adj}ですね。 じゃあ、 これ を かいましょう。`, ro: `${sgCap(sgW(adj).ro)} desu ne. Jaa, kore o kaimashou.`, en: `It's ${SG_ADJ_EN[adj]}! OK, let's buy this one.` };
   return [l1, l2, l3, l4, l5];
+}
+
+// ==== DESK SHEETS (2026-10-13) ====
+// Two printable pages for class: the sentence skeleton across the top (same
+// slots and colours as the Level 3 Sentence order card) and word cards under
+// each slot, so you choose words from the sheet and spend your effort on the
+// grammar. Words come from the daily-sentence lists (only taught words, via
+// sgW), objects grouped under the verb they go with. Each column always has a
+// few core words plus a random pick of the rest, so every sheet differs;
+// Shuffle picks again.
+function dsItem(jp, enOverride) {
+  const w = sgW(jp);
+  if (!w) return null;
+  const it = l3TaughtItem(jp);
+  return { jp, ro: w.ro, en: enOverride || (it ? it.en : '') };
+}
+function dsPick(pool, anchors, n) {
+  const seen = new Set(), out = [];
+  const add = x => { if (x && !seen.has(x.jp) && out.length < n) { seen.add(x.jp); out.push(x); } };
+  anchors.forEach(a => add(pool.find(p => p && p.jp === a)));
+  shuffle(pool.filter(Boolean)).forEach(add);
+  return out;
+}
+function dsWhoPool(withMe) {
+  const pool = [];
+  if (withMe) pool.push({ jp: 'わたし', ro: 'watashi', en: 'I' });
+  pool.push(dsItem('ともだち', 'friend'));
+  sgMyFamily().forEach(m => pool.push(dsItem(m.jp, 'my ' + m.en)));
+  if (sgW('どうりょう')) pool.push(dsItem('どうりょう', 'colleague'));
+  SENTENCE_NAME_POOL.slice(0, 6).forEach(n => pool.push({ jp: n.jp, ro: n.romaji, en: n.en }));
+  return pool;
+}
+function dsTimePool() {
+  const pool = [];
+  Object.entries(SG_TIMES).forEach(([jp, t]) => { if (!t.long) pool.push(dsItem(jp, typeof t.en === 'string' ? t.en : t.en.fut)); });
+  SG_DAYS.forEach(([jp, en]) => { const it = dsItem(jp, 'on ' + en); if (it) { it.jp += 'に'; it.ro += ' ni'; it.key = jp; pool.push(it); } });
+  return pool;
+}
+function dsColumns(mode) {
+  const who = { role: 'Who', particle: 'は', note: 'Leave it out if it\'s obvious', items: dsPick(dsWhoPool(true), ['わたし', 'ともだち'], 7) };
+  const when = { role: 'When', particle: '(に)', note: 'に only after days: どようびに', items: dsPick(dsTimePool(), ['きのう', 'きょう', 'あした', 'しゅうまつ', 'まいにち'], 11) };
+  const freq = { role: 'How often', particle: '–', note: 'あまり / ぜんぜん → verb ends ません', items: L3_FREQ_WORDS.map(f => ({ jp: f.jp, ro: f.romaji, en: f.en })) };
+  const compPool = dsWhoPool(false);
+  const comp = { role: 'With whom', particle: 'と', note: 'ひとりで = on my own (no と)', items: [{ jp: 'ひとりで', ro: 'hitori de', en: 'on my own' }].concat(dsPick(compPool, ['ともだち'], 6)) };
+  if (mode === 'do') {
+    const placeSet = new Set();
+    SG_OBJECT_VERBS.forEach(V => V.places.forEach(p => { if (!SG_PLACE_EN[p] || !SG_PLACE_EN[p][1]) placeSet.add(p); }));
+    const where = { role: 'Where it happens', particle: 'で', note: 'where the action is', items: dsPick([...placeSet].map(p => dsItem(p)), ['うち', 'レストラン', 'こうえん', 'カフェ', 'としょかん'], 12) };
+    // What + verb: objects grouped under their verb.
+    const PLAN = [['たべます', 4], ['のみます', 2], ['みます', 2], ['ききます', 2], ['よみます', 2], ['かいます', 2], ['します', 4]];
+    const usedObjs = new Set(); // スポーツ is both watched and done - list it once
+    const groups = [];
+    PLAN.forEach(([v, k]) => {
+      if (!sgW(v)) return;
+      const objs = [];
+      SG_OBJECT_VERBS.filter(V => V.v === v && !V.routine).forEach(V => V.objs.forEach(o => { const it = dsItem(o[0], V.phrase ? o[1] : o[1]); if (it) objs.push(it); }));
+      const pick = dsPick(objs.filter(o => !usedObjs.has(o.jp)), [], k);
+      pick.forEach(o => usedObjs.add(o.jp));
+      if (pick.length) groups.push({ verb: dsItem(v), items: pick });
+    });
+    const what = { role: 'What', particle: 'を', note: 'Each thing is listed under its verb', wide: true, groups };
+    // Verbs that don't need a thing from column 6 (those are listed there).
+    const verb = dsVerbColumn([['おきます', 'get up'], ['ねます', 'go to bed'], ['はたらきます', 'work'], ['べんきょうします', 'study'],
+      ['やすみます', 'rest / day off'], ['うんどうします', 'exercise'], ['およぎます', 'swim'], ['うたいます', 'sing'],
+      ['あいます', 'meet (ともだちに)'], ['かきます', 'write'], ['とります', 'take (photos)']], 7);
+    return [who, when, freq, comp, where, what, verb];
+  }
+  const how = { role: 'How', particle: 'で', note: 'あるいて = on foot (no で)', items: dsPick(SG_TRANSPORT.map(t => dsItem(t[0], t[1].replace(/^by /, '').replace(/^on foot$/, 'on foot'))), ['でんしゃ', 'バス', 'くるま'], 8) };
+  const destPool = Object.entries(SG_DEST).map(([jp, v]) => dsItem(jp, v[0].replace(/^to (the |a |an )?/, '')));
+  const whereTo = { role: 'Where to', particle: 'に', note: 'へ works too', wide: true, items: dsPick(destPool, ['えき', 'がっこう', 'かいしゃ', 'スーパー', 'レストラン', 'こうえん', 'えいがかん', 'デパート'], 24) };
+  const verb = dsVerbColumn([['いきます', 'go'], ['きます', 'come'], ['かえります', 'go home']], 3);
+  return [who, when, freq, comp, how, whereTo, verb];
+}
+// Verb column: the endings, shown on one example verb.
+// Verb column (2026-10-13, Andrew: "nothing that lists some handy verbs"):
+// handy verbs as cards, then one compact block of the endings.
+function dsVerbColumn(verbs, max) {
+  // The first four always appear; the rest are a random pick, like the other columns.
+  const pool = verbs.map(([jp, en]) => dsItem(jp, en)).filter(Boolean);
+  const lead = dsPick(pool, verbs.slice(0, 4).map(v => v[0]), max);
+  const ends = [['ます', 'do / will do'], ['ません', "don't"], ['ました', 'did'], ['ませんでした', "didn't"],
+    ['ませんか', "why don't we…?"], ['ましょう', "let's…"]];
+  return { role: 'Verb', particle: '。/か', note: 'take off ます, add an ending · か for a question', lead, ends };
+}
+function dsCardHtml(it, extraClass) {
+  const len = [...it.jp].length;
+  const size = len >= 8 ? ' xlong' : len >= 6 ? ' long' : '';
+  return `<div class="ds-card${extraClass ? ' ' + extraClass : ''}"><div class="ds-jp${size}">${markSmallKana(it.jp)}</div><div class="ds-ro">${it.ro}</div><div class="ds-en">${it.en}</div></div>`;
+}
+function buildDeskSheets() {
+  const el = document.getElementById('desk-sheets');
+  if (!el) return;
+  const pages = [
+    { mode: 'do', title: 'Doing something', sub: 'Level 3 sentence order', ex: 'わたしは どようびに ともだちと カフェで コーヒーを のみました。' },
+    { mode: 'go', title: 'Going somewhere', sub: 'Level 3 sentence order', ex: 'わたしは しゅうまつ ははと でんしゃで デパートに いきます。' },
+  ];
+  el.innerHTML = pages.map(p => {
+    const cols = dsColumns(p.mode);
+    const colHtml = cols.map((c, i) => {
+      const head = `<div class="ds-head"><div class="ds-head-top"><span class="ds-num">${i + 1}</span><span class="ds-role">${c.role}</span><span class="ds-particle">${c.particle}</span></div></div>`;
+      const note = c.note ? `<div class="ds-note">${markSmallKana(c.note)}</div>` : '';
+      let body = '';
+      if (c.groups) body = c.groups.map(g => `<div class="ds-group-head"><span class="ds-jp">${markSmallKana(g.verb.jp)}</span> <span class="ds-ro">${g.verb.ro}</span> · <span class="ds-en">${g.verb.en}</span></div>` + g.items.map(x => dsCardHtml(x)).join('')).join('');
+      else if (c.ends) body = c.lead.map(x => dsCardHtml(x, 'ds-verb')).join('')
+        + `<div class="ds-ends">${c.ends.map(([e, en]) => `<div class="ds-end"><span class="ds-end-jp">〜${markSmallKana(e)}</span><span class="ds-end-en">${en}</span></div>`).join('')}</div>`;
+      else body = c.items.map(x => dsCardHtml(x)).join('');
+      return `<div class="ds-col${c.wide ? ' wide' : ''}" style="--slot:var(--slot-${i + 1})">${head}${note}${body}</div>`;
+    }).join('');
+    return `<div class="ds-page"><div class="ds-page-title">${p.title}<span>${p.sub}</span><span class="ds-example">e.g. ${p.ex}</span></div><div class="ds-cols">${colHtml}</div></div>`;
+  }).join('');
+}
+function showDeskSheets() {
+  buildDeskSheets();
+  showScreen('desk-sheets');
+  window.scrollTo(0, 0);
 }
 
 function sgGenerate() {
