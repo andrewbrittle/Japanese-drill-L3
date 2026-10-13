@@ -635,6 +635,8 @@
   .section-divider { height: 1px; background: var(--accent); opacity: 0.45; margin: 0.25rem 0; }
   .tile-group-heading { flex-basis: 100%; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; color: var(--accent); border-top: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); padding-top: 0.45rem; margin-top: 0.4rem; }
   .tile-group-heading.first { border-top: none; padding-top: 0; margin-top: 0; }
+  .sk-reveal { font-size: 56px; line-height: 1.2; }
+  .sk-reveal-sub { font-size: 15px; color: var(--text-muted); margin-top: 4px; }
   .vocab-ref-card {
     display: flex; justify-content: space-between; align-items: center;
     background: transparent; border: 1px solid var(--border);
@@ -1239,6 +1241,7 @@
   .options.pt-options { grid-template-columns: repeat(4, 1fr); }
   .options.pt-options .opt { padding: 10px 4px 8px; }
   .options.pt-options .opt .opt-jp { font-size: 22px; }
+  .options.sk-options .opt .opt-jp { font-size: 30px; }
   .pt-line { text-align: center; line-height: 1.5; }
   .pt-line + .pt-line { margin-top: 0.7rem; }
   .pt-jp { font-weight: 700; }
@@ -1416,7 +1419,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261012.001</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261013.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2025,7 +2028,7 @@
       <div class="group-card cat-tile" data-random-key="verbforms" onclick="selectRandomChoice('verbforms')" style="cursor:pointer;">
         <div class="cat-tile-top cat-tile-top-stack">
           <div class="group-name">Verb forms</div>
-          <div class="random-choice-desc">20 random verb forms — which form is it? Reverse the direction to build the form instead, and turn on Type to write it yourself</div>
+          <div class="random-choice-desc">20 random verb forms, including inviting (ませんか / ましょう) — which form is it? Reverse the direction to build the form instead, and turn on Type to write it yourself</div>
         </div>
         <div class="cat-bar" id="random-verbforms-swatch"></div>
       </div>
@@ -2036,6 +2039,16 @@
           <div class="random-choice-desc">20 sentences with a particle missing — pick the one that fits. Grows with every lesson</div>
         </div>
         <div class="cat-bar" id="random-particles-swatch"></div>
+      </div>
+
+      <!-- Small っ (2026-10-13, L3 Lesson 3 double-consonant sheet): hear one
+           word of a pair (きて / きって) and pick it. See SOKUON_PAIRS. -->
+      <div class="group-card cat-tile" data-random-key="sokuon" onclick="selectRandomChoice('sokuon')" style="cursor:pointer;">
+        <div class="cat-tile-top cat-tile-top-stack">
+          <div class="group-name">Small っ</div>
+          <div class="random-choice-desc">20 word pairs like きて / きって — hear one and pick it. With sound off, read the romaji instead</div>
+        </div>
+        <div class="cat-bar" id="random-sokuon-swatch"></div>
       </div>
 
       <div class="section-divider"></div>
@@ -6463,7 +6476,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-11a';
+const LATEST_CHANGELOG_ENTRY = '2026-10-13a';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -7168,7 +7181,7 @@ function isTrackedItem(q) {
   const isKanji = !!(q && (q.disp === 'kanji' || q.disp === 'survival'));
   const isVocabWord = !!(q && q.disp === 'word');
   const isNumberOrTime = !!(q && (q.disp === 'number' || q.disp === 'time' || q.disp === 'counter'));
-  const isVerbForm = !!(q && (q.disp === 'verbform' || q.disp === 'particle'));
+  const isVerbForm = !!(q && (q.disp === 'verbform' || q.disp === 'particle' || q.disp === 'sokuon'));
   return isKana || isKanji || isVocabWord || isNumberOrTime || isVerbForm;
 }
 
@@ -7185,6 +7198,7 @@ function getScoreKey(q) {
   if (q.disp === 'counter') return 'counters-consistency';
   if (q.disp === 'verbform') return q.scoreKey; // 'verbform:たべます|pastNeg' - see buildVerbFormDeck
   if (q.disp === 'particle') return q.scoreKey; // 'particle|で' - see buildParticleQuestion
+  if (q.disp === 'sokuon') return q.scoreKey; // 'sokuon|きって' - see buildSokuonDeck
   return q.char;
 }
 
@@ -7600,6 +7614,7 @@ function refreshRandomView() {
   [1, 2, 3].forEach(n => setupCatBar(document.getElementById('random-l' + n + '-swatch'), getCategoryBandCounts(scanVocabByTag('L' + n))));
   setupCatBar(document.getElementById('random-verbforms-swatch'), getCategoryBandCounts(verbFormScoreItems()));
   setupCatBar(document.getElementById('random-particles-swatch'), getCategoryBandCounts(particleScoreItems()));
+  setupCatBar(document.getElementById('random-sokuon-swatch'), getCategoryBandCounts(sokuonScoreItems()));
   const untaughtCard = document.getElementById('random-untaught-card');
   if (untaughtCard) {
     untaughtCard.style.display = appSettings.showUntaught ? '' : 'none';
@@ -7634,12 +7649,12 @@ function updateRandomChoiceUI() {
   // Type applies to Verb forms too (reversed: type the form).
   ['drill-mode-toggle-card', 'listen-toggle-card'].forEach(id => {
     const card = document.getElementById(id);
-    if (card) card.classList.toggle('not-for-choice', randomChoice === 'verbforms' || randomChoice === 'particles');
+    if (card) card.classList.toggle('not-for-choice', randomChoice === 'verbforms' || randomChoice === 'particles' || randomChoice === 'sokuon');
   });
   const typeCard = document.getElementById('type-answer-toggle-card');
-  if (typeCard) typeCard.classList.toggle('not-for-choice', randomChoice === 'particles');
+  if (typeCard) typeCard.classList.toggle('not-for-choice', randomChoice === 'particles' || randomChoice === 'sokuon');
   const revCard = document.getElementById('reversed-mode-toggle-card');
-  if (revCard) revCard.classList.toggle('not-for-choice', randomChoice === 'particles');
+  if (revCard) revCard.classList.toggle('not-for-choice', randomChoice === 'particles' || randomChoice === 'sokuon');
 }
 function startSelectedRandom() {
   applyRandomModes(); // the dice page's own switches, not whatever a category drill left behind
@@ -7649,6 +7664,7 @@ function startSelectedRandom() {
   else if (randomChoice === 'untaught') startRandomForLevel('untaught');
   else if (randomChoice === 'verbforms') startVerbFormDrill();
   else if (randomChoice === 'particles') startParticleDrill();
+  else if (randomChoice === 'sokuon') startSokuonDrill();
   else if (/^L[123]$/.test(randomChoice || '')) startRandomForLevel(+randomChoice.slice(1));
 }
 
@@ -8146,6 +8162,14 @@ function renderListenPrompt(q, charDisplay) {
   setTimeout(() => { if (deck[current] === q && !answered) say(); }, 120);
 }
 function revealListenWord(q) {
+  if (q && q.disp === 'sokuon') {
+    const cd = document.getElementById('q-char');
+    if (!cd) return;
+    cd.innerHTML = `<div class="sk-reveal">${markSmallKana(q.answer)}</div><div class="sk-reveal-sub">${q.romaji} — ${q.en}</div>`;
+    cd.style.cursor = 'pointer';
+    cd.onclick = () => speakJapanese(q.answer);
+    return;
+  }
   if (!(q && q.disp === 'word' && listenMode && !vocabReversed)) return;
   const charDisplay = document.getElementById('q-char');
   if (!charDisplay || !charDisplay.querySelector('.listen-play')) return;
@@ -8217,12 +8241,12 @@ function renderQuestion() {
   document.getElementById('stat-left').textContent = deck.length - current;
 
   const badge = document.getElementById('q-badge');
-  badge.textContent = q.disp === 'number' ? 'numbers' : q.disp === 'word' ? 'word reading' : q.disp === 'time' ? 'time reading' : q.disp === 'counter' ? 'counter reading' : q.disp === 'verbform' ? 'verb forms' : q.disp === 'particle' ? 'particles' : (BADGE_LABELS[q.groupKey] || q.groupKey);
+  badge.textContent = q.disp === 'number' ? 'numbers' : q.disp === 'word' ? 'word reading' : q.disp === 'time' ? 'time reading' : q.disp === 'counter' ? 'counter reading' : q.disp === 'verbform' ? 'verb forms' : q.disp === 'particle' ? 'particles' : q.disp === 'sokuon' ? 'small っ' : (BADGE_LABELS[q.groupKey] || q.groupKey);
   let badgeClass = 'base';
   if (q.disp === 'diacritic') badgeClass = 'diacritic';
   else if (q.disp === 'kanji') badgeClass = 'kanji';
   else if (q.disp === 'survival') badgeClass = 'survival';
-  else if (q.disp === 'number' || q.disp === 'time' || q.disp === 'counter' || q.disp === 'verbform' || q.disp === 'particle') badgeClass = 'kanji';
+  else if (q.disp === 'number' || q.disp === 'time' || q.disp === 'counter' || q.disp === 'verbform' || q.disp === 'particle' || q.disp === 'sokuon') badgeClass = 'kanji';
   badge.className = 'type-badge type-' + badgeClass;
 
   const altEl = document.getElementById('q-alt-form');
@@ -8325,6 +8349,7 @@ function renderQuestion() {
   const container = document.getElementById('q-options');
   container.innerHTML = '';
   container.classList.remove('pt-options'); // particle drill's 4-across layout
+  container.classList.remove('sk-options'); // small っ drill's big kana
 
   // On-screen reminder of which 4 counters are in play this round, since
   // the prompt/options alone don't announce it - only shown for this
@@ -8351,6 +8376,8 @@ function renderQuestion() {
     renderVerbFormQuestion(q, charDisplay, container);
   } else if (q.disp === 'particle') {
     renderParticleQuestion(q, charDisplay, container);
+  } else if (q.disp === 'sokuon') {
+    renderSokuonQuestion(q, charDisplay, container);
   } else if (isWord && vocabReversed) {
     // Reversed: the prompt is always the English meaning, and the 4 options
     // are Japanese text - the mirror image of the normal isWord branch
@@ -8657,7 +8684,7 @@ function choose(btn, selectedVal, answer, char) {
     const missedKey = char + '|' + answer;
     if (!missed.includes(missedKey)) {
       missed.push(missedKey);
-      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter' || currentQ.disp === 'verbform' || currentQ.disp === 'particle')) missedItems.push(currentQ);
+      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter' || currentQ.disp === 'verbform' || currentQ.disp === 'particle' || currentQ.disp === 'sokuon')) missedItems.push(currentQ);
     }
   }
   document.getElementById('stat-correct').textContent = score;
@@ -8721,7 +8748,7 @@ function chooseTyped(rawInput, answer, char) {
     const missedKey = char + '|' + answer;
     if (!missed.includes(missedKey)) {
       missed.push(missedKey);
-      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter' || currentQ.disp === 'verbform' || currentQ.disp === 'particle')) missedItems.push(currentQ);
+      if (currentQ && (currentQ.disp === 'number' || currentQ.disp === 'word' || currentQ.disp === 'time' || currentQ.disp === 'counter' || currentQ.disp === 'verbform' || currentQ.disp === 'particle' || currentQ.disp === 'sokuon')) missedItems.push(currentQ);
     }
   }
   document.getElementById('stat-correct').textContent = score;
@@ -9701,7 +9728,7 @@ function getTaughtVerbs() {
   });
 }
 
-const VERB_FORM_KEYS = ['nonPastAff', 'nonPastNeg', 'pastAff', 'pastNeg'];
+const VERB_FORM_KEYS = ['nonPastAff', 'nonPastNeg', 'pastAff', 'pastNeg', 'invite', 'lets']; // + inviting forms (L3 Lesson 3)
 // Kanji spellings for the Level 2 verbs, which were taught (and stay) kana-
 // only with no altForm. Used ONLY to accept a typed answer when a phone or
 // Mac keyboard converts たべませんでした to 食べませんでした by itself - never
@@ -9722,6 +9749,7 @@ function verbKanjiSpellings(item) {
 const VERB_FORM_LABELS = {
   nonPastAff: 'Non-past', nonPastNeg: 'Non-past negative',
   pastAff: 'Past', pastNeg: 'Past negative',
+  invite: 'Invitation', lets: "Let's",
 };
 
 // English for each form, built from the verb's own gloss ("to eat" ->
@@ -9756,6 +9784,7 @@ function verbEnglishForms(en) {
     nonPastAff: base, nonPastNeg: "don't " + base, pastAff: past, pastNeg: "didn't " + base,
     taiAff: 'want to ' + base, taiNeg: "don't want to " + base,
     taiPast: 'wanted to ' + base, taiPastNeg: "didn't want to " + base,
+    invite: "why don't we " + base + '?', lets: "let's " + base,
   };
 }
 
@@ -9773,6 +9802,9 @@ function verbForms(item) {
     taiNeg: [st + 'たくない', rs + 'takunai', en.taiNeg],
     taiPast: [st + 'たかった', rs + 'takatta', en.taiPast],
     taiPastNeg: [st + 'たくなかった', rs + 'takunakatta', en.taiPastNeg],
+    // Inviting (L3 Lesson 3, 2026-10-13): ませんか invites, ましょう = let's.
+    invite: [st + 'ませんか', rs + 'masen ka', en.invite],
+    lets: [st + 'ましょう', rs + 'mashou', en.lets],
   };
 }
 
@@ -9785,6 +9817,14 @@ function verbFormsGridHtml(f, keys) {
       <div class="vf-head"></div><div class="vf-head">Affirmative</div><div class="vf-head">Negative</div>
       <div class="vf-rowlabel">Non-past</div>${cell(keys[0])}${cell(keys[1])}
       <div class="vf-rowlabel">Past</div>${cell(keys[2])}${cell(keys[3])}
+    </div>`;
+}
+// One row of two forms with their own headings (the inviting pair).
+function verbFormsPairHtml(f, a, b, la, lb) {
+  const cell = k => `<div class="vf-cell" data-say="${f[k][0]}"><div class="vf-jp">${markSmallKana(f[k][0])}</div><div class="vf-ro">${f[k][1]}</div><div class="vf-en">${f[k][2]}</div></div>`;
+  return `<div class="vf-grid">
+      <div class="vf-head"></div><div class="vf-head">${la}</div><div class="vf-head">${lb}</div>
+      <div class="vf-rowlabel"></div>${cell(a)}${cell(b)}
     </div>`;
 }
 function showVerbFormsPopup(item) {
@@ -9800,7 +9840,10 @@ function showVerbFormsPopup(item) {
     <div class="vf-note">Non-past covers "now", "usually" and "will" — the time word tells you which.</div>
     <div class="vf-section">たい — want to</div>
     ${verbFormsGridHtml(f, ['taiAff', 'taiNeg', 'taiPast', 'taiPastNeg'])}
-    <div class="vf-note">たい ends like an い-adjective: たい → たくない, たかった, たくなかった.</div>`;
+    <div class="vf-note">たい ends like an い-adjective: たい → たくない, たかった, たくなかった.</div>
+    <div class="vf-section">Inviting — ませんか / ましょう</div>
+    ${verbFormsPairHtml(f, 'invite', 'lets', 'Invitation', "Let's")}
+    <div class="vf-note">Answer an invitation with ええ、いいですね or ええ、〜ましょう — or 〜は ちょっと… to say no politely.</div>`;
   body.querySelectorAll('[data-say]').forEach(el => { el.onclick = () => speakJapanese(el.dataset.say); });
   overlay._openedAt = Date.now(); // the lifting finger mustn't count as a tap outside
   body.parentElement.scrollTop = 0;
@@ -9830,6 +9873,9 @@ function showVerbConjugationL3Reference() {
   l3Heading(list, 'たい — "want to"');
   l3Note(list, 'Take off ます and add たい. たい then changes like an い-adjective, not a verb:');
   ['taiAff', 'taiNeg', 'taiPast', 'taiPastNeg'].forEach(k => l3Example(list, f[k][0], f[k][1], f[k][2]));
+  l3Heading(list, 'ませんか / ましょう — inviting');
+  l3Note(list, 'Take off ます and add ませんか to invite ("why don\'t we…?"), or ましょう for "let\'s…". The Inviting card has the replies.');
+  ['invite', 'lets'].forEach(k => l3Example(list, f[k][0], f[k][1], f[k][2]));
   l3Heading(list, 'Every verb, one at a time');
   l3Note(list, 'On any verb list, <strong>hold a verb</strong> to hear it, then <strong>slide towards the bubble</strong> and let go to see all its forms.');
   l3Note(list, 'To practise, the dice page has <strong>Verb forms</strong>: spot the form, or turn on "Reverse the drill direction" to build it.');
@@ -9839,7 +9885,7 @@ function showVerbConjugationL3Reference() {
 // --- Dice page drill: Verb forms ---
 // Forward: see たべませんでした, pick "Past negative". Reversed (the page's own
 // "Reverse the drill direction" toggle): see "Past negative · たべます", pick
-// the form. Wrong answers are always the same verb's other three forms, so
+// the form. Wrong answers are always the same verb's other forms, so
 // recognising the verb alone never gives the answer away. Scored per verb
 // AND form, under keys of their own ('verbform:たべます|pastNeg') that never
 // touch vocab scores, so these never turn up in Weakest/Untested 20.
@@ -9866,7 +9912,7 @@ function buildVerbFormDeck(reverse, typed) {
     if (!reverse) {
       return Object.assign(base, {
         char: f[form][0], answer: VERB_FORM_LABELS[form],
-        // Always in grid order (the same four labels every time), so the
+        // Always in grid order (the same six labels every time), so the
         // answer's position is learnt as part of the pattern, not hunted for.
         options: VERB_FORM_KEYS.map(k => ({ value: VERB_FORM_LABELS[k], top: VERB_FORM_LABELS[k] })),
       });
@@ -9995,6 +10041,82 @@ function renderParticleQuestion(q, charDisplay, container) {
     btn.dataset.value = p;
     // An accepted alternative counts as the answer itself.
     btn.onclick = () => choose(btn, (q.accepted || []).includes(p) ? q.answer : p, q.answer, q.char);
+    container.appendChild(btn);
+  });
+}
+
+// ==== SMALL っ (2026-10-13, L3 Lesson 3 double-consonant sheet) ====
+// Dice page. Pairs of real words that differ only by a small っ. With sound
+// on: hear one, pick it. With sound off: read its romaji (kitte), pick the
+// kana. The two buttons are always in the same order (without っ first), and
+// show the English underneath, never the romaji. Scored per word
+// ('sokuon|きって'), separate from vocab scores.
+const SOKUON_PAIRS = [
+  ['きて', 'kite', 'come (て form)', 'きって', 'kitte', 'postage stamp'],
+  ['いた', 'ita', 'board / plank', 'いった', 'itta', 'went (casual)'],
+  ['にし', 'nishi', 'west', 'にっし', 'nisshi', 'journal / log'],
+  ['かこ', 'kako', 'the past', 'かっこ', 'kakko', 'brackets'],
+  ['さか', 'saka', 'slope / hill', 'さっか', 'sakka', 'author'],
+  ['おと', 'oto', 'sound', 'おっと', 'otto', 'my husband'],
+  ['もと', 'moto', 'origin / former', 'もっと', 'motto', 'more'],
+  ['ねこ', 'neko', 'cat', 'ねっこ', 'nekko', 'root'],
+  ['かた', 'kata', 'shoulder', 'かった', 'katta', 'bought (casual)'],
+  ['さき', 'saki', 'ahead / tip', 'さっき', 'sakki', 'a moment ago'],
+  ['よか', 'yoka', 'spare time', 'よっか', 'yokka', 'the 4th (of the month)'],
+  ['せけん', 'seken', 'society / the world', 'せっけん', 'sekken', 'soap'],
+  ['はけん', 'haken', 'sending staff (dispatch)', 'はっけん', 'hakken', 'discovery'],
+];
+function sokuonScoreItems() {
+  const out = [];
+  SOKUON_PAIRS.forEach(p => { out.push({ jp: 'sokuon', en: p[0] }); out.push({ jp: 'sokuon', en: p[3] }); });
+  return out;
+}
+function buildSokuonDeck() {
+  const words = [];
+  SOKUON_PAIRS.forEach(p => {
+    const pair = [{ jp: p[0], romaji: p[1], en: p[2] }, { jp: p[3], romaji: p[4], en: p[5] }];
+    pair.forEach(w => words.push({ w, pair }));
+  });
+  const picks = weightedSampleWithoutReplacement(words, 20, x => selectionWeight(decayedScore(kanaScores['sokuon|' + x.w.jp])));
+  return picks.map(({ w, pair }) => ({
+    disp: 'sokuon', groupKey: 'sokuon', scoreKey: 'sokuon|' + w.jp,
+    char: w.jp, answer: w.jp, romaji: w.romaji, en: w.en, pair,
+  }));
+}
+function startSokuonDrill() {
+  lastSettingsScreen = 'match-settings';
+  lastDeckBuilder = buildSokuonDeck;
+  deck = buildSokuonDeck();
+  current = 0; score = 0; wrong = 0; hints = 0; answered = false; missed = []; missedItems = [];
+  showScreen('drill');
+  renderQuestion();
+}
+function renderSokuonQuestion(q, charDisplay, container) {
+  const speakBtn = document.getElementById('speak-btn');
+  if (speakBtn) speakBtn.style.display = 'none';
+  const romajiBtn = document.getElementById('romaji-btn');
+  if (romajiBtn) romajiBtn.style.display = 'none';
+  charDisplay.onclick = null;
+  charDisplay.style.cursor = '';
+  if (soundAllowed()) {
+    const say = () => speakJapanese(q.answer);
+    charDisplay.innerHTML = `<button type="button" class="listen-play" aria-label="Play again">${LISTEN_ICON}</button>`;
+    charDisplay.querySelector('.listen-play').onclick = say;
+    document.getElementById('q-prompt').textContent = 'Which word did you hear? Listen for the little pause';
+    setTimeout(() => { if (deck[current] === q && !answered) say(); }, 120);
+  } else {
+    charDisplay.style.fontFamily = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    charDisplay.style.fontSize = '56px';
+    charDisplay.textContent = q.romaji;
+    document.getElementById('q-prompt').textContent = 'Which one is this? A doubled letter means a small っ';
+  }
+  container.classList.add('sk-options');
+  q.pair.forEach((w, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="opt-num">${idx + 1}</span><span class="opt-jp">${markSmallKana(w.jp)}</span><span class="opt-en">${w.en}</span>`;
+    btn.dataset.value = w.jp;
+    btn.onclick = () => choose(btn, w.jp, q.answer, q.char);
     container.appendChild(btn);
   });
 }
@@ -11590,7 +11712,7 @@ const L3C_SLOTS = {
     { role: 'Companion (with whom)', particle: 'と', q: ['だれ', 'dare', 'と', 'to'], note: 'who with — ひとりで for "on my own"' },
     { role: 'Place (where it happens)', particle: 'で', q: ['どこ', 'doko', 'で', 'de'], note: 'where the action happens' },
     { role: 'Object (what)', particle: 'を', q: ['なに', 'nani', 'を', 'o'], note: 'the thing being eaten, drunk, watched, done…' },
-    { role: 'Verb (+か for a question)', note: 'tense follows the time word' },
+    { role: 'Verb', note: 'tense follows the time word — tap for か, ませんか, ましょう' },
   ],
   go: [
     { role: 'Topic (who)', particle: 'は', q: ['だれ', 'dare', 'が', 'ga'], note: 'who it\'s about' },
@@ -11599,7 +11721,7 @@ const L3C_SLOTS = {
     { role: 'Companion (with whom)', particle: 'と', q: ['だれ', 'dare', 'と', 'to'], note: 'who with — ひとりで for "on my own"' },
     { role: 'Means (how)', particle: 'で', q: ['なに', 'nani', 'で', 'de'], note: 'by train, by bus, by bike…' },
     { role: 'Destination (where to)', particle: 'に', q: ['どこ', 'doko', 'に', 'ni'], note: 'where you\'re going — へ also works' },
-    { role: 'Verb (+か for a question)', note: 'tense follows the time word' },
+    { role: 'Verb', note: 'tense follows the time word — tap for か, ませんか, ましょう' },
   ],
 };
 let l3cMode = 'do';
@@ -11619,7 +11741,7 @@ function showL3SentenceOrderReference() {
 
   const hint = document.createElement('div');
   hint.className = 'sentence-structure-hint';
-  hint.textContent = 'Tap a slot to include it, skip it, or ask it as a question. Frequency steps through いつも → よく → ときどき → あまり → ぜんぜん → skipped.';
+  hint.textContent = 'Tap a slot to include it, skip it, or ask it as a question. Frequency steps through いつも → よく → ときどき → あまり → ぜんぜん → skipped. The verb steps through statement → question → invitation (ませんか) → "let\'s" (ましょう).';
   list.appendChild(hint);
 
   const rowsWrap = document.createElement('div');
@@ -11687,8 +11809,9 @@ function pickFreshL3SentenceWords() {
   if (l3SentStates[6] === 'q' && l3SentStates[2] === 'on' && L3_FREQ_WORDS[l3FreqIdx].neg) l3FreqIdx = 0;
   const freqOn = l3SentStates[2] === 'on';
   const freq = freqOn ? L3_FREQ_WORDS[l3FreqIdx] : null;
+  const inviting = l3cInviting();
   for (let tries = 0; tries < 120; tries++) {
-    const tense = freqOn ? 'hab' : sgPick(['hab', 'hab', 'past', 'fut']);
+    const tense = inviting ? 'fut' : freqOn ? 'hab' : sgPick(['hab', 'hab', 'past', 'fut']);
     const w = l3cMode === 'do' ? l3cPickDo(tense, freq) : l3cPickGo(tense, freq);
     if (w && !(l3SentStates[6] === 'q' && w.subj.me)) { l3SentWords = w; return; }
   }
@@ -11770,8 +11893,13 @@ function renderL3SentenceRows() {
     row.onclick = () => cycleL3SentenceSlot(idx);
     let badgeText, badgeClass = 'sentence-particle-badge', stateLabel = '';
     if (idx === 6) {
-      badgeText = state === 'q' ? 'か' : '。';
-      stateLabel = state === 'q' ? '(question)' : '(statement)';
+      badgeText = { q: 'か', inv: 'ませんか', lets: 'ましょう' }[state] || '。';
+      stateLabel = { q: '(question)', inv: '(inviting: "why don\'t we…?")', lets: '("let\'s…")' }[state] || '(statement)';
+    } else if (l3cInviting() && (idx === 0 || idx === 2)) {
+      badgeText = '–'; badgeClass += ' sentence-particle-badge-off'; stateLabel = '(not used when inviting)';
+      row.className += ' sentence-slot-off';
+    } else if (idx === 3 && state === 'on' && l3cInviting()) {
+      badgeText = 'いっしょに'; stateLabel = '(together)';
     } else if (state === 'off') {
       badgeText = '–'; badgeClass += ' sentence-particle-badge-off'; stateLabel = '(skipped)';
     } else if (idx === 2) {
@@ -11804,8 +11932,19 @@ function renderL3SentenceRows() {
 function cycleL3SentenceSlot(idx) {
   l3cStopPlay();
   if (idx === 6) {
-    l3SentStates[6] = l3SentStates[6] === 'q' ? 'stmt' : 'q';
+    // statement -> question -> invitation (ませんか) -> let's (ましょう) -> statement
+    const vOrder = ['stmt', 'q', 'inv', 'lets'];
+    l3SentStates[6] = vOrder[(vOrder.indexOf(l3SentStates[6]) + 1) % vOrder.length];
     if (l3SentStates[6] === 'q' && ((l3SentWords && l3SentWords.subj.me) || (l3SentStates[2] === 'on' && L3_FREQ_WORDS[l3FreqIdx].neg))) pickFreshL3SentenceWords();
+    if (l3SentStates[6] === 'inv') {
+      // Inviting: no topic or frequency, nothing asked, and a future time word.
+      [1, 3, 4, 5].forEach(i => { if (l3SentStates[i] === 'q') l3SentStates[i] = 'on'; });
+      if (!l3SentWords || l3SentWords.tense !== 'fut') pickFreshL3SentenceWords();
+    }
+  } else if (l3cInviting() && (idx === 0 || idx === 2)) {
+    // Topic and Frequency aren't part of an invitation - nothing to cycle.
+  } else if (l3cInviting()) {
+    l3SentStates[idx] = l3SentStates[idx] === 'on' ? 'off' : 'on';
   } else if (idx === 2) {
     const wasOff = l3SentStates[2] === 'off';
     // In a question, Frequency only steps through いつも / よく / ときどき.
@@ -11839,6 +11978,7 @@ function buildL3SentenceExample() {
   const w = l3SentWords, st = l3SentStates, S = L3C_SLOTS[l3cMode];
   const f = st[2] === 'on' ? L3_FREQ_WORDS[l3FreqIdx] : null;
   const neg = !!(f && f.neg);
+  if (l3cInviting()) return buildL3InviteExample();
   const isQ = st[6] === 'q';
   const tense = f ? 'hab' : w.tense;
   // Each piece remembers its slot (0-6), so the sentence can be coloured
@@ -11864,6 +12004,29 @@ function buildL3SentenceExample() {
 
 // English for any combination of slots. Habitual uses the present ("always
 // eats"), past the past ("ate"), future "is going to".
+// Inviting (L3 Lesson 3, 2026-10-13): the verb slot's ませんか / ましょう states.
+const l3cInviting = () => l3SentStates[6] === 'inv' || l3SentStates[6] === 'lets';
+function buildL3InviteExample() {
+  const w = l3SentWords, st = l3SentStates, lets = st[6] === 'lets';
+  const parts = [];
+  const add = (slot, segs) => segs.forEach(s => parts.push({ slot, jp: l3cJp(s), ro: s.ro }));
+  if (st[1] === 'on') add(1, [w.time.seg]);
+  const together = st[3] === 'on' && sgW('いっしょに');
+  if (together) add(3, [sgSeg('いっしょに')]);
+  if (st[4] === 'on') add(4, [w.slot4.seg]);
+  if (st[5] === 'on') add(5, [w.slot5.seg]);
+  const v = sgVerb(w.verb, 'hab', false);
+  parts.push({ slot: 6, jp: v.jp.replace(/ます$/, lets ? 'ましょう' : 'ませんか'), ro: v.ro.replace(/masu$/, lets ? 'mashou' : 'masen ka') });
+  parts[0].ro = sgCap(parts[0].ro);
+  let P = st[5] === 'on' ? w.phrase : (w.mode === 'do' ? (w.V.phrase ? w.phrase.split(' ')[0] : w.phraseQ) : 'go');
+  const tail = [together && 'together', st[4] === 'on' && w.slot4.en, st[1] === 'on' && w.time.en].filter(Boolean);
+  const T = tail.length ? ' ' + tail.join(' ') : '';
+  return {
+    parts, end: lets ? ['。', '.'] : ['。', '?'],
+    jp: parts.map(x => x.jp).join(' ') + '。', romaji: parts.map(x => x.ro).join(' ') + (lets ? '.' : '?'),
+    en: lets ? `Let's ${P}${T}.` : `Why don't we ${P}${T}?`,
+  };
+}
 function l3cEnglish(w, st, f, tense, isQ) {
   const neg = !!(f && f.neg), isAmari = !!(f && f.jp === 'あまり');
   const qs = [0, 1, 3, 4, 5].filter(i => st[i] === 'q');
@@ -13288,9 +13451,64 @@ function sgQA() {
   return [q, a];
 }
 
+// INVITING (L3 Lesson 3, 2026-10-13): A invites with ませんか (future time
+// word, optional いっしょに and place), B says yes (いいですね / ましょう) or a
+// polite no (〜は ちょっと…). Same activity and destination lists and time
+// rules as the other patterns, so it grows with them.
+function sgInviteQA() {
+  if (!['ええ', 'いいですね', 'ちょっと'].every(w => sgW(w))) return null;
+  const together = sgChance(0.5) && sgW('いっしょに');
+  const segs = [];
+  let phrase, placeEn = '', verbJp, thing, timeEn;
+  if (sgChance(0.6)) {
+    // Only things you'd actually invite someone to: not reading/writing/
+    // everyday shopping, and not things that only happen at home (breakfast,
+    // TV, games) - outings are always fine.
+    const homeOnly = V => V.places.length && V.places.every(p => ['うち', 'へや', 'いま', 'しんしつ', 'だいどころ', 'にわ'].includes(p));
+    const V = sgPick(SG_OBJECT_VERBS.filter(V => !V.intrans && !V.routine && !V.workObj && sgW(V.v) && V.objs.some(o => sgW(o[0]))
+      && (V.outing || (!['よみます', 'かきます', 'かいます'].includes(V.v) && !homeOnly(V)))));
+    if (!V) return null;
+    const time = sgTime('fut', (jp, t) => sgActTimeOk(V, jp, t, 'fut'));
+    if (!time) return null;
+    const o = sgPick(V.objs.filter(x => sgW(x[0]) && !['スポーツドリンク', 'みず', 'ぎゅうにゅう'].includes(x[0])));
+    if (!o) return null;
+    const places = V.places.filter(p => sgW(p) && sgPlaceTimeOk(p, time.jp, time.t) && !SG_PLACE_EN[p][1] && !SG_PLACE_WORK.includes(p));
+    segs.push(time.seg);
+    if (together) segs.push(sgSeg('いっしょに'));
+    if (places.length && sgChance(0.5)) { const p = sgPick(places); segs.push(sgSeg(p, 'で', 'de')); placeEn = sgPlaceEn(p); }
+    segs.push(sgSeg(o[0], 'を', 'o'));
+    phrase = sgActPhrase(V, o, 'fut'); verbJp = V.v; thing = o[0];
+    timeEn = time.en;
+  } else {
+    // Everyday destinations only where you'd go together (not the supermarket or station).
+    const ok = Object.entries(SG_DEST).filter(([jp, v]) => sgW(jp) && (['outing', 'daytrip', 'event', 'bar'].includes(v[1])
+      || ['カフェ', 'きっさてん', 'こうえん', 'ジム', 'プール', 'としょかん'].includes(jp)));
+    const pick = sgPick(ok);
+    if (!pick) return null;
+    const [dest, [destEn, kind]] = pick;
+    const time = sgTime('fut', (jp, t) => sgDestTimeOk(kind, jp, t, 'fut', null));
+    if (!time) return null;
+    segs.push(time.seg);
+    if (together) segs.push(sgSeg('いっしょに'));
+    segs.push(sgSeg(dest, 'に', 'ni'));
+    phrase = 'go ' + destEn; verbJp = 'いきます'; thing = dest;
+    timeEn = time.en;
+  }
+  const v = sgW(verbJp);
+  segs.push({ jp: v.jp.replace(/ます$/, 'ません'), ro: v.ro.replace(/masu$/, 'masen') });
+  const q = sgJoin(segs, null, true);
+  q.en = `Why don't we ${[phrase, together && 'together', placeEn, timeEn].filter(Boolean).join(' ')}?`;
+  const r = sgRand();
+  let a;
+  if (r < 0.4) { a = { jp: 'ええ、いいですね。', ro: 'Ee, ii desu ne.', en: 'Yes, that sounds good.' }; }
+  else if (r < 0.75) { a = { jp: 'ええ、' + v.jp.replace(/ます$/, 'ましょう') + '。', ro: 'Ee, ' + v.ro.replace(/masu$/, 'mashou') + '.', en: "Yes, let's!" }; }
+  else { const t = sgW(thing); a = { jp: t.jp + ' は ちょっと…', ro: sgCap(t.ro) + ' wa chotto…', en: "Hmm, that's a bit… (a polite no)" }; }
+  return [q, a];
+}
+
 function sgGenerate() {
   const makers = [[sgObjectSentence, 4], [sgMotionSentence, 3], [sgRoutineSentence, 1], [sgJobProfile, 1], [sgMeetSentence, 1], [sgQA, 3],
-    [sgDonnaQA, 1.5], [sgWhereDeQA, 1.5], [sgWhatAtQA, 1.5]];
+    [sgDonnaQA, 1.5], [sgWhereDeQA, 1.5], [sgWhatAtQA, 1.5], [sgInviteQA, 1.5]];
   const total = makers.reduce((a, m) => a + m[1], 0);
   for (let tries = 0; tries < 50; tries++) {
     let r = sgRand() * total, fn = makers[0][0];

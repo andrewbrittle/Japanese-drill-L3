@@ -132,7 +132,7 @@ window.JP_DRILL_VOCAB = {
       {jp:'めいし', romaji:'meishi', en:'business card', tags:['L1','objects','taught'], dateAdded:'2026-08-01'},
       {jp:'カード', romaji:'kaado', en:'card', tags:['L1','objects','taught'], altForm:'かーど', dateAdded:'2026-08-01'},
       {jp:'いす', romaji:'isu', en:'chair', tags:['L1','objects','taught'], dateAdded:'2026-08-01'},
-      {jp:'チョコレート', romaji:'chokoreeto', en:'chocolate', tags:['L1','objects','taught'], altForm:'ちょこれーと', dateAdded:'2026-08-01'},
+      {jp:'チョコレート', romaji:'chokoreeto', en:'chocolate', tags:['L1','objects','taught','L3','gifts-l3','l3-3'], altForm:'ちょこれーと', dateAdded:'2026-08-01'},
       {jp:'たばこ', romaji:'tabako', en:'cigarettes', tags:['L1','objects','taught'], dateAdded:'2026-08-01'},
       {jp:'コーヒー', romaji:'koohii', en:'coffee', tags:['L1','objects','taught','L3','food-drink-l3','l3-1','genki','genki-1-3','drink'], altForm:'こーひー', dateAdded:'2026-08-01'},
       {jp:'コンピューター', romaji:'konpyuutaa', en:'computer', tags:['L1','objects','taught','genki','genki-1-1','genki-1-2'], altForm:'こんぴゅーたー', dateAdded:'2026-08-01'},
@@ -151,14 +151,14 @@ window.JP_DRILL_VOCAB = {
       {jp:'ペン', romaji:'pen', en:'pen', tags:['L1','objects','taught','genki','genki-1-2'], altForm:'ぺん', altAfterAnswer:true, dateAdded:'2026-08-01'},
       {jp:'えんぴつ', romaji:'enpitsu', en:'pencil', tags:['L1','objects','taught'], dateAdded:'2026-08-01'},
       {jp:'てちょう', romaji:'techou', en:'pocket notebook', tags:['L1','objects','taught'], dateAdded:'2026-08-01'},
-      {jp:'さいふ', romaji:'saifu', en:'purse / wallet', tags:['L1','objects','taught','genki','genki-1-2'], dateAdded:'2026-08-01'},
+      {jp:'さいふ', romaji:'saifu', en:'purse / wallet', tags:['L1','objects','taught','genki','genki-1-2','L3','gifts-l3','l3-3'], dateAdded:'2026-08-01'},
       {jp:'ラジオ', romaji:'rajio', en:'radio', tags:['L1','objects','taught','L3','hobbies-l3','l3-2'], altForm:'らじお', dateAdded:'2026-08-01'},
       {jp:'テープ', romaji:'teepu', en:'tape', tags:['L1','objects','taught'], altForm:'てーぷ', dateAdded:'2026-08-01'},
       {jp:'テレビ', romaji:'terebi', en:'television', tags:['L1','objects','taught','genki','genki-1-3'], altForm:'てれび', dateAdded:'2026-08-01'},
       {jp:'かさ', romaji:'kasa', en:'umbrella', tags:['L1','objects','taught','genki','genki-1-2'], dateAdded:'2026-08-01'},
       {jp:'とけい', romaji:'tokei', en:'watch / clock', tags:['L1','objects','taught','genki','genki-1-2'], dateAdded:'2026-08-01'},
       // Clothing & accessories merged in here 2026-10-08 (only 4 words; same jp|en, scores kept).
-      {jp:'ぼうし', romaji:'boushi', en:'hat', tags:['L1','objects','taught','genki','genki-1-2'], dateAdded:'2026-08-01'},
+      {jp:'ぼうし', romaji:'boushi', en:'hat', tags:['L1','objects','taught','genki','genki-1-2','L3','gifts-l3','l3-3'], dateAdded:'2026-08-01'},
       {jp:'ジーンズ', romaji:'jiinzu', en:'jeans', tags:['L1','objects','taught','genki','genki-1-2'], altForm:'じーんず', dateAdded:'2026-08-01'},
       {jp:'ネクタイ', romaji:'nekutai', en:'necktie', tags:['L1','objects','taught'], altForm:'ねくたい', altAfterAnswer:true, dateAdded:'2026-08-01'},
       {jp:'くつ', romaji:'kutsu', en:'shoes', tags:['L1','objects','taught','genki','genki-1-2','L3','general-l3','l3-2'], dateAdded:'2026-08-01'},
@@ -290,7 +290,7 @@ window.JP_DRILL_VOCAB = {
       {jp:'ごみばこ', romaji:'gomibako', en:'rubbish bin', tags:['L2','general-l2','taught'], altForm:'ゴミ箱', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'はさみ', romaji:'hasami', en:'scissors', tags:['L2','general-l2','taught'], dateAdded:'2026-08-01'},
       {jp:'きせつ', romaji:'kisetsu', en:'season', tags:['L2','general-l2','taught'], altForm:'季節', altIsStandard:true, dateAdded:'2026-08-01'},
-      {jp:'しょうゆ', romaji:'shouyu', en:'soy sauce', tags:['L2','general-l2','taught','L3','food-drink-l3','l3-2','food-type'], altForm:'醤油', altIsStandard:true, dateAdded:'2026-08-01'},
+      {jp:'しょうゆ', romaji:'shouyu', en:'soy sauce', tags:['L2','general-l2','taught','L3','food-drink-l3','l3-2','food-type','gifts-l3','l3-3'], altForm:'醤油', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'とうふ', romaji:'toufu', en:'tofu', tags:['L2','general-l2','taught'], altForm:'豆腐', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'じどうはんばいき', romaji:'jidouhanbaiki', en:'vending machine', tags:['L2','general-l2','taught'], altForm:'自動販売機', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'しごと', romaji:'shigoto', en:'work / job', tags:['L2','general-l2','taught'], altForm:'仕事', altIsStandard:true, dateAdded:'2026-08-01'},
@@ -418,7 +418,7 @@ window.JP_DRILL_VOCAB = {
       {jp:'すいます', romaji:'suimasu', en:'to smoke', tags:['L2','verbs-l2','taught'], dateAdded:'2026-08-13'},
       {jp:'とります', romaji:'torimasu', en:'to take (a photo)', tags:['L2','verbs-l2','taught','L3','verbs-l3','l3-1'], dateAdded:'2026-08-13'},
       {jp:'します', romaji:'shimasu', en:'to do / play', tags:['L2','verbs-l2','taught','L3','verbs-l3','l3-1'], dateAdded:'2026-08-13'},
-      {jp:'あいます', romaji:'aimasu', en:'to meet', tags:['L2','verbs-l2','taught'], dateAdded:'2026-08-13'},
+      {jp:'あいます', romaji:'aimasu', en:'to meet', tags:['L2','verbs-l2','taught','L3','verbs-l3','l3-3'], dateAdded:'2026-08-13'},
     ],
   },
   // The 12 everyday zodiac animal words - these were actually covered in
@@ -476,7 +476,7 @@ window.JP_DRILL_VOCAB = {
     tagQuery: ['L2','adjectives-l2'],
     items: [
       {jp:'あたらしい', romaji:'atarashii', en:'new', tags:['L2','adjectives-l2','adjectives','taught'], altForm:'新しい', altIsStandard:true, dateAdded:'2026-08-01'},
-      {jp:'かわいい', romaji:'kawaii', en:'cute', tags:['L2','adjectives-l2','adjectives','taught'], altForm:'可愛い', altIsStandard:true, dateAdded:'2026-08-01'},
+      {jp:'かわいい', romaji:'kawaii', en:'cute', tags:['L2','adjectives-l2','adjectives','taught','L3','adjectives-l3','l3-3'], altForm:'可愛い', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'ふるい', romaji:'furui', en:'old (things)', tags:['L2','adjectives-l2','adjectives','taught'], altForm:'古い', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'ながい', romaji:'nagai', en:'long', tags:['L2','adjectives-l2','adjectives','taught'], altForm:'長い', altIsStandard:true, dateAdded:'2026-08-01'},
       {jp:'みじかい', romaji:'mijikai', en:'short', tags:['L2','adjectives-l2','adjectives','taught'], altForm:'短い', altIsStandard:true, dateAdded:'2026-08-01'},
@@ -842,6 +842,17 @@ window.JP_DRILL_VOCAB = {
       {jp:'ドラマ', romaji:'dorama', en:'TV drama', tags:['L3','hobbies-l3','taught','l3-2'], dateAdded:'2026-10-06'},
       {jp:'コンサート', romaji:'konsaato', en:'concert', tags:['L3','hobbies-l3','taught','l3-2'], dateAdded:'2026-10-06'},
       {jp:'ポップス', romaji:'poppusu', en:'pop music', tags:['L3','hobbies-l3','taught','l3-2'], dateAdded:'2026-10-06'},
+      // Lesson 3 (2026-10-13) - activities to invite people to
+      {jp:'かいもの', romaji:'kaimono', en:'shopping', tags:['L3','hobbies-l3','taught','l3-3'], altForm:'買い物', altIsStandard:true, dateAdded:'2026-10-13'},
+      {jp:'デート', romaji:'deeto', en:'date (romantic)', tags:['L3','hobbies-l3','taught','l3-3','genki','genki-1-3'], dateAdded:'2026-10-13'},
+      {jp:'かんこう', romaji:'kankou', en:'sightseeing', tags:['L3','hobbies-l3','taught','l3-3'], altForm:'観光', altIsStandard:true, dateAdded:'2026-10-13'},
+      {jp:'キャンプ', romaji:'kyanpu', en:'camping', tags:['L3','hobbies-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'バードウォッチング', romaji:'baado wocchingu', en:'birdwatching', tags:['L3','hobbies-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'ハイキング', romaji:'haikingu', en:'hiking', tags:['L3','hobbies-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'やまのぼり', romaji:'yamanobori', en:'mountain climbing', tags:['L3','hobbies-l3','taught','l3-3'], altForm:'山登り', altIsStandard:true, dateAdded:'2026-10-13'},
+      {jp:'マーケット', romaji:'maaketto', en:'market', tags:['L3','hobbies-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'おまつり', romaji:'omatsuri', en:'festival', tags:['L3','hobbies-l3','taught','l3-3'], altForm:'お祭り', altIsStandard:true, dateAdded:'2026-10-13'},
+      {jp:'げきじょう', romaji:'gekijou', en:'theatre (the building)', tags:['L3','hobbies-l3','taught','l3-3'], altForm:'劇場', altIsStandard:true, dateAdded:'2026-10-13'},
     ],
   },
   'vocab-frequency-l3': {
@@ -889,6 +900,11 @@ window.JP_DRILL_VOCAB = {
       {jp:'はな', romaji:'hana', en:'flower', tags:['L3','general-l3','taught','l3-2'], altForm:'花', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'ハロウィン', romaji:'harowin', en:'Halloween (Oct 31)', tags:['L3','general-l3','taught','l3-2'], dateAdded:'2026-10-06'},
       {jp:'ころもがえ', romaji:'koromogae', en:'seasonal change of clothes (Oct 1)', tags:['L3','general-l3','taught','l3-2'], altForm:'衣替え', altIsStandard:true, dateAdded:'2026-10-06'},
+      // Lesson 3 (2026-10-13): languages - taught as "country + ご"; えいご is the
+      // irregular one (not イギリスご). Both were in the private Genki pack (same
+      // jp|en, so scores carry over) and were removed from it.
+      {jp:'にほんご', romaji:'nihongo', en:'Japanese language', tags:['L3','general-l3','taught','l3-3','genki','genki-1-1'], altForm:'日本語', altIsStandard:true, dateAdded:'2026-10-13'},
+      {jp:'えいご', romaji:'eigo', en:'English (language)', tags:['L3','general-l3','taught','l3-3','genki','genki-1-2'], altForm:'英語', altIsStandard:true, dateAdded:'2026-10-13'},
     ],
   },
   // LEVEL 3 LESSON 2 (2026-10-06) - three new L3 categories. As in Lesson 1,
@@ -925,6 +941,8 @@ window.JP_DRILL_VOCAB = {
       {jp:'むすこさん', romaji:'musukosan', en:'son (someone else\'s)', tags:['L3','family-l3','taught','l3-2'], altForm:'息子さん', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'むすめさん', romaji:'musumesan', en:'daughter (someone else\'s)', tags:['L3','family-l3','taught','l3-2'], altForm:'娘さん', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'どうりょう', romaji:'douryou', en:'colleague', tags:['L3','family-l3','taught','l3-2'], altForm:'同僚', altIsStandard:true, dateAdded:'2026-10-06'},
+      // Lesson 3 (2026-10-13)
+      {jp:'かのじょ', romaji:'kanojo', en:'girlfriend / she', tags:['L3','family-l3','taught','l3-3'], altForm:'彼女', altIsStandard:true, dateAdded:'2026-10-13'},
     ],
   },
   // Places & rooms: places where an action happens (で), from the lesson's
@@ -949,6 +967,15 @@ window.JP_DRILL_VOCAB = {
       {jp:'にわ', romaji:'niwa', en:'garden', tags:['L3','places-l3','taught','l3-2'], altForm:'庭', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'ふろば', romaji:'furoba', en:'bathroom (with the bath)', tags:['L3','places-l3','taught','l3-2'], altForm:'風呂場', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'しんしつ', romaji:'shinshitsu', en:'bedroom', tags:['L3','places-l3','taught','l3-2'], altForm:'寝室', altIsStandard:true, dateAdded:'2026-10-06'},
+      // Lesson 3 (2026-10-13) - meeting points and places from the dialogues
+      {jp:'かいさつ', romaji:'kaisatsu', en:'ticket gates', tags:['L3','places-l3','taught','l3-3'], altForm:'改札', altIsStandard:true, dateAdded:'2026-10-13'},
+      {jp:'きっぷうりば', romaji:'kippu uriba', en:'ticket office / ticket machines', tags:['L3','places-l3','taught','l3-3'], altForm:'切符売り場', altIsStandard:true, dateAdded:'2026-10-13'},
+      {jp:'キオスク', romaji:'kiosuku', en:'kiosk (station shop)', tags:['L3','places-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'ロビー', romaji:'robii', en:'lobby', tags:['L3','places-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'ねこカフェ', romaji:'neko kafe', en:'cat café', tags:['L3','places-l3','taught','l3-3'], altForm:'猫カフェ', altIsStandard:true, dateAdded:'2026-10-13'},
+      {jp:'ぎんざ', romaji:'ginza', en:'Ginza (Tokyo)', tags:['L3','places-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'しぶや', romaji:'shibuya', en:'Shibuya (Tokyo)', tags:['L3','places-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'あきはばら', romaji:'akihabara', en:'Akihabara (Tokyo)', tags:['L3','places-l3','taught','l3-3'], dateAdded:'2026-10-13'},
     ],
   },
   // Occupations: the homework reading task (Lesson 2).
@@ -974,6 +1001,70 @@ window.JP_DRILL_VOCAB = {
       {jp:'やくざいし', romaji:'yakuzaishi', en:'pharmacist', tags:['L3','occupations-l3','taught','l3-2'], altForm:'薬剤師', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'ほいくし', romaji:'hoikushi', en:'nursery teacher', tags:['L3','occupations-l3','taught','l3-2'], altForm:'保育士', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'おんがくか', romaji:'ongakuka', en:'musician', tags:['L3','occupations-l3','taught','l3-2'], altForm:'音楽家', altIsStandard:true, dateAdded:'2026-10-06'},
+    ],
+  },
+  // Lesson 3 (2026-10-13): presents and souvenirs from the birthday-gift and
+  // moving-in pages. Most also carry 'objects', so they join Everyday items.
+  // Tagged forward: ぼうし, チョコレート, さいふ, おみやげ, タオル, しょうゆ.
+  'vocab-gifts-l3': {
+    level: 3,
+    hasReference: true,
+    label: 'Gifts & souvenirs',
+    chars: 'プレゼント ハンカチ おかし…',
+    tagQuery: ['L3','gifts-l3'],
+    items: [
+      {jp:'プレゼント', romaji:'purezento', en:'present / gift', tags:['L3','gifts-l3','taught','l3-3','objects'], dateAdded:'2026-10-13'},
+      {jp:'キーホルダー', romaji:'kiihorudaa', en:'keyring', tags:['L3','gifts-l3','taught','l3-3','objects'], dateAdded:'2026-10-13'},
+      {jp:'マグカップ', romaji:'magu kappu', en:'mug', tags:['L3','gifts-l3','taught','l3-3','objects'], dateAdded:'2026-10-13'},
+      {jp:'ぬいぐるみ', romaji:'nuigurumi', en:'soft toy', tags:['L3','gifts-l3','taught','l3-3','objects'], dateAdded:'2026-10-13'},
+      {jp:'ハンカチ', romaji:'hankachi', en:'handkerchief', tags:['L3','gifts-l3','taught','l3-3','objects'], dateAdded:'2026-10-13'},
+      {jp:'スマホケース', romaji:'sumaho keesu', en:'phone case', tags:['L3','gifts-l3','taught','l3-3','objects'], dateAdded:'2026-10-13'},
+      {jp:'ポーチ', romaji:'poochi', en:'pouch / small bag', tags:['L3','gifts-l3','taught','l3-3','objects'], dateAdded:'2026-10-13'},
+      {jp:'おかし', romaji:'okashi', en:'sweets / snacks', tags:['L3','gifts-l3','taught','l3-3'], altForm:'お菓子', altIsStandard:true, dateAdded:'2026-10-13'},
+      {jp:'せっけん', romaji:'sekken', en:'soap', tags:['L3','gifts-l3','taught','l3-3','objects'], altForm:'石鹸', dateAdded:'2026-10-13'},
+      {jp:'ラップ', romaji:'rappu', en:'cling film', tags:['L3','gifts-l3','taught','l3-3','objects'], dateAdded:'2026-10-13'},
+    ],
+  },
+  // Lesson 3: adjectives for reacting to things (かわいいですね!). Words only -
+  // adjective forms were dropped (Andrew, 2026-10-09). きれい/すてき are な-adjectives.
+  'vocab-adjectives-l3': {
+    level: 3,
+    hasReference: true,
+    label: 'Adjectives',
+    chars: 'おもしろい かっこいい きれい…',
+    tagQuery: ['L3','adjectives-l3'],
+    items: [
+      {jp:'おもしろい', romaji:'omoshiroi', en:'interesting / fun', tags:['L3','adjectives-l3','taught','l3-3'], altForm:'面白い', altIsStandard:true, dateAdded:'2026-10-13'},
+      {jp:'いい', romaji:'ii', en:'good', tags:['L3','adjectives-l3','taught','l3-3','genki','genki-1-3'], dateAdded:'2026-10-13'},
+      {jp:'かっこいい', romaji:'kakkoii', en:'cool / stylish', tags:['L3','adjectives-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'きれい', romaji:'kirei', en:'beautiful / pretty', tags:['L3','adjectives-l3','taught','l3-3'], altForm:'綺麗', dateAdded:'2026-10-13'},
+      {jp:'すてき', romaji:'suteki', en:'lovely / wonderful', tags:['L3','adjectives-l3','taught','l3-3'], altForm:'素敵', dateAdded:'2026-10-13'},
+    ],
+  },
+  // Lesson 3: inviting, arranging to meet, and set phrases for gifts.
+  // ええ/ちょっと/じゃあ/どうですか/いい/デート were in the private Genki pack
+  // (same jp|en, so scores carry over) and were removed from it.
+  'vocab-phrases-l3': {
+    level: 3,
+    hasReference: true,
+    label: 'Phrases & replies',
+    chars: 'いっしょに いいですね ちょっと…',
+    tagQuery: ['L3','phrases-l3'],
+    items: [
+      {jp:'いっしょに', romaji:'issho ni', en:'together', tags:['L3','phrases-l3','taught','l3-3'], altForm:'一緒に', altIsStandard:true, dateAdded:'2026-10-13'},
+      {jp:'ええ', romaji:'ee', en:'yes (softer than はい)', tags:['L3','phrases-l3','taught','l3-3','genki','genki-1-3'], dateAdded:'2026-10-13'},
+      {jp:'ちょっと', romaji:'chotto', en:'a little', tags:['L3','phrases-l3','taught','l3-3','genki','genki-1-3'], dateAdded:'2026-10-13'},
+      {jp:'〜は ちょっと…', romaji:'~wa chotto...', en:'…is a bit… (polite no)', tags:['L3','phrases-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'いいですね', romaji:'ii desu ne', en:'that sounds good', tags:['L3','phrases-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'いいですよ', romaji:'ii desu yo', en:'that\'s fine (agreeing)', tags:['L3','phrases-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'わかりました', romaji:'wakarimashita', en:'understood / OK', tags:['L3','phrases-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'じゃあ', romaji:'jaa', en:'well then / in that case', tags:['L3','phrases-l3','taught','l3-3','genki','genki-1-2'], dateAdded:'2026-10-13'},
+      {jp:'どうですか', romaji:'dou desu ka', en:'how about …? / how is …?', tags:['L3','phrases-l3','taught','l3-3','genki','genki-1-3'], dateAdded:'2026-10-13'},
+      {jp:'よかったですね', romaji:'yokatta desu ne', en:'that\'s nice! / good for you', tags:['L3','phrases-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'こちらこそ', romaji:'kochira koso', en:'likewise (me too)', tags:['L3','phrases-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'これから よろしく おねがいします', romaji:'korekara yoroshiku onegaishimasu', en:'I look forward to knowing you (new neighbours)', tags:['L3','phrases-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'ひっこしの ごあいさつです', romaji:'hikkoshi no goaisatsu desu', en:'a hello gift - I\'ve just moved in', tags:['L3','phrases-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      {jp:'これ、おみやげです', romaji:'kore, omiyage desu', en:'this is a souvenir (for you)', tags:['L3','phrases-l3','taught','l3-3'], dateAdded:'2026-10-13'},
     ],
   },
   // みず (water) moved out to Level 2's General vocabulary in Week 6, now
@@ -1016,8 +1107,8 @@ window.JP_DRILL_VOCAB = {
       // のみもの moved to vocab-materials-hotel-appliances (real-world
       // evidenced copy, seen as a microwave preset button) - not
       // duplicated here, drillable from its real home instead.
-      {jp:'いりぐち', romaji:'iriguchi', en:'entrance', tags:['trip','stations','untaught','curated','te-around'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
-      {jp:'でぐち', romaji:'deguchi', en:'exit', tags:['trip','stations','untaught','curated','te-around'], altForm:'出口', altIsStandard:true, source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
+      {jp:'いりぐち', romaji:'iriguchi', en:'entrance', tags:['trip','stations','taught','curated','te-around','L3','places-l3','l3-3'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
+      {jp:'でぐち', romaji:'deguchi', en:'exit', tags:['trip','stations','taught','curated','te-around','L3','places-l3','l3-3'], altForm:'出口', altIsStandard:true, source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       {jp:'たかい', romaji:'takai', en:'expensive', tags:['trip','adjectives','untaught','curated','genki','genki-1-2','te-shops'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       {jp:'たべもの', romaji:'tabemono', en:'food', tags:['trip','food-drink','taught','curated','food-type','L3','food-drink-l3','l3-1','te-food'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       {jp:'おちゃ', romaji:'ocha', en:'green tea', tags:['trip','food-drink','taught','curated','drink','L3','food-drink-l3','l3-1','genki','genki-1-3','te-food'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
@@ -1030,11 +1121,11 @@ window.JP_DRILL_VOCAB = {
       {jp:'さけ', romaji:'sake', en:'sake / alcohol', tags:['trip','food-drink','untaught','curated','drink','te-food'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       {jp:'みせ', romaji:'mise', en:'shop', tags:['trip','shopping','untaught','curated','te-shops'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       {jp:'ちいさい', romaji:'chiisai', en:'small', tags:['trip','adjectives','untaught','curated','te-shops'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
-      {jp:'そば', romaji:'soba', en:'soba noodles', tags:['trip','food-drink','untaught','curated','food-type','te-food'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
+      {jp:'そば', romaji:'soba', en:'soba noodles', tags:['trip','food-drink','taught','curated','food-type','te-food','L3','food-drink-l3','l3-3'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       // altForm added 2026-08-15 - お土産 seen on real signage (batch 6 part
       // 2, Osaka hotel lobby), same "fold the real form in rather than
       // duplicate" call made for ちかてつ/バスてい in batch 6 part 1.
-      {jp:'おみやげ', romaji:'omiyage', en:'souvenir', tags:['trip','shopping','untaught','curated','te-shops'], altForm:'お土産', altIsStandard:true, source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
+      {jp:'おみやげ', romaji:'omiyage', en:'souvenir', tags:['trip','shopping','taught','curated','te-shops','L3','gifts-l3','l3-3'], altForm:'お土産', altIsStandard:true, source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       {jp:'すし', romaji:'sushi', en:'sushi', tags:['trip','food-drink','curated','food-type','taught','L3','food-drink-l3','l3-2','te-food'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       {jp:'てんぷら', romaji:'tenpura', en:'tempura', tags:['trip','food-drink','taught','curated','food-type','L3','food-drink-l3','l3-1','te-food'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       // きっぷ moved out - the same word, kanji form already folded in, is
@@ -1042,12 +1133,12 @@ window.JP_DRILL_VOCAB = {
       // duplicated here.
       {jp:'まち', romaji:'machi', en:'town', tags:['trip','places','untaught','curated','te-around'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       {jp:'のりかえ', romaji:'norikae', en:'transfer / change trains', tags:['trip','stations','untaught','curated','te-around'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
-      {jp:'うどん', romaji:'udon', en:'udon noodles', tags:['trip','food-drink','untaught','curated','food-type','te-food'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
+      {jp:'うどん', romaji:'udon', en:'udon noodles', tags:['trip','food-drink','taught','curated','food-type','te-food','L3','food-drink-l3','l3-3'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       // Tourist essentials additions (2026-10-11) - Little words (te-little) and Hotel & travel kit (te-hotel), from the Portuguese-test gap list.
       {jp:'たぶん', romaji:'tabun', en:'maybe', tags:['trip','te-little','untaught','curated'], altForm:'多分', altIsStandard:true, source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
       {jp:'もちろん', romaji:'mochiron', en:'of course', tags:['trip','te-little','untaught','curated'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
       {jp:'なるほど', romaji:'naruhodo', en:'I see', tags:['trip','te-little','untaught','curated'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
-      {jp:'そうですね', romaji:'sou desu ne', en:'that\'s right / let me see', tags:['trip','te-little','untaught','curated'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
+      {jp:'そうですね', romaji:'sou desu ne', en:'that\'s right / let me see', tags:['trip','te-little','untaught','curated','genki','genki-1-3'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
       {jp:'そうですか', romaji:'sou desu ka', en:'is that so? / I see', tags:['trip','te-little','untaught','curated'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
       {jp:'ほんとうですか', romaji:'hontou desu ka', en:'really?', tags:['trip','te-little','untaught','curated'], altForm:'本当ですか', altIsStandard:true, source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
       {jp:'えーと', romaji:'eeto', en:'um, let me think', tags:['trip','te-little','untaught','curated'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
@@ -1191,7 +1282,7 @@ window.JP_DRILL_VOCAB = {
       {jp:'よやく', romaji:'yoyaku', en:'reservation', tags:['accommodation','untaught','curated','te-hotel'], altForm:'予約', altIsStandard:true, seenAs:'予約 also labels the delayed-start timer button on a washing machine (Tokyu Stay Kyoto) - same underlying idea, "set this to happen later," not a separate word', source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       {jp:'へやの ばんごう', romaji:'heya no bangou', en:'room number', tags:['accommodation','untaught','curated','te-hotel'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       {jp:'シングルルーム', romaji:'shinguru ruumu', en:'single room', tags:['accommodation','untaught','curated','te-hotel'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
-      {jp:'タオル', romaji:'taoru', en:'towel', tags:['accommodation','untaught','curated','te-hotel'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
+      {jp:'タオル', romaji:'taoru', en:'towel', tags:['accommodation','taught','curated','te-hotel','L3','gifts-l3','l3-3'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       {jp:'ワイファイ', romaji:'waifai', en:'wifi', tags:['accommodation','untaught','curated','te-hotel'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
     ],
   },
@@ -1915,7 +2006,7 @@ window.JP_DRILL_VOCAB = {
       {jp:'ダウンロード', romaji:'daunroodo', en:'download', tags:['service-ops','untaught','encountered'], source:{location:'Yayoiken, Sapporo', date:'2026-08-12', file:'PXL_20260812_105641436.jpg'}, dateAdded:'2026-08-14'},
       {jp:'となり', romaji:'tonari', en:'next to / neighboring', tags:['service-ops','untaught','encountered','te-around'], source:{location:'JR Inn Sapporo (Cafe de Crie)', date:'2026-08-13', file:'PXL_20260812_234344125.jpg'}, dateAdded:'2026-08-14'},
       {jp:'レジ', romaji:'reji', en:'cash register', tags:['service-ops','untaught','encountered'], source:{location:'JR Inn Sapporo (Cafe de Crie)', date:'2026-08-13', file:'PXL_20260812_234344125.jpg'}, dateAdded:'2026-08-14'},
-      {jp:'どうぞ', romaji:'douzo', en:'please / go ahead', tags:['service-ops','untaught','encountered','genki','genki-1-2'], source:{location:'JR Inn Sapporo (Cafe de Crie)', date:'2026-08-13', file:'PXL_20260812_234344125.jpg'}, dateAdded:'2026-08-14'},
+      {jp:'どうぞ', romaji:'douzo', en:'please / go ahead', tags:['service-ops','taught','encountered','genki','genki-1-2','L3','phrases-l3','l3-3'], source:{location:'JR Inn Sapporo (Cafe de Crie)', date:'2026-08-13', file:'PXL_20260812_234344125.jpg'}, dateAdded:'2026-08-14'},
       {jp:'四連休', romaji:'yon renkyuu', en:'four-day consecutive holiday', tags:['service-ops','untaught','encountered'], source:{location:'Shinsekai, Osaka', date:'2026-08-17', file:'PXL_20260817_044520696.jpg'}, dateAdded:'2026-08-17', kanjiReading: [{char:'四',reading:'yon'},{char:'連',reading:'ren'},{char:'休',reading:'kyuu'}]},
       {jp:'材料', romaji:'zairyou', en:'ingredients / materials', tags:['food-drink','untaught','encountered','food-type'], source:{location:'Shinsekai, Osaka', date:'2026-08-17', file:'PXL_20260817_044520696.jpg'}, dateAdded:'2026-08-17', kanjiReading: [{char:'材',reading:'zai'},{char:'料',reading:'ryou'}]},
       {jp:'閉店します', romaji:'heiten shimasu', en:'will close (the shop)', tags:['service-ops','untaught','encountered'], seenAs:'明日より四連休の為、材料なくなり次第閉店します。- from tomorrow is a four-day holiday, so we\'ll close as soon as we run out of ingredients', source:{location:'Shinsekai, Osaka', date:'2026-08-17', file:'PXL_20260817_044520696.jpg'}, dateAdded:'2026-08-17', kanjiReadingBlocked: 'Irregular reading - doesn\'t break into standard sounds, worth memorising as a whole word'},
@@ -2637,7 +2728,7 @@ window.JP_DRILL_GROUPS = {
     // are sentence-building words in exactly this sense. L3 verbs need no
     // tag of their own here - all are L2 verbs tagged forward, so verbs-l2
     // already covers them.
-    tagQuery: { any: [['verbs-l2', 'verbs-l3'], 'adjectives-l2', 'question-location', 'frequency-l3'] }, // verbs-l3 added 2026-10-06; all verbs one group (2026-10-07)
+    tagQuery: { any: [['verbs-l2', 'verbs-l3'], ['adjectives-l2', 'adjectives-l3'], 'question-location', 'frequency-l3'] }, // adjectives-l3 added 2026-10-13 // verbs-l3 added 2026-10-06; all verbs one group (2026-10-07)
   },
   // BUG FIX (2026-08-31) - this card used to be hidden entirely unless Trip
   // vocabulary was switched on (applyShowTripVocabVisibility), even though
