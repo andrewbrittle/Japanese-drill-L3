@@ -634,6 +634,9 @@
   .match-card-select .group-name { font-size: 15px; font-weight: 700; }
   .section-divider { height: 1px; background: var(--accent); opacity: 0.45; margin: 0.25rem 0; }
   .tile-group-heading { flex-basis: 100%; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em; color: var(--accent); border-top: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); padding-top: 0.45rem; margin-top: 0.4rem; }
+  .install-card { align-items: center; gap: 12px; }
+  .install-card .install-why { margin-top: 4px; }
+  .install-btn { flex-shrink: 0; padding: 8px 16px; border-radius: 99px; border: 1px solid var(--accent); background: var(--accent-dim); color: var(--accent); font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
   .tile-group-heading.first { border-top: none; padding-top: 0; margin-top: 0; }
   .sk-reveal { font-size: 56px; line-height: 1.2; }
   .sk-reveal-sub { font-size: 15px; color: var(--text-muted); margin-top: 4px; }
@@ -1333,6 +1336,17 @@
       <a href="./changelog.html" target="_blank" id="whats-new-link" style="display:inline-block; font-size:13px; font-weight:600; color:var(--text-muted); text-decoration:none; border:1px solid var(--border); border-radius:99px; padding:8px 18px; background:transparent;">What's new →</a>
     </div>
 
+    <!-- Install card (2026-10-13): only shown when the app is open as a web
+         page rather than installed - see refreshInstallCard(). -->
+    <div class="group-card install-card" id="install-card" style="display:none;">
+      <div class="group-info">
+        <div class="group-name">Install the app</div>
+        <div class="group-count" id="install-card-steps"></div>
+        <div class="group-count install-why">Installed, it opens full screen from its own icon and works offline.</div>
+      </div>
+      <button type="button" class="install-btn" id="install-btn" onclick="runInstallPrompt()" style="display:none;">Install</button>
+    </div>
+
     <div class="group-card" id="theme-toggle-card" onclick="toggleTheme()" style="cursor:pointer;">
       <div class="group-info">
         <div class="group-name">Light theme</div>
@@ -1426,7 +1440,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261013.003</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261013.005</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -6848,7 +6862,45 @@ function applyAllSettingsUI() {
   applySettingsButtonUpdateFlag();
 }
 
+// INSTALL CARD (2026-10-13). A browser reports whether the page is running
+// as an installed home-screen app (display-mode standalone, or Safari's
+// navigator.standalone). When it isn't, Settings shows how to install for
+// this phone. Android Chrome offers its own install prompt
+// (beforeinstallprompt), so there the card gets an Install button.
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstallPrompt = e; refreshInstallCard(); });
+window.addEventListener('appinstalled', () => { deferredInstallPrompt = null; refreshInstallCard(); });
+function appIsInstalled() {
+  try {
+    return window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches
+      || window.matchMedia('(display-mode: minimal-ui)').matches || window.navigator.standalone === true;
+  } catch (e) { return false; }
+}
+function refreshInstallCard() {
+  const card = document.getElementById('install-card');
+  if (!card) return;
+  if (appIsInstalled() || location.protocol === 'file:') { card.style.display = 'none'; return; }
+  const ua = navigator.userAgent || '';
+  const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  const android = /Android/.test(ua);
+  let steps;
+  if (ios) steps = 'Tap the Share button (the square with an arrow, at the bottom in Safari or top right in Chrome), scroll down and tap <strong>Add to Home Screen</strong>, then Add.';
+  else if (android && deferredInstallPrompt) steps = 'Tap <strong>Install</strong>, or use the browser menu (⋮) → Install app.';
+  else if (android) steps = 'In Chrome, tap the menu (⋮) at the top right, then <strong>Install app</strong> or <strong>Add to Home screen</strong>.';
+  else if (deferredInstallPrompt) steps = 'Click <strong>Install</strong>, or use the install icon at the right of the address bar.';
+  else steps = 'On a phone, open this page and use the browser\'s Add to Home Screen. On a computer, look for an install icon at the right of the address bar (Chrome or Edge).';
+  document.getElementById('install-card-steps').innerHTML = steps;
+  document.getElementById('install-btn').style.display = deferredInstallPrompt ? 'inline-block' : 'none';
+  card.style.display = 'flex';
+}
+function runInstallPrompt() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.finally(() => { deferredInstallPrompt = null; refreshInstallCard(); });
+}
+
 function showSettingsScreen() {
+  refreshInstallCard();
   // Opening Settings at all is what clears the what's-new flag - reading
   // the changelog itself is optional, the cog going green is just meant to
   // say "there's something to notice", not "you owe us a read receipt".
@@ -12832,7 +12884,7 @@ const SG_OBJECT_VERBS = [
   { v: 'たべます', en: 'eat', list: true, objs: [['ごはん', 'rice'], ['さかな', 'fish'], ['にく', 'meat'], ['やさい', 'vegetables'], ['ラーメン', 'ramen'], ['パスタ', 'pasta'], ['すし', 'sushi'], ['カレー', 'curry'], ['てんぷら', 'tempura'], ['ピザ', 'pizza'],
     ['ステーキ', 'steak'], ['ぎょうざ', 'gyoza'], ['ぶたにく', 'pork'], ['ぎゅうにく', 'beef'], ['とりにく', 'chicken'], ['えび', 'prawns'], ['たこ', 'octopus'], ['いか', 'squid']], places: ['うち', 'レストラン', 'しょくどう'], futHave: true },
   { v: 'たべます', en: 'eat', list: true, objs: [['りんご', 'apples'], ['バナナ', 'bananas'], ['シリアル', 'cereal'], ['ヨーグルト', 'yoghurt'], ['なっとう', 'natto']], places: ['うち'], futHave: true },
-  { v: 'のみます', en: 'drink', list: true, objs: [['コーヒー', 'coffee'], ['おちゃ', 'green tea'], ['にほんちゃ', 'Japanese tea'], ['こうちゃ', 'black tea'], ['ジュース', 'juice'], ['ぎゅうにゅう', 'milk'], ['みず', 'water']], places: ['うち', 'カフェ', 'きっさてん', 'レストラン'], futHave: true },
+  { v: 'のみます', en: 'drink', list: true, objs: [['コーヒー', 'coffee'], ['アイスコーヒー', 'iced coffee'], ['おちゃ', 'green tea'], ['にほんちゃ', 'Japanese tea'], ['こうちゃ', 'black tea'], ['ジュース', 'juice'], ['ぎゅうにゅう', 'milk'], ['みず', 'water']], places: ['うち', 'カフェ', 'きっさてん', 'レストラン'], futHave: true },
   { v: 'のみます', en: 'drink', objs: [['スポーツドリンク', 'sports drinks', 'a sports drink']], places: ['ジム', 'うち'], futHave: true },
   { v: 'のみます', en: 'drink', list: true, objs: [['ビール', 'beer'], ['ワイン', 'wine']], places: ['うち', 'レストラン', 'バー', 'パブ'], futHave: true, adult: true, noMorning: true },
   { v: 'のみます', en: 'drink', objs: [['おさけ', 'alcohol']], places: ['うち', 'レストラン', 'バー', 'パブ'], adult: true, noMorning: true },
@@ -13533,9 +13585,74 @@ function sgInviteQA() {
   return [q, a];
 }
 
+// ARRANGING TO MEET (L3 Lesson 3): an invitation, yes, then fixing the time
+// (なんじに あいますか → Xじに あいましょう) or the place (どこで あいますか →
+// えきの かいさつは どうですか). Reuses sgInviteQA's first line.
+const SG_MEET_POINTS = [
+  ['かいさつ', 'the station ticket gates'], ['いりぐち', 'the station entrance'], ['でぐち', 'the station exit'],
+  ['キオスク', 'the kiosk at the station'], ['きっぷうりば', 'the ticket office at the station'],
+];
+function sgMeetPlanQA() {
+  const ex = sgInviteQA();
+  if (!ex) return null;
+  const inv = ex[0];
+  const yes = { jp: 'ええ、いいですね。', ro: 'Ee, ii desu ne.', en: 'Yes, that sounds good.' };
+  if (sgChance(0.5)) {
+    const evening = /こんばん|よる/.test(inv.jp) || /bar|pub|concert|musical|opera|party|karaoke|drink|beer|wine|alcohol/.test(inv.en);
+    const h = sgPick(evening ? [6, 7, 8] : [10, 11, 1, 2, 3]);
+    const half = sgChance(0.3);
+    const tJp = HOUR_KANA[h] + 'じ' + (half ? ' はん' : ''), tRo = HOUR_ROMAJI[h] + 'ji' + (half ? ' han' : '');
+    const tEn = h + (half ? ':30' : " o'clock");
+    const q = { jp: 'なんじ に あいます か。', ro: 'Nanji ni aimasu ka?', en: 'What time shall we meet?' };
+    const a = sgChance(0.5)
+      ? { jp: tJp + ' に あいましょう。', ro: sgCap(tRo) + ' ni aimashou.', en: `Let's meet at ${tEn}.` }
+      : { jp: tJp + ' は どうです か。', ro: sgCap(tRo) + ' wa dou desu ka?', en: `How about ${tEn}?` };
+    return [inv, yes, q, a];
+  }
+  if (!sgW('えき')) return null;
+  const pts = SG_MEET_POINTS.filter(p => sgW(p[0]));
+  if (!pts.length) return null;
+  const p = sgPick(pts);
+  const q = { jp: 'どこ で あいます か。', ro: 'Doko de aimasu ka?', en: 'Where shall we meet?' };
+  const a = { jp: 'えき の ' + p[0] + ' は どうです か。', ro: 'Eki no ' + sgW(p[0]).ro + ' wa dou desu ka?', en: `How about ${p[1]}?` };
+  return [inv, yes, q, a];
+}
+
+// CHOOSING A BIRTHDAY PRESENT (L3 Lesson 3): whose birthday it is, an
+// invitation to buy a present together, a suggestion (この Xは どうですか) and a
+// reaction with an adjective that suits the present.
+const SG_GIFTS = [
+  ['キーホルダー', 'keyring', ['かわいい', 'すてき']], ['マグカップ', 'mug', ['かわいい', 'すてき', 'いい']],
+  ['ぬいぐるみ', 'soft toy', ['かわいい']], ['ハンカチ', 'handkerchief', ['きれい', 'すてき', 'かわいい']],
+  ['スマホケース', 'phone case', ['かっこいい', 'かわいい', 'すてき']], ['ポーチ', 'pouch', ['かわいい', 'きれい', 'すてき']],
+  ['ぼうし', 'hat', ['かっこいい', 'すてき', 'かわいい']], ['さいふ', 'wallet', ['かっこいい', 'すてき', 'いい']],
+];
+const SG_ADJ_EN = { かわいい: 'cute', すてき: 'lovely', いい: 'nice', きれい: 'pretty', かっこいい: 'cool' };
+function sgGiftQA() {
+  if (!sgW('たんじょうび') || !sgW('プレゼント')) return null;
+  const gifts = SG_GIFTS.filter(g => sgW(g[0]) && g[2].some(a => sgW(a)));
+  if (!gifts.length) return null;
+  const g = sgPick(gifts);
+  const adj = sgPick(g[2].filter(a => sgW(a)));
+  const n = sgPick(SENTENCE_NAME_POOL);
+  const when = sgPick([['あした', 'tomorrow'], ['あさって', 'the day after tomorrow']].filter(w => sgW(w[0])));
+  if (!when) return null;
+  const nRo = sgW(n.jp).ro;
+  const l1 = {
+    jp: `${when[0]} は ${n.jp} の たんじょうび です。 いっしょに プレゼント を かいません か。`,
+    ro: `${sgCap(sgW(when[0]).ro)} wa ${nRo} no tanjoubi desu. Issho ni purezento o kaimasen ka?`,
+    en: `It's ${n.en}'s birthday ${when[1]}. Why don't we buy a present together?`,
+  };
+  const l2 = { jp: 'いいですね。 かいましょう。', ro: 'Ii desu ne. Kaimashou.', en: "Good idea. Let's buy one." };
+  const l3 = { jp: 'なに を かいます か。', ro: 'Nani o kaimasu ka?', en: 'What shall we buy?' };
+  const l4 = { jp: `この ${g[0]} は どうです か。`, ro: `Kono ${sgW(g[0]).ro} wa dou desu ka?`, en: `How about this ${g[1]}?` };
+  const l5 = { jp: `${adj}ですね。 じゃあ、 これ を かいましょう。`, ro: `${sgCap(sgW(adj).ro)} desu ne. Jaa, kore o kaimashou.`, en: `It's ${SG_ADJ_EN[adj]}! OK, let's buy this one.` };
+  return [l1, l2, l3, l4, l5];
+}
+
 function sgGenerate() {
   const makers = [[sgObjectSentence, 4], [sgMotionSentence, 3], [sgRoutineSentence, 1], [sgJobProfile, 1], [sgMeetSentence, 1], [sgQA, 3],
-    [sgDonnaQA, 1.5], [sgWhereDeQA, 1.5], [sgWhatAtQA, 1.5], [sgInviteQA, 1.5]];
+    [sgDonnaQA, 1.5], [sgWhereDeQA, 1.5], [sgWhatAtQA, 1.5], [sgInviteQA, 1.5], [sgMeetPlanQA, 1], [sgGiftQA, 0.75]];
   const total = makers.reduce((a, m) => a + m[1], 0);
   for (let tries = 0; tries < 50; tries++) {
     let r = sgRand() * total, fn = makers[0][0];

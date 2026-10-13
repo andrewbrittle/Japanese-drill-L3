@@ -797,6 +797,8 @@ window.JP_DRILL_VOCAB = {
       {jp:'たまごサンド', romaji:'tamago sando', en:'egg sandwich', tags:['L3','food-drink-l3','taught','l3-2','food-type'], dateAdded:'2026-10-06'},
       {jp:'ツナサンド', romaji:'tsuna sando', en:'tuna sandwich', tags:['L3','food-drink-l3','taught','l3-2','food-type'], dateAdded:'2026-10-06'},
       {jp:'ハムサンド', romaji:'hamu sando', en:'ham sandwich', tags:['L3','food-drink-l3','taught','l3-2','food-type'], dateAdded:'2026-10-06'},
+      // Lesson 3 (2026-10-13, from class)
+      {jp:'アイスコーヒー', romaji:'aisu koohii', en:'iced coffee', tags:['L3','food-drink-l3','taught','l3-3','drink'], dateAdded:'2026-10-13'},
     ],
   },
   'vocab-verbs-l3': {
@@ -905,6 +907,7 @@ window.JP_DRILL_VOCAB = {
       // jp|en, so scores carry over) and were removed from it.
       {jp:'にほんご', romaji:'nihongo', en:'Japanese language', tags:['L3','general-l3','taught','l3-3','genki','genki-1-1'], altForm:'日本語', altIsStandard:true, dateAdded:'2026-10-13'},
       {jp:'えいご', romaji:'eigo', en:'English (language)', tags:['L3','general-l3','taught','l3-3','genki','genki-1-2'], altForm:'英語', altIsStandard:true, dateAdded:'2026-10-13'},
+      {jp:'ぶんぼうぐ', romaji:'bunbougu', en:'stationery', tags:['L3','general-l3','taught','l3-3'], altForm:'文房具', altIsStandard:true, dateAdded:'2026-10-13'},
     ],
   },
   // LEVEL 3 LESSON 2 (2026-10-06) - three new L3 categories. As in Lesson 1,
@@ -1039,6 +1042,8 @@ window.JP_DRILL_VOCAB = {
       {jp:'かっこいい', romaji:'kakkoii', en:'cool / stylish', tags:['L3','adjectives-l3','taught','l3-3'], dateAdded:'2026-10-13'},
       {jp:'きれい', romaji:'kirei', en:'beautiful / pretty', tags:['L3','adjectives-l3','taught','l3-3'], altForm:'綺麗', dateAdded:'2026-10-13'},
       {jp:'すてき', romaji:'suteki', en:'lovely / wonderful', tags:['L3','adjectives-l3','taught','l3-3'], altForm:'素敵', dateAdded:'2026-10-13'},
+      // From class: cold to the touch (drinks, water, hands) - さむい is cold weather.
+      {jp:'つめたい', romaji:'tsumetai', en:'cold (to the touch)', tags:['L3','adjectives-l3','taught','l3-3'], altForm:'冷たい', altIsStandard:true, dateAdded:'2026-10-13'},
     ],
   },
   // Lesson 3: inviting, arranging to meet, and set phrases for gifts.
@@ -1135,7 +1140,7 @@ window.JP_DRILL_VOCAB = {
       {jp:'のりかえ', romaji:'norikae', en:'transfer / change trains', tags:['trip','stations','untaught','curated','te-around'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       {jp:'うどん', romaji:'udon', en:'udon noodles', tags:['trip','food-drink','taught','curated','food-type','te-food','L3','food-drink-l3','l3-3'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-08-01'},
       // Tourist essentials additions (2026-10-11) - Little words (te-little) and Hotel & travel kit (te-hotel), from the Portuguese-test gap list.
-      {jp:'たぶん', romaji:'tabun', en:'maybe', tags:['trip','te-little','untaught','curated'], altForm:'多分', altIsStandard:true, source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
+      {jp:'たぶん', romaji:'tabun', en:'maybe / probably', tags:['trip','te-little','taught','curated','L3','phrases-l3','l3-3'], altForm:'多分', altIsStandard:true, source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
       {jp:'もちろん', romaji:'mochiron', en:'of course', tags:['trip','te-little','untaught','curated'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
       {jp:'なるほど', romaji:'naruhodo', en:'I see', tags:['trip','te-little','untaught','curated'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
       {jp:'そうですね', romaji:'sou desu ne', en:'that\'s right / let me see', tags:['trip','te-little','untaught','curated','genki','genki-1-3'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
