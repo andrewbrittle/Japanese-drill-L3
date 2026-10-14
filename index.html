@@ -1515,7 +1515,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261013.011</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261014.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -11078,7 +11078,7 @@ function renderSentenceStructureRows() {
   wrap.innerHTML = '';
   SENTENCE_STRUCTURE_SLOTS.forEach((slot, idx) => {
     const isVerbSlot = idx === 5;
-    const state = sentenceSlotStates[idx];
+    const state = isVerbSlot && sentenceSlotStates.slice(0, 5).includes('q') ? 'q' : sentenceSlotStates[idx]; // a question word needs か (2026-10-14)
     const row = document.createElement('div');
     row.className = 'vocab-ref-row minute-row sentence-slot-row' + (state === 'off' ? ' sentence-slot-off' : '');
     row.onclick = () => cycleSentenceSlotState(idx);
@@ -11249,7 +11249,9 @@ function buildSentenceExample() {
   const topicState = sentenceSlotStates[0];
   const companionState = sentenceSlotStates[2];
   const verbEn = verb.romaji === 'kimasu' ? 'coming' : 'going';
-  const isQuestion = sentenceSlotStates[5] === 'q';
+  // A question word anywhere (だれと, どこに…) makes it a question, so か
+  // follows whatever the verb slot says (Andrew, 2026-10-14).
+  const isQuestion = sentenceSlotStates[5] === 'q' || sentenceSlotStates.slice(0, 5).includes('q');
 
   // Topic is handled separately from the other four slots - it's the one
   // place a particle genuinely changes (は -> が) rather than just staying
@@ -11267,6 +11269,9 @@ function buildSentenceExample() {
     subjectEn = sentencePersonEnglish(topicItem);
   }
   // topicState === 'off' -> topicJp/topicRomaji stay '', subjectEn stays 'someone'
+  // (a question with no topic is asked to "you" - 2026-10-14)
+  if (topicState === 'off' && isQuestion) subjectEn = 'you';
+  const be = subjectEn === 'you' ? 'are' : 'is';
 
   const timeClause = sentenceClause(1, timeItem, 'on ', 'when', true);
   const companionClause = companionState === 'off' ? null : companionState === 'q'
@@ -11308,30 +11313,27 @@ function buildSentenceExample() {
   };
   const qCount = Object.values(qFlags).filter(Boolean).length;
 
+  // Questions (2026-10-14): one question word is asked properly and any others
+  // are tagged on - "Where is Satou-san coming by car on Wednesday, and with
+  // whom?" - instead of bracket placeholders.
   let en;
-  if (isQuestion && qCount === 1 && !qFlags.topic) {
-    if (qFlags.time) {
-      const rest = [destClause && destClause.en, meansClause && meansClause.en, companionClause && companionClause.en].filter(Boolean).join(' ');
-      en = `When is ${subjectEn} ${verbEn}${rest ? ' ' + rest : ''}?`;
-    } else if (qFlags.means) {
-      const rest = [destClause && destClause.en, companionClause && companionClause.en, timeClause && timeClause.en].filter(Boolean).join(' ');
-      en = `How is ${subjectEn} ${verbEn}${rest ? ' ' + rest : ''}?`;
-    } else if (qFlags.dest) {
-      const rest = [meansClause && meansClause.en, companionClause && companionClause.en, timeClause && timeClause.en].filter(Boolean).join(' ');
-      en = `Where is ${subjectEn} ${verbEn}${rest ? ' ' + rest : ''}?`;
-    } else {
-      // qFlags.companion
-      const rest = [destClause && destClause.en, meansClause && meansClause.en, timeClause && timeClause.en].filter(Boolean).join(' ');
-      en = `Who is ${subjectEn} ${verbEn}${rest ? ' ' + rest : ''} with?`;
-    }
+  const mClauses = { time: timeClause, companion: companionClause, means: meansClause, dest: destClause };
+  const mKeep = (...keys) => keys.map(k => (!qFlags[k] && mClauses[k]) ? mClauses[k].en : null).filter(Boolean).join(' ');
+  const mExtraWord = { dest: 'where', companion: 'with whom', means: 'how', time: 'when' };
+  const mAsked = ['dest', 'companion', 'means', 'time'].filter(k => qFlags[k]);
+  const mExtras = list => list.length ? ', and ' + list.map(k => mExtraWord[k]).join(', and ') : '';
+  const mJoin = (head, rest) => head + (rest ? ' ' + rest : '');
+  if (isQuestion && qFlags.topic) {
+    en = mJoin(`Who is ${verbEn}`, mKeep('dest', 'means', 'companion', 'time')) + mExtras(mAsked) + '?';
+  } else if (isQuestion && mAsked.length) {
+    const main = mAsked[0], extras = mExtras(mAsked.slice(1));
+    if (main === 'dest') en = mJoin(`Where ${be} ${subjectEn} ${verbEn}`, mKeep('means', 'companion', 'time')) + extras + '?';
+    else if (main === 'companion') en = mJoin(`Who ${be} ${subjectEn} ${verbEn}`, mKeep('dest', 'means', 'time')) + ' with' + extras + '?';
+    else if (main === 'means') en = mJoin(`How ${be} ${subjectEn} ${verbEn}`, mKeep('dest', 'companion', 'time')) + extras + '?';
+    else en = mJoin(`When ${be} ${subjectEn} ${verbEn}`, mKeep('dest', 'means', 'companion')) + extras + '?';
   } else {
-    const enParts = [destClause && destClause.en, meansClause && meansClause.en, companionClause && companionClause.en, timeClause && timeClause.en].filter(Boolean);
-    const bodyText = [verbEn, ...enParts].join(' ');
-    if (isQuestion) {
-      en = subjectIsPlaceholder ? `Who is ${bodyText}?` : `Is ${subjectEn} ${bodyText}?`;
-    } else {
-      en = subjectIsPlaceholder ? `Who is ${bodyText}.` : `${sentenceCapitalize(subjectEn)} is ${bodyText}.`;
-    }
+    const bodyText = mJoin(verbEn, mKeep('dest', 'means', 'companion', 'time'));
+    en = isQuestion ? `${sentenceCapitalize(be)} ${subjectEn} ${bodyText}?` : `${sentenceCapitalize(subjectEn)} is ${bodyText}.`;
   }
   return { jp, romaji, en };
 }
@@ -11439,7 +11441,7 @@ function renderObjectSentenceRows() {
   wrap.innerHTML = '';
   OBJECT_SENTENCE_SLOTS.forEach((slot, idx) => {
     const isVerbSlot = idx === 4;
-    const state = objSentenceSlotStates[idx];
+    const state = isVerbSlot && objSentenceSlotStates.slice(0, 4).includes('q') ? 'q' : objSentenceSlotStates[idx]; // a question word needs か (2026-10-14)
     const row = document.createElement('div');
     row.className = 'vocab-ref-row minute-row sentence-slot-row' + (state === 'off' ? ' sentence-slot-off' : '');
     row.onclick = () => cycleObjectSentenceSlotState(idx);
@@ -11610,9 +11612,10 @@ const OBJECT_SENTENCE_SHIMASU_EN = { tenisu: 'playing', geemu: 'playing', supoot
 function buildObjectSentenceExample() {
   const { topicItem, timeItem, locationItem, objectItem, verbItem: verb } = currentObjectSentenceWords;
   const topicState = objSentenceSlotStates[0];
-  const isQuestion = objSentenceSlotStates[4] === 'q';
+  const isQuestion = objSentenceSlotStates[4] === 'q' || objSentenceSlotStates.slice(0, 4).includes('q'); // question word -> か
   let verbEn = OBJECT_SENTENCE_VERB_GERUND[verb.romaji];
   if (verb.romaji === 'shimasu') verbEn = objSentenceSlotStates[3] === 'on' ? (OBJECT_SENTENCE_SHIMASU_EN[objectItem.romaji] || 'doing') : 'doing';
+  if (objSentenceSlotStates[3] !== 'on') verbEn = verbEn.replace(/ to$/, ''); // "Who is listening, and where?" (2026-10-14)
 
   let topicJp = '', topicRomaji = '', subjectEn = 'someone', subjectIsPlaceholder = false;
   const topicSlot = OBJECT_SENTENCE_SLOTS[0];
@@ -11626,6 +11629,8 @@ function buildObjectSentenceExample() {
     topicRomaji = topicItem.romaji + ' ' + topicSlot.particleRomaji;
     subjectEn = sentencePersonEnglish(topicItem);
   }
+  if (topicState === 'off' && isQuestion) subjectEn = 'you'; // 2026-10-14
+  const be = subjectEn === 'you' ? 'are' : 'is';
 
   const timeClause = objectSentenceClause(1, timeItem, 'on ', 'when');
   const locationClause = objectSentenceClause(2, locationItem, 'at the ', 'where');
@@ -11650,27 +11655,25 @@ function buildObjectSentenceExample() {
   };
   const qCount = Object.values(qFlags).filter(Boolean).length;
 
+  // Questions (2026-10-14): same pattern as the motion card - one question
+  // word asked properly, any others tagged on ("…, and where?").
   let en;
-  if (isQuestion && qCount === 1 && !qFlags.topic) {
-    if (qFlags.time) {
-      const rest = [objectClause && objectClause.en, locationClause && locationClause.en].filter(Boolean).join(' ');
-      en = `When is ${subjectEn} ${verbEn}${rest ? ' ' + rest : ''}?`;
-    } else if (qFlags.location) {
-      const rest = [objectClause && objectClause.en, timeClause && timeClause.en].filter(Boolean).join(' ');
-      en = `Where is ${subjectEn} ${verbEn}${rest ? ' ' + rest : ''}?`;
-    } else {
-      // qFlags.object
-      const rest = [locationClause && locationClause.en, timeClause && timeClause.en].filter(Boolean).join(' ');
-      en = `What is ${subjectEn} ${verbEn}${rest ? ' ' + rest : ''}?`;
-    }
+  const oClauses = { time: timeClause, location: locationClause, object: objectClause };
+  const oKeep = (...keys) => keys.map(k => (!qFlags[k] && oClauses[k]) ? oClauses[k].en : null).filter(Boolean).join(' ');
+  const oExtraWord = { object: 'what', location: 'where', time: 'when' };
+  const oAsked = ['object', 'location', 'time'].filter(k => qFlags[k]);
+  const oExtras = list => list.length ? ', and ' + list.map(k => oExtraWord[k]).join(', and ') : '';
+  const oJoin = (head, rest) => head + (rest ? ' ' + rest : '');
+  if (isQuestion && qFlags.topic) {
+    en = oJoin(`Who is ${verbEn}`, oKeep('object', 'location', 'time')) + oExtras(oAsked) + '?';
+  } else if (isQuestion && oAsked.length) {
+    const main = oAsked[0], extras = oExtras(oAsked.slice(1));
+    if (main === 'object') en = oJoin(`What ${be} ${subjectEn} ${verbEn}`, oKeep('location', 'time')) + extras + '?';
+    else if (main === 'location') en = oJoin(`Where ${be} ${subjectEn} ${verbEn}`, oKeep('object', 'time')) + extras + '?';
+    else en = oJoin(`When ${be} ${subjectEn} ${verbEn}`, oKeep('object', 'location')) + extras + '?';
   } else {
-    const enParts = [objectClause && objectClause.en, locationClause && locationClause.en, timeClause && timeClause.en].filter(Boolean);
-    const bodyText = [verbEn, ...enParts].join(' ');
-    if (isQuestion) {
-      en = subjectIsPlaceholder ? `Who is ${bodyText}?` : `Is ${subjectEn} ${bodyText}?`;
-    } else {
-      en = subjectIsPlaceholder ? `Who is ${bodyText}.` : `${sentenceCapitalize(subjectEn)} is ${bodyText}.`;
-    }
+    const bodyText = oJoin(verbEn, oKeep('object', 'location', 'time'));
+    en = isQuestion ? `${sentenceCapitalize(be)} ${subjectEn} ${bodyText}?` : `${sentenceCapitalize(subjectEn)} is ${bodyText}.`;
   }
   return { jp, romaji, en };
 }
@@ -11981,14 +11984,14 @@ function l3cSubjectSegs(subj) {
 // あまり/ぜんぜん: a negative question (いきませんか) is an invitation, "won't you
 // come?", not a question about habits.
 function pickFreshL3SentenceWords() {
-  if (l3SentStates[6] === 'q' && l3SentStates[2] === 'on' && L3_FREQ_WORDS[l3FreqIdx].neg) l3FreqIdx = 0;
+  if (l3cIsQ() && l3SentStates[2] === 'on' && L3_FREQ_WORDS[l3FreqIdx].neg) l3FreqIdx = 0;
   const freqOn = l3SentStates[2] === 'on';
   const freq = freqOn ? L3_FREQ_WORDS[l3FreqIdx] : null;
   const inviting = l3cInviting();
   for (let tries = 0; tries < 120; tries++) {
     const tense = inviting ? 'fut' : freqOn ? 'hab' : sgPick(['hab', 'hab', 'past', 'fut']);
     const w = l3cMode === 'do' ? l3cPickDo(tense, freq) : l3cPickGo(tense, freq);
-    if (w && !(l3SentStates[6] === 'q' && w.subj.me)) { l3SentWords = w; return; }
+    if (w && !(l3cIsQ() && w.subj.me)) { l3SentWords = w; return; }
   }
 }
 function l3cPickDo(tense, freq) {
@@ -12068,7 +12071,10 @@ function renderL3SentenceRows() {
     row.onclick = () => cycleL3SentenceSlot(idx);
     let badgeText, badgeClass = 'sentence-particle-badge', stateLabel = '';
     if (idx === 6) {
-      badgeText = { q: 'か', inv: 'ませんか', lets: 'ましょう' }[state] || '。';
+      const forcedQ = state === 'stmt' && l3cQWord();
+      if (forcedQ) { badgeText = 'か'; stateLabel = '(question — a question word needs か)'; }
+      else badgeText = { q: 'か', inv: 'ませんか', lets: 'ましょう' }[state] || '。';
+      if (!forcedQ)
       stateLabel = { q: '(question)', inv: '(inviting: "why don\'t we…?")', lets: '("let\'s…")' }[state] || '(statement)';
     } else if (l3cInviting() && (idx === 0 || idx === 2)) {
       badgeText = '–'; badgeClass += ' sentence-particle-badge-off'; stateLabel = '(not used when inviting)';
@@ -12109,6 +12115,9 @@ function cycleL3SentenceSlot(idx) {
   if (idx === 6) {
     // statement -> question -> invitation (ませんか) -> let's (ましょう) -> statement
     const vOrder = ['stmt', 'q', 'inv', 'lets'];
+    // With a question word showing, statement and question look the same (か
+    // either way), so the next tap goes straight on to inviting.
+    if (l3cQWord() && (l3SentStates[6] === 'stmt' || l3SentStates[6] === 'q')) l3SentStates[6] = 'q';
     l3SentStates[6] = vOrder[(vOrder.indexOf(l3SentStates[6]) + 1) % vOrder.length];
     if (l3SentStates[6] === 'q' && ((l3SentWords && l3SentWords.subj.me) || (l3SentStates[2] === 'on' && L3_FREQ_WORDS[l3FreqIdx].neg))) pickFreshL3SentenceWords();
     if (l3SentStates[6] === 'inv') {
@@ -12123,7 +12132,7 @@ function cycleL3SentenceSlot(idx) {
   } else if (idx === 2) {
     const wasOff = l3SentStates[2] === 'off';
     // In a question, Frequency only steps through いつも / よく / ときどき.
-    const last = l3SentStates[6] === 'q' ? L3_FREQ_WORDS.findIndex(f => f.neg) - 1 : L3_FREQ_WORDS.length - 1;
+    const last = l3cIsQ() ? L3_FREQ_WORDS.findIndex(f => f.neg) - 1 : L3_FREQ_WORDS.length - 1;
     if (wasOff) { l3SentStates[2] = 'on'; l3FreqIdx = 0; }
     else if (l3FreqIdx < last) l3FreqIdx++;
     else l3SentStates[2] = 'off';
@@ -12136,6 +12145,9 @@ function cycleL3SentenceSlot(idx) {
   } else {
     const order = ['on', 'off', 'q'];
     l3SentStates[idx] = order[(order.indexOf(l3SentStates[idx]) + 1) % order.length];
+    // Asking something turns it into a question: questions never use わたし
+    // as the topic or あまり / ぜんぜん (see pickFreshL3SentenceWords).
+    if (l3cIsQ() && ((l3SentWords && l3SentWords.subj.me) || (l3SentStates[2] === 'on' && L3_FREQ_WORDS[l3FreqIdx].neg))) pickFreshL3SentenceWords();
   }
   renderL3SentenceRows();
   renderL3SentenceExample();
@@ -12154,7 +12166,7 @@ function buildL3SentenceExample() {
   const f = st[2] === 'on' ? L3_FREQ_WORDS[l3FreqIdx] : null;
   const neg = !!(f && f.neg);
   if (l3cInviting()) return buildL3InviteExample();
-  const isQ = st[6] === 'q';
+  const isQ = l3cIsQ();
   const tense = f ? 'hab' : w.tense;
   // Each piece remembers its slot (0-6), so the sentence can be coloured
   // and stepped through slot by slot (2026-10-09).
@@ -12181,6 +12193,10 @@ function buildL3SentenceExample() {
 // eats"), past the past ("ate"), future "is going to".
 // Inviting (L3 Lesson 3, 2026-10-13): the verb slot's ませんか / ましょう states.
 const l3cInviting = () => l3SentStates[6] === 'inv' || l3SentStates[6] === 'lets';
+// A question word in any slot (だれと, どこで…) makes the sentence a question,
+// so the verb takes か whatever its own state (Andrew, 2026-10-14).
+const l3cQWord = () => [0, 1, 3, 4, 5].some(i => l3SentStates[i] === 'q');
+const l3cIsQ = () => l3SentStates[6] === 'q' || (l3SentStates[6] === 'stmt' && l3cQWord());
 function buildL3InviteExample() {
   const w = l3SentWords, st = l3SentStates, lets = st[6] === 'lets';
   const parts = [];
@@ -12204,22 +12220,32 @@ function buildL3InviteExample() {
 }
 function l3cEnglish(w, st, f, tense, isQ) {
   const neg = !!(f && f.neg), isAmari = !!(f && f.jp === 'あまり');
-  const qs = [0, 1, 3, 4, 5].filter(i => st[i] === 'q');
   const whoQ = st[0] === 'q';
-  const single = isQ && qs.length === 1 && !whoQ;
-  const one = single ? qs[0] : -1;
+  // Several question words (2026-10-14): English asks one and tags the rest
+  // on - "Who is the teacher going to have a party with on Sunday, and where?"
+  // Priority for the one asked first: what / where-to, who with, where / how, when.
+  const asked = [5, 3, 4, 1].filter(i => st[i] === 'q');
+  const doMode = w.mode === 'do';
+  const extraWord = { 1: 'when', 3: 'with whom', 4: doMode ? 'where' : 'how', 5: doMode ? 'what' : 'where' };
+  const extrasText = list => list.length ? ', and ' + list.map(i => extraWord[i]).join(', and ') : '';
   const me = st[0] !== 'on' || w.subj.me;
   const S = st[0] === 'on' ? (w.subj.me ? 'I' : w.subj.en) : (isQ ? 'you' : 'I');
   const third = st[0] === 'on' ? !w.subj.me : false;
   // verb phrase (object / destination may be asked or skipped)
   let P;
+  // Object asked or left out (2026-10-14): the plain verb, with "it" where
+  // English can't drop the object ("buys it"), or "something" when the object
+  // is one of the extra question words ("Who drinks something…, and what?").
+  const L3C_BARE = { たべます: 'eat', のみます: 'drink', みます: 'watch', ききます: 'listen', よみます: 'read', かきます: 'write', かいます: 'buy', とります: 'take', します: 'do' };
+  const bare = doMode ? (L3C_BARE[w.V.v] || w.phraseQ) : 'go';
+  const needsObj = ['write', 'buy', 'take', 'do'].includes(bare);
   if (st[5] === 'on') P = w.phrase;
-  else if (st[5] === 'q') P = w.phraseQ + (single ? '' : (w.mode === 'do' ? ' [what]' : ' [where]'));
-  else P = w.mode === 'do' ? (w.V.phrase ? w.phrase.split(' ')[0] : w.phraseQ) : 'go';
+  else if (st[5] === 'q') P = doMode ? (asked[0] === 5 && !whoQ ? bare : bare + ' something') : 'go';
+  else P = doMode ? bare + (needsObj ? ' it' : '') : 'go';
   const tail = [];
-  if (st[3] === 'on') tail.push(w.comp.en); else if (st[3] === 'q' && !single) tail.push('with [who]');
-  if (st[4] === 'on') tail.push(w.slot4.en); else if (st[4] === 'q' && !single) tail.push(w.mode === 'do' ? 'at [where]' : 'by [how]');
-  if (st[1] === 'on') tail.push(w.time.en); else if (st[1] === 'q' && !single) tail.push('[when]');
+  if (st[3] === 'on') tail.push(w.comp.en);
+  if (st[4] === 'on') tail.push(w.slot4.en);
+  if (st[1] === 'on') tail.push(w.time.en);
   const T = tail.length ? ' ' + tail.join(' ') : '';
   const third3 = p => sgVerbEn(p, 'third');
   if (whoQ) {
@@ -12229,16 +12255,17 @@ function l3cEnglish(w, st, f, tense, isQ) {
     else if (!f) vp = third3(P);
     else if (!neg) vp = f.en + ' ' + third3(P);
     else vp = isAmari ? "doesn't often " + P : 'never ' + third3(P);
-    return 'Who ' + vp + T + '?';
+    return 'Who ' + vp + T + extrasText(asked) + '?';
   }
   if (isQ) {
     let aux, mid;
     if (tense === 'past') { aux = 'did'; mid = P; }
     else if (tense === 'fut') { aux = third ? 'is' : 'are'; mid = 'going to ' + P; }
     else { aux = third ? 'does' : 'do'; mid = !f ? P : !neg ? f.en + ' ' + P : isAmari ? 'often ' + P : 'never ' + P; if (isAmari) aux = third ? "doesn't" : "don't"; }
-    if (single) {
-      const wh = { 1: 'When', 3: 'Who', 4: w.mode === 'do' ? 'Where' : 'How', 5: w.mode === 'do' ? 'What' : 'Where' }[one];
-      return `${wh} ${aux} ${S} ${mid}${one === 3 ? ' with' : ''}${T}?`;
+    if (asked.length) {
+      const one = asked[0];
+      const wh = { 1: 'When', 3: 'Who', 4: doMode ? 'Where' : 'How', 5: doMode ? 'What' : 'Where' }[one];
+      return `${wh} ${aux} ${S} ${mid}${one === 3 ? ' with' : ''}${T}${extrasText(asked.slice(1))}?`;
     }
     return `${sgCap(aux)} ${S} ${mid}${T}?`;
   }
@@ -12369,7 +12396,7 @@ function l3cTogglePlay() {
 function shuffleL3SentenceExample() {
   // A new example also gets a new frequency word if that slot is on.
   if (l3SentStates[2] === 'on') {
-    const n = l3SentStates[6] === 'q' ? L3_FREQ_WORDS.filter(f => !f.neg).length : L3_FREQ_WORDS.length;
+    const n = l3cIsQ() ? L3_FREQ_WORDS.filter(f => !f.neg).length : L3_FREQ_WORDS.length;
     l3FreqIdx = Math.floor(Math.random() * n);
   }
   pickFreshL3SentenceWords();
