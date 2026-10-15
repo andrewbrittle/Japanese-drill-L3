@@ -714,8 +714,16 @@
     .ds-particle { font-size: 17px !important; }
   }
   #match-grammar-view { flex-direction: column; gap: 0.5rem; }
-  .grammar-page-head { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); margin-top: 0.6rem; }
+  .grammar-page-head { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-top: 0.9rem; }
+  .grammar-page-head:first-child { margin-top: 0.2rem; }
+  /* Links on the Grammar page (2026-10-15): plain text colour rather than the
+     gold/bold of other ref cards, so the gold headings stand out. The topic
+     (before " — ") is bold; the explanation after it is lighter and grey. */
   .grammar-page-card { gap: 8px; }
+  .vocab-ref-card.grammar-page-card { color: var(--text); font-weight: 500; font-size: 13.5px; } /* beats .vocab-ref-card's gold, defined later */
+  .grammar-page-card:hover { border-color: var(--accent); }
+  .grammar-page-card .gp-label { font-weight: 700; }
+  .grammar-page-card .gp-label-rest { font-weight: 500; color: var(--text-muted); }
   .grammar-page-card .gp-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
   .grammar-page-card .gp-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; }
   .gp-lvl-2 { color: #e88a4d; } .gp-lvl-3 { color: #26a69a; }
@@ -1544,7 +1552,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.004</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.005</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -9998,7 +10006,7 @@ function showVerbConjugationReferenceFor(table, title, defaultKey) {
   // Kept as taught (2026-10-07) - this grid covers the Level 2 verbs only.
   const laterNote = document.createElement('div');
   laterNote.className = 'verb-conj-note';
-  laterNote.innerHTML = '<strong>Later:</strong> for every verb, including newer ones, hold it on any word list and slide towards the bubble to see all its forms. Level 3\'s Grammar notes has "How verbs conjugate", and the dice page has a Verb forms drill.';
+  laterNote.innerHTML = '<strong>Later:</strong> for every verb, including newer ones, hold it on any word list and slide towards the bubble to see all its forms. Vocab → Grammar has "How verbs conjugate", and the dice page has a Verb forms drill.';
   list.appendChild(laterNote);
   showScreen('vocab-reference');
 }
@@ -11206,7 +11214,7 @@ function showSentenceStructureReference() {
   renderSentenceExampleDisplay();
   const l3Pointer = document.createElement('div');
   l3Pointer.className = 'verb-conj-note';
-  l3Pointer.textContent = 'Level 3 brings this card and the を + object card together in one, with frequency words and tense. See Level 3 → Grammar notes → "Sentence order".';
+  l3Pointer.textContent = 'Level 3 brings this card and the を + object card together in one, with frequency words and tense. See Vocab → Grammar → "Sentence order — doing something / going somewhere".';
   list.appendChild(l3Pointer);
   showScreen('vocab-reference');
 }
@@ -11566,7 +11574,7 @@ function showObjectSentenceOrderReference() {
 
   const l3Pointer = document.createElement('div');
   l3Pointer.className = 'verb-conj-note';
-  l3Pointer.textContent = 'Level 3 brings this card and the motion-sentence card together in one, with frequency words, companions (と) and tense. See Level 3 → Grammar notes → "Sentence order".';
+  l3Pointer.textContent = 'Level 3 brings this card and the motion-sentence card together in one, with frequency words, companions (と) and tense. See Vocab → Grammar → "Sentence order — doing something / going somewhere".';
   list.appendChild(l3Pointer);
 
   pickFreshObjectSentenceWords();
@@ -11881,7 +11889,10 @@ function renderGrammarPage() {
   const card = (label, lvl, onclick, sub) => {
     const c = document.createElement('div');
     c.className = 'vocab-ref-card grammar-page-card';
-    c.innerHTML = `<span class="gp-text"><span class="gp-label">${label}</span>${sub ? `<span class="gp-sub">${sub}</span>` : ''}</span>`
+    // "Inviting — ませんか / ましょう": topic bold, the rest after " — " lighter.
+    const cut = label.indexOf(' — ');
+    const labelHtml = cut > 0 ? `${label.slice(0, cut)}<span class="gp-label-rest"> — ${label.slice(cut + 3)}</span>` : label;
+    c.innerHTML = `<span class="gp-text"><span class="gp-label">${labelHtml}</span>${sub ? `<span class="gp-sub">${sub}</span>` : ''}</span>`
       + `${lvl ? `<span class="gp-lvl gp-lvl-${lvl}">L${lvl}</span>` : ''}<span class="vocab-ref-arrow">→</span>`;
     c.onclick = onclick;
     view.appendChild(c);
@@ -11897,8 +11908,8 @@ function renderGrammarPage() {
   if (appSettings.showUntaught) {
     [['./sentence-structure-notes.html', 'Notes: Japanese sentence structure'], ['./japanese-vs-english-notes.html', 'Notes: Japanese vs English structure']].forEach(([href, label]) => {
       const a = document.createElement('a');
-      a.className = 'vocab-ref-card'; a.href = href; a.target = '_blank'; a.rel = 'noopener';
-      a.innerHTML = `<span>${label}</span><span class="vocab-ref-arrow">→</span>`;
+      a.className = 'vocab-ref-card grammar-page-card'; a.href = href; a.target = '_blank'; a.rel = 'noopener';
+      a.innerHTML = `<span class="gp-text"><span class="gp-label">${label.replace('Notes: ', 'Notes<span class="gp-label-rest"> — ') + '</span>'}</span></span><span class="vocab-ref-arrow">→</span>`;
       view.appendChild(a);
     });
   }
