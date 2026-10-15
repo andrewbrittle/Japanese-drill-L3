@@ -1555,7 +1555,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.007</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.008</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2171,7 +2171,7 @@
       <div class="group-card cat-tile" data-random-key="untested" onclick="selectRandomChoice('untested')" style="cursor:pointer;">
         <div class="cat-tile-top cat-tile-top-stack">
           <div class="group-name">Untested 20</div>
-          <div class="random-choice-desc">20 words you haven't been tested on yet<span id="untested-count"></span></div>
+          <div class="random-choice-desc">20 words you haven't been tested on yet, course words first<span id="untested-count"></span></div>
         </div>
         <div class="cat-bar" id="theme-untested-vocab-swatch"></div>
       </div>
@@ -12960,10 +12960,38 @@ function startWeakestVocab() {
   if (!items.length) return;
   startVocabReadingDeck(items, 'weakest-vocab', getAllVocabPool());
 }
+// UNTESTED 20 PRIORITY (2026-10-15, Andrew): fill the 20 in tier order -
+// taught words first, then tourist words, then private-pack words (Genki),
+// then the rest of Untaught - random within each tier. Only tiers that are
+// switched on are in the pool at all. Before this, the ~900 untaught words
+// swamped the few untested taught ones.
+function untestedTier(item, privateKeys) {
+  const tags = item.tags || [];
+  if (tags.includes('taught')) return 0;
+  if (tags.includes('tourist')) return 1;
+  if (privateKeys.has(item.jp + '|' + item.en)) return 2;
+  return 3;
+}
+function pickUntested20() {
+  const privateKeys = new Set();
+  PRIVATE_VOCAB_KEYS.forEach(k => (VOCAB[k].items || []).forEach(i => privateKeys.add(i.jp + '|' + i.en)));
+  const seen = new Set(), tiers = [[], [], [], []];
+  getUntestedVocabItems().forEach(item => {
+    const key = item.jp + '|' + item.en;
+    if (seen.has(key)) return;
+    seen.add(key);
+    tiers[untestedTier(item, privateKeys)].push(item);
+  });
+  const picked = [];
+  tiers.forEach(t => { if (picked.length < 20) picked.push(...shuffle(t).slice(0, 20 - picked.length)); });
+  return picked;
+}
 function startUntestedVocab() {
-  const items = getUntestedVocabItems();
+  const items = pickUntested20();
   if (!items.length) return;
   startVocabReadingDeck(items, 'untested-vocab', getAllVocabPool());
+  // "Again" picks a fresh 20 (the ones just done are now tested).
+  lastDeckBuilder = () => buildVocabReadingDeck(pickUntested20(), 'untested-vocab', getAllVocabPool());
 }
 
 // PROVERB OF THE DAY (2026-09-13): calming kotowaza/yojijukugo pulled from
