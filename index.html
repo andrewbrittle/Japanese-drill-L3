@@ -716,6 +716,9 @@
   #match-grammar-view { flex-direction: column; gap: 0.5rem; }
   .grammar-page-head { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-top: 0.9rem; }
   .grammar-page-head:first-child { margin-top: 0.2rem; }
+  /* "You can turn this page off in Settings" line (2026-10-15) - top of the
+     Tourist / Untaught lists and the Kanji page. */
+  .tier-off-note { font-size: 12px; color: var(--text-muted); text-align: center; line-height: 1.4; margin: 0 0.5rem; }
   /* Links on the Grammar page (2026-10-15): plain text colour rather than the
      gold/bold of other ref cards, so the gold headings stand out. The topic
      (before " — ") is bold; the explanation after it is lighter and grey. */
@@ -1552,7 +1555,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.005</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.006</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1670,6 +1673,7 @@
       </div>
       <div class="cat-bar" id="kanji-index-swatch-all"></div>
     </div>
+    <div class="tier-off-note">You can turn this page off in Settings (Show Kanji content).</div>
     <div class="section-divider"></div>
     <div class="group-card cat-tile" data-kanji-section="numbers-time" onclick="showKanjiSectionSelection('numbers-time')" style="cursor:pointer;">
       <div class="cat-tile-top"><div class="group-name">Numbers</div></div>
@@ -9609,6 +9613,11 @@ function buildMatchCategoryList() {
   // Collections' own "Question words" card already - no new Andrew card
   // needed, see the standaloneCard comment on vocab-reference-question-
   // words for why that's the more instructive example of the two.)
+  // A line at the top saying this page can be switched off (2026-10-15) -
+  // mainly so Untaught users know Tourist has its own switch.
+  const offNote = text => { const d = document.createElement('div'); d.className = 'tier-off-note'; d.textContent = text; container.appendChild(d); };
+  if (currentMatchLevel === 'untaught') offNote('You can turn this page off in Settings (Untaught vocabulary). Tourist words have their own switch, so they stay on if you do.');
+  if (currentMatchLevel === 'tourist') offNote('You can turn this page off in Settings (Tourist words). It\'s separate from Untaught vocabulary.');
   if (currentMatchLevel === 'untaught') {
     // GENKI LESSON 1-1 FIRST (2026-09-28) - the retired Genki tier's only
     // category now leads this list instead of getting its own pill (see
