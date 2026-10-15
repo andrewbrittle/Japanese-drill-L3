@@ -887,6 +887,11 @@
     transition: background 0.2s, color 0.2s, opacity 0.2s; }
   .sentence-structure-example-romaji .l3c-chunk { border-bottom-width: 2px; color: var(--text); }
   .l3c-playing .l3c-chunk { opacity: 0.35; }
+  /* Coloured English (2026-10-15): text colour only, dimmed with the rest while stepping through. */
+  /* Mixed with the grey English colour so it stays quieter than the kana. */
+  .l3c-en { color: color-mix(in srgb, var(--slot) 70%, var(--text-dim)); }
+  .l3c-playing .l3c-en { opacity: 0.35; }
+  .l3c-playing .l3c-en.l3c-chunk-active { opacity: 1; }
   .l3c-playing .l3c-chunk.l3c-chunk-active { opacity: 1; background: var(--slot); color: var(--bg); border-radius: 4px; }
   .sentence-structure-example-jp { line-height: 1.7; }
   /* Room between wrapped romaji lines too, or the lit blocks/underlines overlap (2026-10-09). */
@@ -1555,7 +1560,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.008</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.009</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -6681,7 +6686,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-15c';
+const LATEST_CHANGELOG_ENTRY = '2026-10-15d';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -12360,7 +12365,13 @@ function l3cFreqFits() {
   return !(['outing', 'daytrip', 'event'].includes(kind) && f.jp === 'いつも') && sgDestTimeOk(kind, w.time.jp, w.time.t, 'hab', f.neg ? null : f);
 }
 
+// en = plain English (tests, anything else that reads it); enM = with slot markers.
 function buildL3SentenceExample() {
+  const r = buildL3SentenceExampleM();
+  r.en = l3cEnPlain(r.enM);
+  return r;
+}
+function buildL3SentenceExampleM() {
   const w = l3SentWords, st = l3SentStates, S = L3C_SLOTS[l3cMode];
   const f = st[2] === 'on' ? L3_FREQ_WORDS[l3FreqIdx] : null;
   const neg = !!(f && f.neg);
@@ -12384,7 +12395,7 @@ function buildL3SentenceExample() {
   return {
     parts, end: isQ ? ['。', '?'] : ['。', '.'],
     jp: parts.map(x => x.jp).join(' ') + '。', romaji: parts.map(x => x.ro).join(' ') + (isQ ? '?' : '.'),
-    en: l3cEnglish(w, st, f, tense, isQ),
+    enM: l3cEnglish(w, st, f, tense, isQ),
   };
 }
 
@@ -12408,15 +12419,42 @@ function buildL3InviteExample() {
   const v = sgVerb(w.verb, 'hab', false);
   parts.push({ slot: 6, jp: v.jp.replace(/ます$/, lets ? 'ましょう' : 'ませんか'), ro: v.ro.replace(/masu$/, lets ? 'mashou' : 'masen ka') });
   parts[0].ro = sgCap(parts[0].ro);
-  let P = st[5] === 'on' ? w.phrase : (w.mode === 'do' ? (w.V.phrase ? w.phrase.split(' ')[0] : w.phraseQ) : 'go');
-  const tail = [together && 'together', st[4] === 'on' && w.slot4.en, st[1] === 'on' && w.time.en].filter(Boolean);
+  // Object left out: the plain verb, + "it" where English needs an object
+  // ("Let's do it", not "Let's do") - same rule as the questions (2026-10-15).
+  const bareInv = () => { const v = L3C_BARE[w.V.v] || (w.V.phrase ? w.phrase.split(' ')[0] : w.phraseQ); return L3C_NEEDS_OBJ.includes(v) ? v + ' it' : v; };
+  let P = l3cVerb(st[5] === 'on' ? l3cSplitPhrase(w.phrase) : (w.mode === 'do' ? bareInv() : 'go'), null);
+  const tail = [together && mk(3, 'together'), st[4] === 'on' && mk(4, w.slot4.en), st[1] === 'on' && mk(1, w.time.en)].filter(Boolean);
   const T = tail.length ? ' ' + tail.join(' ') : '';
   return {
     parts, end: lets ? ['。', '.'] : ['。', '?'],
     jp: parts.map(x => x.jp).join(' ') + '。', romaji: parts.map(x => x.ro).join(' ') + (lets ? '.' : '?'),
-    en: lets ? `Let's ${P}${T}.` : `Why don't we ${P}${T}?`,
+    enM: lets ? `Let's ${P}${T}.` : `Why don't we ${P}${T}?`,
   };
 }
+// COLOURED ENGLISH (2026-10-15): each English piece is wrapped in a slot
+// marker while the sentence is built (mk), so it can be shown in its slot's
+// colour - plain coloured text, no underline, so the English stays quieter
+// than the Japanese. Words that belong to no slot (I, do, is going to, it,
+// something) stay grey. The verb slot colours only the main verb word; in a
+// phrase like "play tennis" the first word is the verb and the rest is the
+// object (slot 5). l3cEnPlain strips the markers, l3cEnHtml turns them into
+// spans.
+const L3C_MK_OPEN = '\uE000', L3C_MK_CLOSE = '\uE001';
+const mk = (slot, text) => text ? L3C_MK_OPEN + slot + text + L3C_MK_CLOSE : text;
+const l3cEnPlain = s => s.replace(/\uE000\d/g, '').replace(/\uE001/g, '');
+function l3cEnHtml(s) {
+  const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return esc(s).replace(/\uE000(\d)([^\uE001]*)\uE001/g, (m, slot, t) =>
+    `<span class="l3c-en" data-slot="${slot}" style="--slot:var(--slot-${+slot + 1})">${t}</span>`);
+}
+// Capitalise the first letter even when it's inside a marker.
+const l3cCap = s => s.replace(/^(\uE000\d)?([a-z])/, (m, a, c) => (a || '') + c.toUpperCase());
+// "play tennis" -> verb word (slot 6) + the rest as the object/destination (slot 5).
+const l3cSplitPhrase = p => { const i = p.indexOf(' '); return i < 0 ? p : p.slice(0, i) + ' ' + mk(5, p.slice(i + 1)); };
+// Conjugate (sgVerbEn only changes the first word) and colour that word as the verb.
+const l3cVerb = (p, form) => { const r = form ? sgVerbEn(p, form) : p; const i = r.indexOf(' '); return i < 0 ? mk(6, r) : mk(6, r.slice(0, i)) + r.slice(i); };
+const L3C_BARE = { たべます: 'eat', のみます: 'drink', みます: 'watch', ききます: 'listen', よみます: 'read', かきます: 'write', かいます: 'buy', とります: 'take', します: 'do' };
+const L3C_NEEDS_OBJ = ['write', 'buy', 'take', 'do'];
 function l3cEnglish(w, st, f, tense, isQ) {
   const neg = !!(f && f.neg), isAmari = !!(f && f.jp === 'あまり');
   const whoQ = st[0] === 'q';
@@ -12426,55 +12464,57 @@ function l3cEnglish(w, st, f, tense, isQ) {
   const asked = [5, 3, 4, 1].filter(i => st[i] === 'q');
   const doMode = w.mode === 'do';
   const extraWord = { 1: 'when', 3: 'with whom', 4: doMode ? 'where' : 'how', 5: doMode ? 'what' : 'where' };
-  const extrasText = list => list.length ? ', and ' + list.map(i => extraWord[i]).join(', and ') : '';
+  const extrasText = list => list.length ? ', and ' + list.map(i => mk(i, extraWord[i])).join(', and ') : '';
   const me = st[0] !== 'on' || w.subj.me;
-  const S = st[0] === 'on' ? (w.subj.me ? 'I' : w.subj.en) : (isQ ? 'you' : 'I');
+  const S = st[0] === 'on' ? mk(0, w.subj.me ? 'I' : w.subj.en) : (isQ ? 'you' : 'I');
   const third = st[0] === 'on' ? !w.subj.me : false;
   // verb phrase (object / destination may be asked or skipped)
   let P;
   // Object asked or left out (2026-10-14): the plain verb, with "it" where
   // English can't drop the object ("buys it"), or "something" when the object
   // is one of the extra question words ("Who drinks something…, and what?").
-  const L3C_BARE = { たべます: 'eat', のみます: 'drink', みます: 'watch', ききます: 'listen', よみます: 'read', かきます: 'write', かいます: 'buy', とります: 'take', します: 'do' };
   const bare = doMode ? (L3C_BARE[w.V.v] || w.phraseQ) : 'go';
-  const needsObj = ['write', 'buy', 'take', 'do'].includes(bare);
-  if (st[5] === 'on') P = w.phrase;
+  const needsObj = L3C_NEEDS_OBJ.includes(bare);
+  if (st[5] === 'on') P = l3cSplitPhrase(w.phrase);
   else if (st[5] === 'q') P = doMode ? (asked[0] === 5 && !whoQ ? bare : bare + ' something') : 'go';
   else P = doMode ? bare + (needsObj ? ' it' : '') : 'go';
   const tail = [];
-  if (st[3] === 'on') tail.push(w.comp.en);
-  if (st[4] === 'on') tail.push(w.slot4.en);
-  if (st[1] === 'on') tail.push(w.time.en);
+  if (st[3] === 'on') tail.push(mk(3, w.comp.en));
+  if (st[4] === 'on') tail.push(mk(4, w.slot4.en));
+  if (st[1] === 'on') tail.push(mk(1, w.time.en));
   const T = tail.length ? ' ' + tail.join(' ') : '';
-  const third3 = p => sgVerbEn(p, 'third');
+  const third3 = p => l3cVerb(p, 'third');
+  const base = p => l3cVerb(p, null);
+  const F = t => mk(2, t);
   if (whoQ) {
     let vp;
-    if (tense === 'past') vp = sgVerbEn(P, 'past');
-    else if (tense === 'fut') vp = 'is going to ' + P;
+    if (tense === 'past') vp = l3cVerb(P, 'past');
+    else if (tense === 'fut') vp = 'is going to ' + base(P);
     else if (!f) vp = third3(P);
-    else if (!neg) vp = f.en + ' ' + third3(P);
-    else vp = isAmari ? "doesn't often " + P : 'never ' + third3(P);
-    return 'Who ' + vp + T + extrasText(asked) + '?';
+    else if (!neg) vp = F(f.en) + ' ' + third3(P);
+    else vp = isAmari ? "doesn't " + F('often') + ' ' + base(P) : F('never') + ' ' + third3(P);
+    return mk(0, 'Who') + ' ' + vp + T + extrasText(asked) + '?';
   }
   if (isQ) {
     let aux, mid;
-    if (tense === 'past') { aux = 'did'; mid = P; }
-    else if (tense === 'fut') { aux = third ? 'is' : 'are'; mid = 'going to ' + P; }
-    else { aux = third ? 'does' : 'do'; mid = !f ? P : !neg ? f.en + ' ' + P : isAmari ? 'often ' + P : 'never ' + P; if (isAmari) aux = third ? "doesn't" : "don't"; }
+    const bP = base(P);
+    if (tense === 'past') { aux = 'did'; mid = bP; }
+    else if (tense === 'fut') { aux = third ? 'is' : 'are'; mid = 'going to ' + bP; }
+    else { aux = third ? 'does' : 'do'; mid = !f ? bP : !neg ? F(f.en) + ' ' + bP : isAmari ? F('often') + ' ' + bP : F('never') + ' ' + bP; if (isAmari) aux = third ? "doesn't" : "don't"; }
     if (asked.length) {
       const one = asked[0];
-      const wh = { 1: 'When', 3: 'Who', 4: doMode ? 'Where' : 'How', 5: doMode ? 'What' : 'Where' }[one];
-      return `${wh} ${aux} ${S} ${mid}${one === 3 ? ' with' : ''}${T}${extrasText(asked.slice(1))}?`;
+      const wh = mk(one, { 1: 'When', 3: 'Who', 4: doMode ? 'Where' : 'How', 5: doMode ? 'What' : 'Where' }[one]);
+      return `${wh} ${aux} ${S} ${mid}${one === 3 ? ' ' + mk(3, 'with') : ''}${T}${extrasText(asked.slice(1))}?`;
     }
     return `${sgCap(aux)} ${S} ${mid}${T}?`;
   }
   let vp;
-  if (tense === 'past') vp = sgVerbEn(P, 'past');
-  else if (tense === 'fut') vp = (me && S === 'I' ? "'m going to " : 'is going to ') + P;
-  else if (!f) vp = third ? third3(P) : P;
-  else if (!neg) vp = f.en + ' ' + (third ? third3(P) : P);
-  else vp = isAmari ? (third ? "doesn't" : "don't") + ' often ' + P : 'never ' + (third ? third3(P) : P);
-  return sgCap(`${S}${vp.startsWith("'") ? '' : ' '}${vp}${T}.`);
+  if (tense === 'past') vp = l3cVerb(P, 'past');
+  else if (tense === 'fut') vp = (me && l3cEnPlain(S) === 'I' ? "'m going to " : 'is going to ') + base(P);
+  else if (!f) vp = third ? third3(P) : base(P);
+  else if (!neg) vp = F(f.en) + ' ' + (third ? third3(P) : base(P));
+  else vp = isAmari ? (third ? "doesn't" : "don't") + ' ' + F('often') + ' ' + base(P) : F('never') + ' ' + (third ? third3(P) : base(P));
+  return l3cCap(`${S}${vp.startsWith("'") ? '' : ' '}${vp}${T}.`);
 }
 
 // COLOURED SLOTS (2026-10-09): each slot has its own colour (--slot-1..7),
@@ -12484,7 +12524,7 @@ function l3cEnglish(w, st, f, tense, isQ) {
 // run lights up its slot (and says it).
 function renderL3SentenceExample() {
   l3cStopPlay();
-  const { parts, end, en } = buildL3SentenceExample();
+  const { parts, end, enM } = buildL3SentenceExample();
   const runs = [];
   parts.forEach(p => {
     const last = runs[runs.length - 1];
@@ -12499,7 +12539,7 @@ function renderL3SentenceExample() {
   const enEl = document.getElementById('sentence-structure-example-en');
   if (jpEl) jpEl.innerHTML = html('jp', ' ', end[0], true);
   if (romajiEl) romajiEl.innerHTML = html('ro', ' ', end[1], false);
-  if (enEl) enEl.textContent = `"${en}"`;
+  if (enEl) enEl.innerHTML = `"${l3cEnHtml(enM)}"`;
   document.querySelectorAll('#sentence-structure-example-jp .l3c-chunk, #sentence-structure-example-romaji .l3c-chunk').forEach(el => {
     el.onclick = () => l3cFlashSlot(+el.dataset.slot, true);
   });
@@ -12529,7 +12569,7 @@ function l3cAfterSpeech(utter, text, minMs, cb) {
 function l3cMark(slot, on) {
   const row = document.querySelectorAll('#sentence-structure-rows .sentence-slot-row')[slot];
   if (row) row.classList.toggle('l3c-row-active', on);
-  document.querySelectorAll(`.sentence-structure-example .l3c-chunk[data-slot="${slot}"]`).forEach(el => el.classList.toggle('l3c-chunk-active', on));
+  document.querySelectorAll(`.sentence-structure-example .l3c-chunk[data-slot="${slot}"], .sentence-structure-example .l3c-en[data-slot="${slot}"]`).forEach(el => el.classList.toggle('l3c-chunk-active', on));
 }
 function l3cClearMarks() {
   document.querySelectorAll('.l3c-row-active, .l3c-row-skip').forEach(el => el.classList.remove('l3c-row-active', 'l3c-row-skip'));
