@@ -1560,7 +1560,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.009</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.011</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -11138,180 +11138,11 @@ function showGrammarNotesHub() {
 
 // を / で two jobs / question word + も cards moved to grammar.js (2026-10-12).
 
-// The standard Minna no Nihongo Lesson 5 "motion sentence" slot order -
-// [topic]は [time]に [companion]と [means]で [destination]に 行きます(か)。
-// This is a genuinely standard teaching pattern (not shorthand specific to
-// any one class), which is why it's worth a reference card rather than just
-// living in a notebook - splitting a sentence into these slots is the same
-// technique for any sentence following this shape, not just the exact
-// examples drilled in class.
-//
-// Each of slots 1-5 is tappable and cycles through three states:
-//  - on: the slot's word/particle appear normally
-//  - off: the slot is dropped entirely - genuinely valid Japanese (topic,
-//    time, companion, means and destination are all commonly omitted when
-//    understood from context), not just "leave it blank"
-//  - q: the word is replaced by its question form. This isn't a naive word
-//    swap - three real grammar rules apply here:
-//     1. topic's は becomes が when it's the thing being asked about
-//        (だれが行きますか, not だれは行きますか - unknown subjects take が)
-//     2. いつ (when) never takes a particle at all, unlike every other slot
-//     3. the other three (だれと/なにで/どこに) keep their normal particle
-// Slot 6 (the verb) can't sensibly be "off" - a sentence needs a verb - so
-// it gets its own 2-state toggle instead: with か (question) or without
-// (statement).
-const SENTENCE_STRUCTURE_SLOTS = [
-  { num: 1, role: 'Topic (who/what)', particle: 'は', particleRomaji: 'wa',
-    questionWord: 'だれ', questionRomaji: 'dare', questionParticle: 'が', questionParticleRomaji: 'ga',
-    note: 'introduces who or what the sentence is about' },
-  { num: 2, role: 'Time (when)', particle: 'に', particleRomaji: 'ni',
-    questionWord: 'いつ', questionRomaji: 'itsu', questionParticle: '', questionParticleRomaji: '',
-    note: 'a specific point in time - a day, date, or clock time' },
-  { num: 3, role: 'Companion (with whom)', particle: 'と', particleRomaji: 'to',
-    questionWord: 'だれ', questionRomaji: 'dare', questionParticle: 'と', questionParticleRomaji: 'to',
-    note: '"together with" - a person or animal' },
-  { num: 4, role: 'Means (how)', particle: 'で', particleRomaji: 'de',
-    questionWord: 'なに', questionRomaji: 'nani', questionParticle: 'で', questionParticleRomaji: 'de',
-    note: 'the method or tool used - how you get there or do it' },
-  { num: 5, role: 'Destination (where to)', particle: 'に', particleRomaji: 'ni',
-    questionWord: 'どこ', questionRomaji: 'doko', questionParticle: 'に', questionParticleRomaji: 'ni',
-    note: 'used with a motion verb - へ also works here' },
-  { num: 6, role: 'Verb (+か for a question)', note: 'the action itself, optionally turned into a question' },
-];
-
-// Index 0-4 track slots 1-5's state ('on' / 'off' / 'q'); index 5 tracks
-// slot 6's state ('q' = ends in か, 'stmt' = statement, no か). Reset to
-// this default every time the page is opened fresh - deliberately not
-// persisted, this is a play-with-it toggle, not a setting.
-let sentenceSlotStates = ['on', 'on', 'on', 'on', 'on', 'stmt'];
-
-function showSentenceStructureReference() {
-  // Only reachable through the Grammar notes hub now - see showGrammarNotesHub().
-  vocabRefBackTarget = 'grammar-notes-hub';
-  sentenceSlotStates = ['on', 'on', 'on', 'on', 'on', 'stmt'];
-  document.getElementById('vocab-ref-title').textContent = 'Sentence order (motion sentences)';
-  const list = document.getElementById('vocab-ref-list');
-  list.className = 'tight-list';
-  list.innerHTML = '';
-
-  const hint = document.createElement('div');
-  hint.className = 'sentence-structure-hint';
-  hint.textContent = 'Tap a slot to cycle it between included, skipped, and asked as a question.';
-  list.appendChild(hint);
-
-  const rowsWrap = document.createElement('div');
-  rowsWrap.id = 'sentence-structure-rows';
-  list.appendChild(rowsWrap);
-  renderSentenceStructureRows();
-
-  const example = document.createElement('div');
-  example.className = 'sentence-structure-example';
-  example.innerHTML = `
-    <div class="sentence-structure-example-jp" id="sentence-structure-example-jp"></div>
-    <div class="sentence-structure-example-romaji" id="sentence-structure-example-romaji"></div>
-    <div class="sentence-structure-example-en" id="sentence-structure-example-en"></div>
-  `;
-  list.appendChild(example);
-
-  const shuffleBtn = document.createElement('button');
-  shuffleBtn.className = 'sentence-shuffle-btn';
-  shuffleBtn.textContent = '🔀 Try another example';
-  shuffleBtn.onclick = shuffleSentenceExample;
-  list.appendChild(shuffleBtn);
-
-  // Always starts on a random sentence rather than the same fixed one, so
-  // the page feels alive even if nothing gets tapped. Picks a fresh set of
-  // words once here - tapping a row afterwards re-renders using those same
-  // words (see cycleSentenceSlotState), so the effect of each tap is
-  // visible against a stable sentence rather than a freshly-shuffled one.
-  pickFreshSentenceWords();
-  renderSentenceExampleDisplay();
-  const l3Pointer = document.createElement('div');
-  l3Pointer.className = 'verb-conj-note';
-  l3Pointer.textContent = 'Level 3 brings this card and the を + object card together in one, with frequency words and tense. See Vocab → Grammar → "Sentence order — doing something / going somewhere".';
-  list.appendChild(l3Pointer);
-  showScreen('vocab-reference');
-}
-
-function renderSentenceStructureRows() {
-  const wrap = document.getElementById('sentence-structure-rows');
-  if (!wrap) return;
-  wrap.innerHTML = '';
-  SENTENCE_STRUCTURE_SLOTS.forEach((slot, idx) => {
-    const isVerbSlot = idx === 5;
-    const state = isVerbSlot && sentenceSlotStates.slice(0, 5).includes('q') ? 'q' : sentenceSlotStates[idx]; // a question word needs か (2026-10-14)
-    const row = document.createElement('div');
-    row.className = 'vocab-ref-row minute-row sentence-slot-row' + (state === 'off' ? ' sentence-slot-off' : '');
-    row.onclick = () => cycleSentenceSlotState(idx);
-
-    let badgeText, badgeClass = 'sentence-particle-badge', stateLabel = '';
-    if (isVerbSlot) {
-      badgeText = state === 'q' ? 'か' : '。';
-      stateLabel = state === 'q' ? '(question)' : '(statement)';
-    } else if (state === 'off') {
-      badgeText = '–';
-      badgeClass += ' sentence-particle-badge-off';
-      stateLabel = '(skipped)';
-    } else if (state === 'q') {
-      badgeText = slot.questionWord + slot.questionParticle;
-      badgeClass += ' sentence-particle-badge-q';
-      stateLabel = '(asked as a question)';
-    } else {
-      badgeText = slot.particle;
-    }
-
-    row.innerHTML = `
-      <div class="sentence-structure-inner">
-        <div class="vocab-ref-num-big">${slot.num}</div>
-        <div class="sentence-structure-text">
-          <div class="sentence-structure-role">${slot.role}</div>
-          <div class="sentence-structure-note">${slot.note}${stateLabel ? ` <span class="sentence-structure-state">${stateLabel}</span>` : ''}</div>
-        </div>
-        <div class="${badgeClass}">${markSmallKana(badgeText)}</div>
-      </div>
-    `;
-    wrap.appendChild(row);
-  });
-}
-
-function cycleSentenceSlotState(idx) {
-  if (idx === 5) {
-    sentenceSlotStates[5] = sentenceSlotStates[5] === 'q' ? 'stmt' : 'q';
-  } else {
-    const order = ['on', 'off', 'q'];
-    sentenceSlotStates[idx] = order[(order.indexOf(sentenceSlotStates[idx]) + 1) % order.length];
-  }
-  renderSentenceStructureRows();
-  // Deliberately NOT a fresh word pick - re-renders the SAME sentence with
-  // the new state applied, so tapping a row shows exactly what that one
-  // change did rather than a whole new random sentence masking the effect.
-  renderSentenceExampleDisplay();
-}
-
-// Random example generator - reuses real vocab from existing pools rather
-// than inventing new words, same "constrained to what we actually know"
-// idea Andrew raised. A few deliberate narrowings on top of the verb
-// restriction already discussed:
-//  - あるいて (on foot) is dropped from the means pool - it's adverbial in
-//    real usage (歩いていきます), not a "noun + で" like でんしゃで/くるまで, so
-//    slotting it into ${means}で would generate the ungrammatical あるいてで.
-//  - かえります (return/go home) is left out of the verb pool here, even
-//    though it's grammatically fine with any destination - it reads oddly
-//    pairing "return" with, say, a supermarket rather than home. いきます/
-//    きます both pair naturally with any destination in this pool.
-//  - Any entry with a slash or bracket in its English gloss (e.g. "teacher
-//    (formal)", "boat / ship") is skipped wherever it feeds into a
-//    generated sentence, purely so the English reads cleanly instead of
-//    repeating the gloss's own punctuation mid-sentence.
-// The English translation is a literal structural gloss, not fully
-// idiomatic English - question-state slots render as "[who]"/"[when]" etc.
-// rather than properly restructuring the sentence, since real English
-// question formation doesn't map onto a simple word swap. The Japanese and
-// romaji are the accurate part; the English is there to keep track of which
-// slot is which.
-function hasCleanGloss(item) {
-  return !/[\/(]/.test(item.en);
-}
+// LEVEL 2 SENTENCE ORDER CARDS RETIRED (2026-10-15, Andrew): the motion and
+// を + object cards had their own sentence builder; the Level 3 Sentence order
+// card covers everything they did (and きます joined its Going somewhere mode),
+// so there is now one builder - the daily-sentence engine (sg*). Only the
+// names list below was shared and stays.
 
 // Not drawn from an existing vocab category (there isn't a "names" one in
 // the app) - same kind of small bespoke pool as COUNTER_QUIZ_NOUNS or
@@ -11332,528 +11163,6 @@ const SENTENCE_NAME_POOL = [
   { jp: 'やまもとさん', romaji: 'yamamoto-san', en: 'Yamamoto-san', isName: true },
   { jp: 'なかむらさん', romaji: 'nakamura-san', en: 'Nakamura-san', isName: true },
 ];
-
-function sentenceStructurePeoplePool() {
-  const cleanOccupations = VOCAB['vocab-occupations'].items.filter(hasCleanGloss);
-  const friend = VOCAB['vocab-greetings'].items.find(i => i.romaji === 'tomodachi');
-  return [...cleanOccupations, ...(friend ? [friend] : []), ...SENTENCE_NAME_POOL];
-}
-
-// Shared by both topic and companion - names get no article and keep their
-// capital S (Tanaka-san, not the tanaka-san), tomodachi gets "a"/"the
-// friend", everything else (occupations) gets "the doctor" etc.
-function sentencePersonEnglish(item) {
-  if (item.isName) return item.en;
-  if (item.romaji === 'tomodachi') return 'a friend';
-  return 'the ' + item.en.toLowerCase();
-}
-
-function pickRandomItem(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function pickTwoDistinctItems(arr) {
-  const i1 = Math.floor(Math.random() * arr.length);
-  let i2 = Math.floor(Math.random() * (arr.length - 1));
-  if (i2 >= i1) i2++;
-  return [arr[i1], arr[i2]];
-}
-
-function sentenceCapitalize(s) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-// Builds the jp/romaji/en fragment for slots 2-5 (time/companion/means/
-// destination), which all share the same on/off/q shape - unlike the topic
-// slot, none of these change particle when questioned. keepCase is for the
-// time slot only - day names (Thursday) should stay capitalised, unlike
-// the common nouns used for means/destination/companion.
-function sentenceClause(idx, item, enPrefix, enPlaceholderLabel, keepCase) {
-  const slot = SENTENCE_STRUCTURE_SLOTS[idx];
-  const state = sentenceSlotStates[idx];
-  if (state === 'off') return null;
-  if (state === 'q') {
-    return {
-      jp: slot.questionWord + slot.questionParticle,
-      romaji: (slot.questionRomaji + ' ' + slot.questionParticleRomaji).trim(),
-      en: enPrefix + '[' + enPlaceholderLabel + ']',
-    };
-  }
-  return {
-    jp: item.jp + slot.particle,
-    romaji: item.romaji + ' ' + slot.particleRomaji,
-    en: enPrefix + (keepCase ? item.en : item.en.toLowerCase()),
-  };
-}
-
-// The actual words in the example sentence - picked once (on page load or
-// a "Try another example" tap) and then left alone while you tap rows.
-// Every slot gets a real word regardless of its current state, so toggling
-// a slot on/off/q never needs a fresh pick - it just changes how the SAME
-// underlying sentence is displayed, which is the whole point: you can see
-// exactly what one change did instead of a full reshuffle masking it.
-let currentSentenceWords = null;
-
-function pickFreshSentenceWords() {
-  const people = sentenceStructurePeoplePool();
-  const [topicItem, companionItem] = pickTwoDistinctItems(people);
-  const timeItem = pickRandomItem(VOCAB['vocab-days-l2'].items);
-  const meansItem = pickRandomItem(VOCAB['vocab-transport'].items.filter(i => i.romaji !== 'aruite' && hasCleanGloss(i)));
-  const destItem = pickRandomItem(VOCAB['vocab-places-to-go'].items.filter(hasCleanGloss));
-  const verbPool = VOCAB['vocab-verbs-l2'].items.filter(v => v.romaji === 'ikimasu' || v.romaji === 'kimasu');
-  const verbItem = pickRandomItem(verbPool);
-  currentSentenceWords = { topicItem, companionItem, timeItem, meansItem, destItem, verbItem };
-}
-
-function buildSentenceExample() {
-  const { topicItem, companionItem, timeItem, meansItem, destItem, verbItem: verb } = currentSentenceWords;
-  const topicState = sentenceSlotStates[0];
-  const companionState = sentenceSlotStates[2];
-  const verbEn = verb.romaji === 'kimasu' ? 'coming' : 'going';
-  // A question word anywhere (だれと, どこに…) makes it a question, so か
-  // follows whatever the verb slot says (Andrew, 2026-10-14).
-  const isQuestion = sentenceSlotStates[5] === 'q' || sentenceSlotStates.slice(0, 5).includes('q');
-
-  // Topic is handled separately from the other four slots - it's the one
-  // place a particle genuinely changes (は -> が) rather than just staying
-  // put, and it also drives how the English sentence opens.
-  let topicJp = '', topicRomaji = '', subjectEn = 'someone', subjectIsPlaceholder = false;
-  const topicSlot = SENTENCE_STRUCTURE_SLOTS[0];
-  if (topicState === 'q') {
-    topicJp = topicSlot.questionWord + topicSlot.questionParticle;
-    topicRomaji = topicSlot.questionRomaji + ' ' + topicSlot.questionParticleRomaji;
-    subjectEn = 'who';
-    subjectIsPlaceholder = true;
-  } else if (topicState === 'on') {
-    topicJp = topicItem.jp + topicSlot.particle;
-    topicRomaji = topicItem.romaji + ' ' + topicSlot.particleRomaji;
-    subjectEn = sentencePersonEnglish(topicItem);
-  }
-  // topicState === 'off' -> topicJp/topicRomaji stay '', subjectEn stays 'someone'
-  // (a question with no topic is asked to "you" - 2026-10-14)
-  if (topicState === 'off' && isQuestion) subjectEn = 'you';
-  const be = subjectEn === 'you' ? 'are' : 'is';
-
-  const timeClause = sentenceClause(1, timeItem, 'on ', 'when', true);
-  const companionClause = companionState === 'off' ? null : companionState === 'q'
-    ? {
-        jp: SENTENCE_STRUCTURE_SLOTS[2].questionWord + SENTENCE_STRUCTURE_SLOTS[2].questionParticle,
-        romaji: SENTENCE_STRUCTURE_SLOTS[2].questionRomaji + ' ' + SENTENCE_STRUCTURE_SLOTS[2].questionParticleRomaji,
-        en: 'with [who]',
-      }
-    : {
-        jp: companionItem.jp + SENTENCE_STRUCTURE_SLOTS[2].particle,
-        romaji: companionItem.romaji + ' ' + SENTENCE_STRUCTURE_SLOTS[2].particleRomaji,
-        en: 'with ' + sentencePersonEnglish(companionItem),
-      };
-  const meansClause = sentenceClause(3, meansItem, 'by ', 'how');
-  const destClause = sentenceClause(4, destItem, 'to the ', 'where');
-
-  const jpParts = [topicJp, timeClause && timeClause.jp, companionClause && companionClause.jp, meansClause && meansClause.jp, destClause && destClause.jp].filter(Boolean);
-  const romajiParts = [topicRomaji, timeClause && timeClause.romaji, companionClause && companionClause.romaji, meansClause && meansClause.romaji, destClause && destClause.romaji].filter(Boolean);
-  const verbJp = verb.jp + (isQuestion ? 'か' : '');
-  const verbRomaji = verb.romaji + (isQuestion ? ' ka' : '');
-  const jp = [...jpParts, verbJp].join(' ') + '。';
-  const romaji = [...romajiParts, verbRomaji].join(' ') + '.';
-
-  // English gets natural wh-fronting only when exactly one slot is being
-  // asked about, in a question ("When is the designer going to Paris by
-  // plane?" reads fine, and fronting the topic-as-question already worked
-  // via the "Who is ..." branch below). The moment two or more slots are
-  // simultaneously questioned - "where and with whom and by what is the
-  // civil servant..." - natural English falls apart, so that case (and
-  // statements, where fronting a question word isn't grammatical at all)
-  // falls back to the plain bracket-gloss style rather than forcing
-  // something unreadable.
-  const qFlags = {
-    topic: subjectIsPlaceholder,
-    time: sentenceSlotStates[1] === 'q',
-    companion: companionState === 'q',
-    means: sentenceSlotStates[3] === 'q',
-    dest: sentenceSlotStates[4] === 'q',
-  };
-  const qCount = Object.values(qFlags).filter(Boolean).length;
-
-  // Questions (2026-10-14): one question word is asked properly and any others
-  // are tagged on - "Where is Satou-san coming by car on Wednesday, and with
-  // whom?" - instead of bracket placeholders.
-  let en;
-  const mClauses = { time: timeClause, companion: companionClause, means: meansClause, dest: destClause };
-  const mKeep = (...keys) => keys.map(k => (!qFlags[k] && mClauses[k]) ? mClauses[k].en : null).filter(Boolean).join(' ');
-  const mExtraWord = { dest: 'where', companion: 'with whom', means: 'how', time: 'when' };
-  const mAsked = ['dest', 'companion', 'means', 'time'].filter(k => qFlags[k]);
-  const mExtras = list => list.length ? ', and ' + list.map(k => mExtraWord[k]).join(', and ') : '';
-  const mJoin = (head, rest) => head + (rest ? ' ' + rest : '');
-  if (isQuestion && qFlags.topic) {
-    en = mJoin(`Who is ${verbEn}`, mKeep('dest', 'means', 'companion', 'time')) + mExtras(mAsked) + '?';
-  } else if (isQuestion && mAsked.length) {
-    const main = mAsked[0], extras = mExtras(mAsked.slice(1));
-    if (main === 'dest') en = mJoin(`Where ${be} ${subjectEn} ${verbEn}`, mKeep('means', 'companion', 'time')) + extras + '?';
-    else if (main === 'companion') en = mJoin(`Who ${be} ${subjectEn} ${verbEn}`, mKeep('dest', 'means', 'time')) + ' with' + extras + '?';
-    else if (main === 'means') en = mJoin(`How ${be} ${subjectEn} ${verbEn}`, mKeep('dest', 'companion', 'time')) + extras + '?';
-    else en = mJoin(`When ${be} ${subjectEn} ${verbEn}`, mKeep('dest', 'means', 'companion')) + extras + '?';
-  } else {
-    const bodyText = mJoin(verbEn, mKeep('dest', 'means', 'companion', 'time'));
-    en = isQuestion ? `${sentenceCapitalize(be)} ${subjectEn} ${bodyText}?` : `${sentenceCapitalize(subjectEn)} is ${bodyText}.`;
-  }
-  return { jp, romaji, en };
-}
-
-function renderSentenceExampleDisplay() {
-  const { jp, romaji, en } = buildSentenceExample();
-  const jpEl = document.getElementById('sentence-structure-example-jp');
-  const romajiEl = document.getElementById('sentence-structure-example-romaji');
-  const enEl = document.getElementById('sentence-structure-example-en');
-  if (jpEl) jpEl.innerHTML = markSmallKana(jp);
-  if (romajiEl) romajiEl.textContent = romaji;
-  if (enEl) enEl.textContent = `"${en}"`;
-}
-
-// Button handler - this is the one place that picks brand new words. Row
-// taps deliberately don't call this (see cycleSentenceSlotState above).
-function shuffleSentenceExample() {
-  pickFreshSentenceWords();
-  renderSentenceExampleDisplay();
-}
-
-// を + object sentence pattern - a second "Sentence order" card, deliberately
-// separate from the motion-sentence one above rather than folded into it,
-// matching the earlier decision that を introduces a genuinely different
-// shape (Topic/Time/Location-of-action/Object/Verb) rather than a variant of
-// the motion sentence's Topic/Time/Companion/Means/Destination one. There's
-// no travelling involved, so Companion and Means/Destination don't apply -
-// but で reappears here in its OTHER job (see showLocationOfActionReference):
-// marking where the action happens, not how you got there.
-//
-// Every word used on this page - verbs, days, places, objects - comes from
-// existing Level 1/2 vocab items, which are stored kana-only (kanji only
-// ever lives in an optional altForm field that this page never reads). Kanji
-// isn't taught on the course for months yet, so that's exactly what's wanted
-// here, not an extra rule to maintain.
-const OBJECT_SENTENCE_SLOTS = [
-  { num: 1, role: 'Topic (who)', particle: 'は', particleRomaji: 'wa',
-    questionWord: 'だれ', questionRomaji: 'dare', questionParticle: 'が', questionParticleRomaji: 'ga',
-    note: 'introduces who is doing the action' },
-  { num: 2, role: 'Time (when)', particle: 'に', particleRomaji: 'ni',
-    questionWord: 'いつ', questionRomaji: 'itsu', questionParticle: '', questionParticleRomaji: '',
-    note: 'a specific point in time - a day, date, or clock time' },
-  { num: 3, role: 'Location of action (where)', particle: 'で', particleRomaji: 'de',
-    questionWord: 'どこ', questionRomaji: 'doko', questionParticle: 'で', questionParticleRomaji: 'de',
-    note: 'where the action happens - で\'s "location of action" job, not motion' },
-  { num: 4, role: 'Object (what)', particle: 'を', particleRomaji: 'o',
-    questionWord: 'なに', questionRomaji: 'nani', questionParticle: 'を', questionParticleRomaji: 'o',
-    note: 'the thing being eaten/read/bought etc - marks the direct object' },
-  { num: 5, role: 'Verb (+か for a question)', note: 'the action itself, optionally turned into a question' },
-];
-
-// Index 0-3 track slots 1-4's state ('on' / 'off' / 'q'); index 4 tracks
-// slot 5's state ('q' = ends in か, 'stmt' = statement). Same shape as
-// sentenceSlotStates above, kept as its own variable since this is a
-// genuinely separate page/pattern rather than a mode on the existing one.
-let objSentenceSlotStates = ['on', 'on', 'on', 'on', 'stmt'];
-
-function showObjectSentenceOrderReference() {
-  // Only reachable through the Grammar notes hub - see showGrammarNotesHub().
-  vocabRefBackTarget = 'grammar-notes-hub';
-  objSentenceSlotStates = ['on', 'on', 'on', 'on', 'stmt'];
-  document.getElementById('vocab-ref-title').textContent = 'Sentence order (を + object)';
-  const list = document.getElementById('vocab-ref-list');
-  list.className = 'tight-list';
-  list.innerHTML = '';
-
-  const hint = document.createElement('div');
-  hint.className = 'sentence-structure-hint';
-  hint.textContent = 'Tap a slot to cycle it between included, skipped, and asked as a question.';
-  list.appendChild(hint);
-
-  const rowsWrap = document.createElement('div');
-  rowsWrap.id = 'sentence-structure-rows';
-  list.appendChild(rowsWrap);
-  renderObjectSentenceRows();
-
-  const example = document.createElement('div');
-  example.className = 'sentence-structure-example';
-  example.innerHTML = `
-    <div class="sentence-structure-example-jp" id="sentence-structure-example-jp"></div>
-    <div class="sentence-structure-example-romaji" id="sentence-structure-example-romaji"></div>
-    <div class="sentence-structure-example-en" id="sentence-structure-example-en"></div>
-  `;
-  list.appendChild(example);
-
-  const shuffleBtn = document.createElement('button');
-  shuffleBtn.className = 'sentence-shuffle-btn';
-  shuffleBtn.textContent = '🔀 Try another example';
-  shuffleBtn.onclick = shuffleObjectSentenceExample;
-  list.appendChild(shuffleBtn);
-
-  const l3Pointer = document.createElement('div');
-  l3Pointer.className = 'verb-conj-note';
-  l3Pointer.textContent = 'Level 3 brings this card and the motion-sentence card together in one, with frequency words, companions (と) and tense. See Vocab → Grammar → "Sentence order — doing something / going somewhere".';
-  list.appendChild(l3Pointer);
-
-  pickFreshObjectSentenceWords();
-  renderObjectSentenceExampleDisplay();
-  showScreen('vocab-reference');
-}
-
-function renderObjectSentenceRows() {
-  const wrap = document.getElementById('sentence-structure-rows');
-  if (!wrap) return;
-  wrap.innerHTML = '';
-  OBJECT_SENTENCE_SLOTS.forEach((slot, idx) => {
-    const isVerbSlot = idx === 4;
-    const state = isVerbSlot && objSentenceSlotStates.slice(0, 4).includes('q') ? 'q' : objSentenceSlotStates[idx]; // a question word needs か (2026-10-14)
-    const row = document.createElement('div');
-    row.className = 'vocab-ref-row minute-row sentence-slot-row' + (state === 'off' ? ' sentence-slot-off' : '');
-    row.onclick = () => cycleObjectSentenceSlotState(idx);
-
-    let badgeText, badgeClass = 'sentence-particle-badge', stateLabel = '';
-    if (isVerbSlot) {
-      badgeText = state === 'q' ? 'か' : '。';
-      stateLabel = state === 'q' ? '(question)' : '(statement)';
-    } else if (state === 'off') {
-      badgeText = '–';
-      badgeClass += ' sentence-particle-badge-off';
-      stateLabel = '(skipped)';
-    } else if (state === 'q') {
-      badgeText = slot.questionWord + slot.questionParticle;
-      badgeClass += ' sentence-particle-badge-q';
-      stateLabel = '(asked as a question)';
-    } else {
-      badgeText = slot.particle;
-    }
-
-    row.innerHTML = `
-      <div class="sentence-structure-inner">
-        <div class="vocab-ref-num-big">${slot.num}</div>
-        <div class="sentence-structure-text">
-          <div class="sentence-structure-role">${slot.role}</div>
-          <div class="sentence-structure-note">${slot.note}${stateLabel ? ` <span class="sentence-structure-state">${stateLabel}</span>` : ''}</div>
-        </div>
-        <div class="${badgeClass}">${markSmallKana(badgeText)}</div>
-      </div>
-    `;
-    wrap.appendChild(row);
-  });
-}
-
-function cycleObjectSentenceSlotState(idx) {
-  if (idx === 4) {
-    objSentenceSlotStates[4] = objSentenceSlotStates[4] === 'q' ? 'stmt' : 'q';
-  } else {
-    const order = ['on', 'off', 'q'];
-    objSentenceSlotStates[idx] = order[(order.indexOf(objSentenceSlotStates[idx]) + 1) % order.length];
-  }
-  renderObjectSentenceRows();
-  renderObjectSentenceExampleDisplay();
-}
-
-// Small lookup helper - pulls one specific item out of an existing category
-// by its romaji, same "constrained to what we actually know" idea as the
-// motion-sentence pools above, rather than inventing new vocab for this page.
-function vItem(catKey, romaji) {
-  return VOCAB[catKey].items.find(i => i.romaji === romaji);
-}
-
-// Which objects make sense with which verb - kept per-verb rather than one
-// shared pool, since (unlike the motion sentence's means/destination, which
-// pair freely with any motion verb) "drink a photograph" or "smoke an apple"
-// would be grammatical but nonsensical. あいます isn't listed here at all -
-// it's excluded from the verb pool below since it takes に, not を (see the
-// note on vocab-verbs-l2). りょうり/れきし are deliberately left out of the
-// kaimasu pool below - "buy the cooking"/"buy the history" don't read as
-// real purchases the way everything else in Everyday items does.
-const OBJECT_SENTENCE_VERB_POOLS = {
-  tabemasu: [
-    vItem('vocab-food-drink-l2', 'ringo'), vItem('vocab-food-drink-l2', 'pan'),
-    vItem('vocab-food-drink-l2', 'tamago'), vItem('vocab-food-drink-l2', 'kudamono'),
-    vItem('vocab-food-drink-l2', 'shiriaru'), vItem('vocab-food-drink-l2', 'toosuto'),
-    vItem('vocab-general-l2', 'toufu'), vItem('vocab-general-l2', 'gohan'),
-    vItem('vocab-objects', 'niku'), vItem('vocab-objects', 'chokoreeto'),
-  ],
-  nomimasu: [
-    vItem('vocab-food-drink-l2', 'osake'), vItem('vocab-food-drink-l2', 'biiru'),
-    vItem('vocab-food-drink-l2', 'wain'), vItem('vocab-general-l2', 'mizu'),
-    vItem('vocab-objects', 'koohii'),
-  ],
-  yomimasu: [
-    vItem('vocab-objects', 'hon'), vItem('vocab-objects', 'zasshi'),
-    vItem('vocab-objects', 'shinbun'), vItem('vocab-general-l2', 'tegami'),
-  ],
-  mimasu: [vItem('vocab-objects', 'terebi'), vItem('vocab-general-l2', 'eiga')],
-  kikimasu: [vItem('vocab-objects', 'rajio'), vItem('vocab-general-l2', 'ongaku')],
-  kakimasu: [vItem('vocab-general-l2', 'tegami'), vItem('vocab-general-l2', 'ii meeru')],
-  kaimasu: [
-    ...VOCAB['vocab-objects'].items.filter(i => hasCleanGloss(i) && !['ryouri', 'rekishi'].includes(i.romaji)),
-    ...VOCAB['vocab-food-drink-l2'].items.filter(hasCleanGloss),
-  ],
-  suimasu: [vItem('vocab-objects', 'tabako')],
-  // Copy with a plain gloss (2026-09-29): shashin's own en became
-  // 'photograph / photography' when it was tagged into L3 Hobbies, and
-  // hasCleanGloss would otherwise filter this pool to nothing.
-  torimasu: [{ ...vItem('vocab-general-l2', 'shashin'), en: 'photograph' }],
-  shimasu: [
-    vItem('vocab-general-l2', 'tenisu'), vItem('vocab-general-l2', 'geemu'),
-    vItem('vocab-general-l2', 'supootsu'), vItem('vocab-general-l2', 'shukudai'),
-  ],
-};
-
-// English gloss for the verb in its "-ing" form, for the "X is [verb]ing Y"
-// sentence shape - same progressive-tense style the motion sentence uses
-// ("is going", "is coming").
-const OBJECT_SENTENCE_VERB_GERUND = {
-  tabemasu: 'eating', nomimasu: 'drinking', yomimasu: 'reading', mimasu: 'watching',
-  kikimasu: 'listening to', kakimasu: 'writing', kaimasu: 'buying', suimasu: 'smoking',
-  torimasu: 'taking', shimasu: 'doing / playing',
-};
-
-// Verb pool is whatever object-taking verb has an entry above - purely data
-// driven, so あいます (no entry) is naturally excluded without a separate
-// exclude-list to keep in sync.
-const OBJECT_SENTENCE_VERB_LIST = VOCAB['vocab-verbs-l2'].items.filter(v => OBJECT_SENTENCE_VERB_POOLS[v.romaji]);
-
-let currentObjectSentenceWords = null;
-
-function pickFreshObjectSentenceWords() {
-  const people = sentenceStructurePeoplePool();
-  const topicItem = pickRandomItem(people);
-  const timeItem = pickRandomItem(VOCAB['vocab-days-l2'].items);
-  const verbItem = pickRandomItem(OBJECT_SENTENCE_VERB_LIST);
-  const objectPool = OBJECT_SENTENCE_VERB_POOLS[verbItem.romaji].filter(hasCleanGloss);
-  const objectItem = pickRandomItem(objectPool);
-  // Location (2026-10-06 audit): used to be any Places-to-go word, giving
-  // "smoking at the hospital" / "reading at the bank". Now a place that suits
-  // the verb and object (same lists as the daily sentence), else a safe default.
-  let places = l3PlacesFor(verbItem.jp, objectItem.jp);
-  if (!places.length) {
-    const fallback = { かいます: 'デパート', とります: 'こうえん', すいます: 'うち', します: objectItem.jp === 'スポーツ' ? 'こうえん' : 'うち' }[verbItem.jp] || 'うち';
-    if (l3TaughtItem(fallback)) places = [Object.assign({}, l3TaughtItem(fallback), { atEn: SG_PLACE_EN[fallback][0] })];
-  }
-  const locationItem = places.length ? pickRandomItem(places) : pickRandomItem(VOCAB['vocab-places-to-go'].items.filter(hasCleanGloss));
-  currentObjectSentenceWords = { topicItem, timeItem, locationItem, objectItem, verbItem };
-}
-
-// Builds the jp/romaji/en fragment for the Time/Location/Object slots, which
-// all share the same on/off/q shape - mirrors sentenceClause() above but
-// against this page's own slots/state.
-function objectSentenceClause(idx, item, enPrefix, enPlaceholderLabel) {
-  const slot = OBJECT_SENTENCE_SLOTS[idx];
-  const state = objSentenceSlotStates[idx];
-  if (state === 'off') return null;
-  if (state === 'q') {
-    return {
-      jp: slot.questionWord + slot.questionParticle,
-      romaji: (slot.questionRomaji + ' ' + slot.questionParticleRomaji).trim(),
-      en: enPrefix + '[' + enPlaceholderLabel + ']',
-    };
-  }
-  // Day names keep their capital (Friday); places use their own phrase
-  // (at home, in the park); mass nouns / activities take no "the".
-  let en;
-  if (idx === 1) en = enPrefix + item.en;
-  else if (idx === 2 && item.atEn) en = item.atEn;
-  else if (idx === 3 && OBJECT_SENTENCE_BARE_EN[item.romaji]) en = OBJECT_SENTENCE_BARE_EN[item.romaji];
-  else en = enPrefix + item.en.toLowerCase();
-  return {
-    jp: item.jp + slot.particle,
-    romaji: item.romaji + ' ' + slot.particleRomaji,
-    en,
-  };
-}
-// English without "the" for uncountable things and activities - "drinking
-// coffee", "playing tennis", not "drinking the coffee", "doing / playing the tennis".
-const OBJECT_SENTENCE_BARE_EN = {
-  koohii: 'coffee', mizu: 'water', biiru: 'beer', wain: 'wine', osake: 'alcohol', niku: 'meat', gohan: 'rice',
-  toufu: 'tofu', toosuto: 'toast', shiriaru: 'cereal', chokoreeto: 'chocolate', pan: 'bread', kudamono: 'fruit',
-  ongaku: 'music', terebi: 'TV', shashin: 'photos', tabako: 'cigarettes', tenisu: 'tennis', geemu: 'games', supootsu: 'sport', shukudai: 'homework',
-};
-// します's English verb depends on the object (play tennis / do homework).
-const OBJECT_SENTENCE_SHIMASU_EN = { tenisu: 'playing', geemu: 'playing', supootsu: 'doing', shukudai: 'doing' };
-
-function buildObjectSentenceExample() {
-  const { topicItem, timeItem, locationItem, objectItem, verbItem: verb } = currentObjectSentenceWords;
-  const topicState = objSentenceSlotStates[0];
-  const isQuestion = objSentenceSlotStates[4] === 'q' || objSentenceSlotStates.slice(0, 4).includes('q'); // question word -> か
-  let verbEn = OBJECT_SENTENCE_VERB_GERUND[verb.romaji];
-  if (verb.romaji === 'shimasu') verbEn = objSentenceSlotStates[3] === 'on' ? (OBJECT_SENTENCE_SHIMASU_EN[objectItem.romaji] || 'doing') : 'doing';
-  if (objSentenceSlotStates[3] !== 'on') verbEn = verbEn.replace(/ to$/, ''); // "Who is listening, and where?" (2026-10-14)
-
-  let topicJp = '', topicRomaji = '', subjectEn = 'someone', subjectIsPlaceholder = false;
-  const topicSlot = OBJECT_SENTENCE_SLOTS[0];
-  if (topicState === 'q') {
-    topicJp = topicSlot.questionWord + topicSlot.questionParticle;
-    topicRomaji = topicSlot.questionRomaji + ' ' + topicSlot.questionParticleRomaji;
-    subjectEn = 'who';
-    subjectIsPlaceholder = true;
-  } else if (topicState === 'on') {
-    topicJp = topicItem.jp + topicSlot.particle;
-    topicRomaji = topicItem.romaji + ' ' + topicSlot.particleRomaji;
-    subjectEn = sentencePersonEnglish(topicItem);
-  }
-  if (topicState === 'off' && isQuestion) subjectEn = 'you'; // 2026-10-14
-  const be = subjectEn === 'you' ? 'are' : 'is';
-
-  const timeClause = objectSentenceClause(1, timeItem, 'on ', 'when');
-  const locationClause = objectSentenceClause(2, locationItem, 'at the ', 'where');
-  const objectClause = objectSentenceClause(3, objectItem, 'the ', 'what');
-
-  const jpParts = [topicJp, timeClause && timeClause.jp, locationClause && locationClause.jp, objectClause && objectClause.jp].filter(Boolean);
-  const romajiParts = [topicRomaji, timeClause && timeClause.romaji, locationClause && locationClause.romaji, objectClause && objectClause.romaji].filter(Boolean);
-  const verbJp = verb.jp + (isQuestion ? 'か' : '');
-  const verbRomaji = verb.romaji + (isQuestion ? ' ka' : '');
-  const jp = [...jpParts, verbJp].join(' ') + '。';
-  const romaji = [...romajiParts, verbRomaji].join(' ') + '.';
-
-  // Same rule as the motion sentence: front the question word naturally only
-  // when exactly one non-topic slot is being asked about. Two or more asked
-  // at once falls back to the plain bracket-gloss style instead of forcing
-  // unreadable English.
-  const qFlags = {
-    topic: subjectIsPlaceholder,
-    time: objSentenceSlotStates[1] === 'q',
-    location: objSentenceSlotStates[2] === 'q',
-    object: objSentenceSlotStates[3] === 'q',
-  };
-  const qCount = Object.values(qFlags).filter(Boolean).length;
-
-  // Questions (2026-10-14): same pattern as the motion card - one question
-  // word asked properly, any others tagged on ("…, and where?").
-  let en;
-  const oClauses = { time: timeClause, location: locationClause, object: objectClause };
-  const oKeep = (...keys) => keys.map(k => (!qFlags[k] && oClauses[k]) ? oClauses[k].en : null).filter(Boolean).join(' ');
-  const oExtraWord = { object: 'what', location: 'where', time: 'when' };
-  const oAsked = ['object', 'location', 'time'].filter(k => qFlags[k]);
-  const oExtras = list => list.length ? ', and ' + list.map(k => oExtraWord[k]).join(', and ') : '';
-  const oJoin = (head, rest) => head + (rest ? ' ' + rest : '');
-  if (isQuestion && qFlags.topic) {
-    en = oJoin(`Who is ${verbEn}`, oKeep('object', 'location', 'time')) + oExtras(oAsked) + '?';
-  } else if (isQuestion && oAsked.length) {
-    const main = oAsked[0], extras = oExtras(oAsked.slice(1));
-    if (main === 'object') en = oJoin(`What ${be} ${subjectEn} ${verbEn}`, oKeep('location', 'time')) + extras + '?';
-    else if (main === 'location') en = oJoin(`Where ${be} ${subjectEn} ${verbEn}`, oKeep('object', 'time')) + extras + '?';
-    else en = oJoin(`When ${be} ${subjectEn} ${verbEn}`, oKeep('object', 'location')) + extras + '?';
-  } else {
-    const bodyText = oJoin(verbEn, oKeep('object', 'location', 'time'));
-    en = isQuestion ? `${sentenceCapitalize(be)} ${subjectEn} ${bodyText}?` : `${sentenceCapitalize(subjectEn)} is ${bodyText}.`;
-  }
-  return { jp, romaji, en };
-}
-
-function renderObjectSentenceExampleDisplay() {
-  const { jp, romaji, en } = buildObjectSentenceExample();
-  const jpEl = document.getElementById('sentence-structure-example-jp');
-  const romajiEl = document.getElementById('sentence-structure-example-romaji');
-  const enEl = document.getElementById('sentence-structure-example-en');
-  if (jpEl) jpEl.innerHTML = markSmallKana(jp);
-  if (romajiEl) romajiEl.textContent = romaji;
-  if (enEl) enEl.textContent = `"${en}"`;
-}
-
-// Button handler - mirrors shuffleSentenceExample above.
-function shuffleObjectSentenceExample() {
-  pickFreshObjectSentenceWords();
-  renderObjectSentenceExampleDisplay();
-}
 
 // ==== LEVEL 3 GRAMMAR NOTES (2026-09-29) ====
 // Level 3's own Grammar notes hub, shown above the L3 category list the same
@@ -12030,8 +11339,8 @@ const L3_FREQ_WORDS = [
 // the sentence engine uses it (SG_FREQ).
 
 // --- Sentence order, L3 version (を + object + frequency) ---
-// Extends the L2 "Sentence order (を + object)" card (showObjectSentence
-// OrderReference) with a Frequency slot. Tapping Frequency steps through
+// Began as an extension of the L2 "Sentence order (を + object)" card
+// (retired 2026-10-15) with a Frequency slot. Tapping Frequency steps through
 // the five words and "skipped", and the verb flips to its ません form by
 // itself for あまり/ぜんぜん - that automatic flip is the point of the card.
 // Object pools are curated per verb (same "no drinking a photograph" idea as
@@ -12153,6 +11462,8 @@ function showL3SentenceOrderReference() {
 
   l3Note(list, 'One order for both kinds of sentence: <strong>who → when → how often → with whom → where / how → what / where to → verb</strong>. Doing something uses place で + object を; going somewhere uses means で + destination に (or へ). Anything you skip just drops out — the order of the rest never changes.');
   l3Note(list, 'Put the companion after the topic: わたしは あねと デパートへ いきます, never ✗ わたしと あねは… The time word sets the tense: きのう → いきました, あした → いきます ("going to").');
+  l3Note(list, 'Going somewhere also uses きます (come) where "come" fits — to my house, to school, to a party: たなかさんは うちに きます. Invitations always use いきます.');
+  l3Note(list, 'Romaji: を is written "o" here, as it\'s said. Level 2 wrote it "wo", as it was taught then — same particle, same sound.');
 
   renderL3ModeRow();
   pickFreshL3SentenceWords();
@@ -12195,7 +11506,7 @@ function pickFreshL3SentenceWords() {
   for (let tries = 0; tries < 120; tries++) {
     const tense = inviting ? 'fut' : freqOn ? 'hab' : sgPick(['hab', 'hab', 'past', 'fut']);
     const w = l3cMode === 'do' ? l3cPickDo(tense, freq) : l3cPickGo(tense, freq);
-    if (w && !(l3cIsQ() && w.subj.me)) { l3SentWords = w; return; }
+    if (w && !(l3cIsQ() && w.subj.me) && l3cComeOk(w)) { l3SentWords = w; return; }
   }
 }
 function l3cPickDo(tense, freq) {
@@ -12226,13 +11537,25 @@ function l3cPickDo(tense, freq) {
     phraseQ: V.phrase ? 'do' : (V.futHave && tense !== 'hab' ? 'have' : V.en), // "What do you eat?"
   };
 }
+// きます (2026-10-15, from the retired Level 2 motion card): "come" only
+// suits a place the speaker is at or is hosting - my house, school, a party.
+// Never with わたし or the speaker's own family as the subject ("my mother
+// comes to my house"), and never in an invitation (きませんか means "won't
+// you come?", not "why don't we...?"). [English, kind for the time rules]
+const L3C_COME_DEST = { うち: ['to my house', 'outing'], がっこう: ['to school', 'work'], パーティー: ['to the party', 'event', 'to parties'] };
+// With no topic, a statement means "I": "I come to my house" makes no sense,
+// so うち + きます needs a topic or a question. Checked again whenever a slot
+// is tapped, since turning the topic off doesn't pick new words by itself.
+const l3cComeOk = w => !(w && w.verb === 'きます' && w.dest === 'うち' && l3SentStates[0] !== 'on' && !l3cIsQ());
 function l3cPickGo(tense, freq) {
   const subj = sgSubject();
-  const ok = Object.entries(SG_DEST).filter(([jp, v]) => sgW(jp) && sgDestSubjOk(jp, v[1], subj)
+  const come = !l3cInviting() && !subj.me && !/^my (?!friend)/i.test(subj.en || '') && sgW('きます') && sgChance(0.1); // only used briefly in one lesson, so kept rare (Andrew)
+  const ok = Object.entries(come ? L3C_COME_DEST : SG_DEST).filter(([jp, v]) => sgW(jp) && sgDestSubjOk(jp, v[1], subj)
     && !(freq && ['outing', 'daytrip', 'event'].includes(v[1]) && freq.jp === 'いつも'));
   const pick = sgPick(ok);
   if (!pick) return null;
-  const [dest, [destEn, kind]] = pick;
+  const [dest, [destEn0, kind, habEn]] = pick;
+  const destEn = habEn && tense === 'hab' ? habEn : destEn0; // "often comes to parties"
   if (freq && kind === 'work') return null;
   const time = sgTime(tense, (jp, t) => sgDestTimeOk(kind, jp, t, tense, freq), { freq: !!freq });
   if (!time) return null;
@@ -12240,12 +11563,12 @@ function l3cPickGo(tense, freq) {
   if (!tr) return null;
   const comp = sgCompanion(subj, dest, kind === 'bar', kind === 'work');
   return {
-    mode: 'go', tense, subj, time, comp, dest,
+    mode: 'go', tense, subj, time, comp, dest, kind,
     slot4: { seg: sgSeg(tr[0], 'で', 'de'), en: tr[1] },
     slot5: { seg: sgSeg(dest, 'に', 'ni'), en: destEn },
-    verb: 'いきます',
-    phrase: 'go ' + destEn,
-    phraseQ: 'go',
+    verb: come ? 'きます' : 'いきます',
+    phrase: (come ? 'come ' : 'go ') + destEn,
+    phraseQ: come ? 'come' : 'go',
   };
 }
 
@@ -12256,7 +11579,7 @@ function l3FixTimeForFreq() {
   if (!w || l3SentStates[2] !== 'on' || !L3_FREQ_WORDS[l3FreqIdx].neg || !SG_DAYS.some(d => d[0] === w.time.jp)) return;
   const filt = w.mode === 'do'
     ? (jp, t) => !SG_DAYS.some(d => d[0] === jp) && sgActTimeOk(w.V, jp, t, 'hab') && sgPlaceTimeOk(l3cPlaceJp(w), jp, t)
-    : (jp, t) => !SG_DAYS.some(d => d[0] === jp) && sgDestTimeOk(SG_DEST[w.dest][1], jp, t, 'hab', null);
+    : (jp, t) => !SG_DAYS.some(d => d[0] === jp) && sgDestTimeOk(w.kind, jp, t, 'hab', null);
   const t = sgTime('hab', filt, { freq: true });
   if (t) w.time = t;
 }
@@ -12353,6 +11676,7 @@ function cycleL3SentenceSlot(idx) {
     // as the topic or あまり / ぜんぜん (see pickFreshL3SentenceWords).
     if (l3cIsQ() && ((l3SentWords && l3SentWords.subj.me) || (l3SentStates[2] === 'on' && L3_FREQ_WORDS[l3FreqIdx].neg))) pickFreshL3SentenceWords();
   }
+  if (!l3cComeOk(l3SentWords)) pickFreshL3SentenceWords();
   renderL3SentenceRows();
   renderL3SentenceExample();
 }
@@ -12360,7 +11684,7 @@ function l3cFreqFits() {
   const w = l3SentWords, f = L3_FREQ_WORDS[l3FreqIdx];
   if (!w) return false;
   if (w.mode === 'do') return !w.V.outing;
-  const kind = SG_DEST[w.dest][1];
+  const kind = w.kind;
   if (kind === 'work') return false;
   return !(['outing', 'daytrip', 'event'].includes(kind) && f.jp === 'いつも') && sgDestTimeOk(kind, w.time.jp, w.time.t, 'hab', f.neg ? null : f);
 }
@@ -12473,11 +11797,11 @@ function l3cEnglish(w, st, f, tense, isQ) {
   // Object asked or left out (2026-10-14): the plain verb, with "it" where
   // English can't drop the object ("buys it"), or "something" when the object
   // is one of the extra question words ("Who drinks something…, and what?").
-  const bare = doMode ? (L3C_BARE[w.V.v] || w.phraseQ) : 'go';
+  const bare = doMode ? (L3C_BARE[w.V.v] || w.phraseQ) : w.phraseQ; // go / come
   const needsObj = L3C_NEEDS_OBJ.includes(bare);
   if (st[5] === 'on') P = l3cSplitPhrase(w.phrase);
-  else if (st[5] === 'q') P = doMode ? (asked[0] === 5 && !whoQ ? bare : bare + ' something') : 'go';
-  else P = doMode ? bare + (needsObj ? ' it' : '') : 'go';
+  else if (st[5] === 'q') P = doMode ? (asked[0] === 5 && !whoQ ? bare : bare + ' something') : bare;
+  else P = doMode ? bare + (needsObj ? ' it' : '') : bare;
   const tail = [];
   if (st[3] === 'on') tail.push(mk(3, w.comp.en));
   if (st[4] === 'on') tail.push(mk(4, w.slot4.en));

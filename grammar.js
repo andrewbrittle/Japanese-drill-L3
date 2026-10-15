@@ -20,8 +20,6 @@
 window.JP_DRILL_GRAMMAR = {
   hubs: {
     2: { title: "Grammar notes", entries: [
-      {"label": "Sentence order (motion sentences)", "fn": "showSentenceStructureReference", "top": true},
-      {"label": "Sentence order (を + object)", "fn": "showObjectSentenceOrderReference", "top": true},
       {"label": "Verb tense & affirmative/negative", "fn": "showVerbConjugationReference", "added": "2026-08-01"},
       {"label": "Object-taking verbs — tense & affirmative/negative", "fn": "showObjectVerbConjugationReference", "added": "2026-08-13"},
       {"label": "を — the object particle", "card": "object-particle", "added": "2026-08-13"},
