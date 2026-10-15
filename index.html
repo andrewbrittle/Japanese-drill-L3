@@ -73,6 +73,7 @@
     --text: #f8f6f2;
     --text-muted: rgba(248,246,242,0.66);
     --text-dim: rgba(248,246,242,0.42);
+    --text-note: rgba(248,246,242,0.86); /* grammar-card narrative text (2026-10-15) */
     --accent: #e8c97a;
     --accent-dim: rgba(232,201,122,0.12);
     --green: #6fcf97;
@@ -139,6 +140,7 @@
     --text: #1a1a1a;
     --text-muted: rgba(26,26,26,0.66);
     --text-dim: rgba(26,26,26,0.45);
+    --text-note: rgba(26,26,26,0.84);
     --accent: #a9740f;
     --accent-dim: rgba(169,116,15,0.12);
     --green: #2f9e5c;
@@ -711,6 +713,13 @@
     .ds-note { font-size: 10.5px !important; }
     .ds-particle { font-size: 17px !important; }
   }
+  #match-grammar-view { flex-direction: column; gap: 0.5rem; }
+  .grammar-page-head { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); margin-top: 0.6rem; }
+  .grammar-page-card { gap: 8px; }
+  .grammar-page-card .gp-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .grammar-page-card .gp-sub { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+  .gp-lvl-2 { color: #e88a4d; } .gp-lvl-3 { color: #b07a5e; }
+  .gp-lvl { flex-shrink: 0; font-size: 11px; font-weight: 700; border-radius: 99px; padding: 1px 7px; border: 1px solid currentColor; opacity: 0.85; }
   .tile-group-heading.first { border-top: none; padding-top: 0; margin-top: 0; }
   .sk-reveal { font-size: 56px; line-height: 1.2; }
   .sk-reveal-sub { font-size: 15px; color: var(--text-muted); margin-top: 4px; }
@@ -930,7 +939,7 @@
      scoped bump here only, same reasoning as above. */
   .verb-conj-table .tu-romaji { font-size: 12px; }
   .verb-conj-note {
-    font-size: 12px; color: var(--text-dim); background: var(--surface2);
+    font-size: 13.5px; line-height: 1.5; color: var(--text-note); background: var(--surface2);
     border-radius: var(--radius); padding: 0.6rem 0.8rem; margin-top: 0.8rem;
   }
   /* Days-of-month reference (1st-31st) - a compact grid rather than 31
@@ -1007,6 +1016,7 @@
      counter pills) is untouched - those can have many more pills and
      wrapping is still the right behaviour there. */
   #vocab-level-filter-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 6px; }
+  #vocab-level-filter-row .level-pill { padding-left: 13px; padding-right: 13px; } /* fits Grammar + L1-L3 on a phone (2026-10-15) */
   #vocab-level-filter-row::-webkit-scrollbar { display: none; }
   /* Slightly tighter than the shared .level-pill padding (18px sides) -
      four pills (Collections/Level 1/Level 2/Untaught) were just barely
@@ -1407,7 +1417,6 @@
 
     <div style="text-align:center; margin-top:0.9rem; margin-bottom:0.4rem; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
       <a href="./instructions.html" target="_blank" style="display:inline-block; font-size:13px; font-weight:600; color:var(--text-muted); text-decoration:none; border:1px solid var(--border); border-radius:99px; padding:8px 18px;">How this app works →</a>
-      <button type="button" onclick="showDeskSheets()" style="display:inline-block; font-size:13px; font-weight:600; color:var(--text-muted); border:1px solid var(--border); border-radius:99px; padding:8px 18px; background:transparent; cursor:pointer; font-family:inherit;">Desk sheets →</button>
       <a href="./changelog.html" target="_blank" id="whats-new-link" style="display:inline-block; font-size:13px; font-weight:600; color:var(--text-muted); text-decoration:none; border:1px solid var(--border); border-radius:99px; padding:8px 18px; background:transparent;">What's new →</a>
     </div>
 
@@ -1515,7 +1524,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261014.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.001</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2034,6 +2043,8 @@
            toggles and a Start button. Monochrome SVG die, currentColor, so it
            matches the other pills rather than a colour emoji. -->
       <button class="level-pill level-pill-icon" id="level-pill-random" onclick="setMatchLevel('random')" title="Random drills" aria-label="Random drills"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"></rect><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"></circle><circle cx="15.5" cy="15.5" r="1.5" fill="currentColor" stroke="none"></circle></svg></button>
+      <!-- Grammar (2026-10-15): every grammar note on one page - see renderGrammarPage(). -->
+      <button class="level-pill" id="level-pill-grammar" onclick="setMatchLevel('grammar')">Grammar</button>
       <button class="level-pill" id="level-pill-1" onclick="setMatchLevel(1)">L1</button>
       <button class="level-pill" id="level-pill-2" onclick="setMatchLevel(2)">L2</button>
       <!-- Level 3 (2026-09-28) - the class starts tomorrow; no content yet,
@@ -2099,6 +2110,8 @@
     <!-- RANDOM PAGE (2026-10-07) - the die pill. Pick one, set the toggles,
          Start: same shape as every Group/category selection screen. Levels
          read by tag (scanVocabByTag), so tagged-forward words count. -->
+    <div id="match-grammar-view" style="display:none;"></div>
+
     <div id="match-random-view" style="display:none;">
       <div class="group-card cat-tile" data-random-key="all" onclick="selectRandomChoice('all')" style="cursor:pointer;">
         <div class="cat-tile-top cat-tile-top-stack">
@@ -2230,11 +2243,11 @@
   <div class="screen" id="screen-desk-sheets">
     <div class="ds-toolbar">
       <div class="settings-title">Desk sheets</div>
-      <div class="settings-sub">Two pages to keep in front of you in class: pick a word from each column and put the sentence together. Every word here has been taught. Shuffle for a different selection, then print or save as a PDF (A4, landscape). Phones sometimes start in portrait: switch to landscape in the print options.</div>
+      <div class="settings-sub">Two pages to keep in front of you whenever you want to make up sentences of your own: pick a word from each column and put the sentence together. Every word here has been taught. Shuffle for a different selection, then print or save as a PDF (A4, landscape). Phones sometimes start in portrait: switch to landscape in the print options.</div>
       <div class="ds-buttons">
         <button type="button" class="ds-btn" onclick="buildDeskSheets()">Shuffle words</button>
         <button type="button" class="ds-btn ds-btn-main" onclick="window.print()">Print / save PDF</button>
-        <button type="button" class="ds-btn" onclick="showSettingsScreen(); showScreen('settings');">← Back</button>
+        <button type="button" class="ds-btn" onclick="showGrammarPage()">← Back</button>
       </div>
     </div>
     <div class="ds-scroll"><div id="desk-sheets"></div></div>
@@ -6608,7 +6621,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-13a';
+const LATEST_CHANGELOG_ENTRY = '2026-10-15a';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -9334,6 +9347,8 @@ function setMatchLevel(level) {
   document.getElementById('level-pill-theme').classList.toggle('active', level === 'theme');
   const randomPill = document.getElementById('level-pill-random');
   if (randomPill) randomPill.classList.toggle('active', level === 'random');
+  const grammarPill = document.getElementById('level-pill-grammar');
+  if (grammarPill) grammarPill.classList.toggle('active', level === 'grammar');
   const andrewPill = document.getElementById('level-pill-andrew');
   if (andrewPill) andrewPill.classList.toggle('active', level === 'andrew');
   const untaughtPill = document.getElementById('level-pill-untaught');
@@ -9348,6 +9363,8 @@ function setMatchLevel(level) {
   document.getElementById('match-vocab-view').style.display = (level === 1 || level === 2 || level === 3 || level === 'andrew' || level === 'untaught') ? 'flex' : 'none';
   document.getElementById('match-theme-view').style.display = level === 'theme' ? 'flex' : 'none';
   document.getElementById('match-random-view').style.display = level === 'random' ? 'flex' : 'none';
+  document.getElementById('match-grammar-view').style.display = level === 'grammar' ? 'flex' : 'none';
+  if (level === 'grammar') { renderGrammarPage(); return; }
   if (level === 'theme') refreshThemeCategorySwatches();
   if (level === 'theme') return;
   if (level === 'random') { refreshRandomView(); return; }
@@ -9432,15 +9449,7 @@ function buildMatchCategoryList() {
   // keeps the count from creeping up category-list clutter as more weeks
   // add grammar points.
   // Level 3 (2026-09-29) gets its own hub too - showGrammarNotesHubL3.
-  if (currentMatchLevel === 2 || currentMatchLevel === 3) {
-    const hubLevel = currentMatchLevel;
-    const grammarHubCard = document.createElement('div');
-    grammarHubCard.className = 'vocab-ref-card';
-    grammarHubCard.innerHTML = `<span>Grammar notes</span><span class="vocab-ref-arrow">→</span>`;
-    grammarHubCard.onclick = () => (hubLevel === 3 ? showGrammarNotesHubL3() : showGrammarNotesHub());
-    container.appendChild(grammarHubCard);
-    container.appendChild(document.createElement('div')).className = 'section-divider';
-  }
+  // Grammar notes moved to their own Grammar pill (2026-10-15) - see renderGrammarPage().
   // PROMOTED FROM TEST (2026-08-31) - the tag-driven combined categories,
   // now the standard way Andrew mode's Materials/Trip content is drilled
   // (see the FUTURE DIRECTION entry dated 2026-08-31 for the full
@@ -9558,12 +9567,9 @@ function closeVocabReference() {
   // Grammar notes list", which is itself just another render into
   // #screen-vocab-reference (see showGrammarNotesHub()), not a distinct
   // screen to show() into.
-  if (vocabRefBackTarget === 'grammar-notes-hub') {
-    showGrammarNotesHub();
-    return;
-  }
-  if (vocabRefBackTarget === 'grammar-notes-hub-l3') {
-    showGrammarNotesHubL3();
+  // Both old hub targets now mean "back to the Grammar page" (2026-10-15).
+  if (vocabRefBackTarget === 'grammar-notes-hub' || vocabRefBackTarget === 'grammar-notes-hub-l3') {
+    showGrammarPage();
     return;
   }
   showScreen(vocabRefBackTarget);
@@ -11727,6 +11733,46 @@ function renderGrammarHub(level) {
     list.appendChild(card);
   });
   return list;
+}
+// GRAMMAR PAGE (2026-10-15, Andrew): the Grammar pill on the Vocab screen.
+// Sentence-building cards first ("top" entries, Level 3 then Level 2, plus
+// Desk sheets), then every other note newest first by its "added" date, so
+// the latest grammar covered is always near the top. Each shows its level.
+function renderGrammarPage() {
+  const view = document.getElementById('match-grammar-view');
+  if (!view) return;
+  view.innerHTML = '';
+  const all = [];
+  [3, 2].forEach(lvl => ((GRAMMAR.hubs[lvl] || {}).entries || []).forEach((e, i) => all.push(Object.assign({ lvl, order: all.length }, e))));
+  const head = text => { const h = document.createElement('div'); h.className = 'grammar-page-head'; h.textContent = text; view.appendChild(h); };
+  const card = (label, lvl, onclick, sub) => {
+    const c = document.createElement('div');
+    c.className = 'vocab-ref-card grammar-page-card';
+    c.innerHTML = `<span class="gp-text"><span class="gp-label">${label}</span>${sub ? `<span class="gp-sub">${sub}</span>` : ''}</span>`
+      + `${lvl ? `<span class="gp-lvl gp-lvl-${lvl}">L${lvl}</span>` : ''}<span class="vocab-ref-arrow">→</span>`;
+    c.onclick = onclick;
+    view.appendChild(c);
+  };
+  const open = e => e.card ? () => showGrammarCard(e.card) : () => { const fn = window[e.fn]; if (typeof fn === 'function') fn(); };
+  head('Building sentences');
+  all.filter(e => e.top).forEach(e => card(e.label, e.lvl, open(e)));
+  card('Desk sheets', null, showDeskSheets, 'Printable word lists for putting sentences together yourself');
+  head('Grammar notes — newest first');
+  all.filter(e => !e.top).sort((a, b) => (b.added || '').localeCompare(a.added || '') || a.order - b.order)
+    .forEach(e => card(e.label, e.lvl, open(e)));
+  // The two standalone notes pages, as before only with Untaught switched on.
+  if (appSettings.showUntaught) {
+    [['./sentence-structure-notes.html', 'Notes: Japanese sentence structure'], ['./japanese-vs-english-notes.html', 'Notes: Japanese vs English structure']].forEach(([href, label]) => {
+      const a = document.createElement('a');
+      a.className = 'vocab-ref-card'; a.href = href; a.target = '_blank'; a.rel = 'noopener';
+      a.innerHTML = `<span>${label}</span><span class="vocab-ref-arrow">→</span>`;
+      view.appendChild(a);
+    });
+  }
+}
+function showGrammarPage() {
+  showScreen('match-settings');
+  setMatchLevel('grammar');
 }
 function showGrammarCard(key) {
   const card = GRAMMAR.cards[key];

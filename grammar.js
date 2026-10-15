@@ -13,32 +13,35 @@
 //   ['ex', jp, romaji, english]         - one example line (english optional)
 //   ['two', leftJp, leftSub, rightJp, rightSub]        - two columns, Japanese both sides
 //   ['two-en', leftJp, leftSub, rightLine, rightLine2] - two columns, English on the right
+// Entry fields (2026-10-15): "top": true = a sentence-structure card, listed
+// first on the Grammar page; otherwise "added": the date it was taught, and
+// the Grammar page lists notes newest first, so the latest grammar is at the top.
 // A new grammar note for a lesson = a new card here + one hub entry. No code.
 window.JP_DRILL_GRAMMAR = {
   hubs: {
     2: { title: "Grammar notes", entries: [
-      {"label": "Sentence order (motion sentences)", "fn": "showSentenceStructureReference"},
-      {"label": "Sentence order (を + object)", "fn": "showObjectSentenceOrderReference"},
-      {"label": "Verb tense & affirmative/negative", "fn": "showVerbConjugationReference"},
-      {"label": "Object-taking verbs — tense & affirmative/negative", "fn": "showObjectVerbConjugationReference"},
-      {"label": "を — the object particle", "card": "object-particle"},
-      {"label": "で — two jobs (means vs. location of action)", "card": "de-two-jobs"},
-      {"label": "だれも/どこも/なにも + negative", "card": "question-negation"},
+      {"label": "Sentence order (motion sentences)", "fn": "showSentenceStructureReference", "top": true},
+      {"label": "Sentence order (を + object)", "fn": "showObjectSentenceOrderReference", "top": true},
+      {"label": "Verb tense & affirmative/negative", "fn": "showVerbConjugationReference", "added": "2026-08-01"},
+      {"label": "Object-taking verbs — tense & affirmative/negative", "fn": "showObjectVerbConjugationReference", "added": "2026-08-13"},
+      {"label": "を — the object particle", "card": "object-particle", "added": "2026-08-13"},
+      {"label": "で — two jobs (means vs. location of action)", "card": "de-two-jobs", "added": "2026-08-13"},
+      {"label": "だれも/どこも/なにも + negative", "card": "question-negation", "added": "2026-08-13"},
     ] },
     3: { title: "Grammar notes — Level 3", entries: [
-      {"label": "Sentence order — doing something / going somewhere", "fn": "showL3SentenceOrderReference"},
-      {"label": "How verbs conjugate — ます / ません / ました / ませんでした", "fn": "showVerbConjugationL3Reference"},
-      {"label": "Inviting — ませんか / ましょう / 〜は どうですか", "card": "inviting"},
-      {"label": "Frequency words — いつも/よく/ときどき/あまり/ぜんぜん", "card": "frequency"},
-      {"label": "を — Level 3 additions", "card": "object-particle-l3"},
-      {"label": "と vs や — \"and\" in a list", "card": "to-ya"},
-      {"label": "それから / そして — \"and then\" vs \"and also\"", "card": "sorekara"},
-      {"label": "なん vs なに — two ways to say \"what\"", "card": "nan-nani"},
-      {"label": "Noun + します", "card": "noun-shimasu"},
-      {"label": "お / ご — the polite prefix (ごしゅみ, おなまえ…)", "card": "polite-prefix"},
-      {"label": "どんな — \"what kind of…?\"", "card": "donna"},
-      {"label": "Place + で — where something happens", "card": "place-de"},
-      {"label": "My family vs someone else's (+ と \"with\")", "card": "family-l3"},
+      {"label": "Sentence order — doing something / going somewhere", "fn": "showL3SentenceOrderReference", "top": true},
+      {"label": "How verbs conjugate — ます / ません / ました / ませんでした", "fn": "showVerbConjugationL3Reference", "added": "2026-10-07"},
+      {"label": "Inviting — ませんか / ましょう / 〜は どうですか", "card": "inviting", "added": "2026-10-13"},
+      {"label": "Frequency words — いつも/よく/ときどき/あまり/ぜんぜん", "card": "frequency", "added": "2026-09-29"},
+      {"label": "を — Level 3 additions", "card": "object-particle-l3", "added": "2026-09-29"},
+      {"label": "と vs や — \"and\" in a list", "card": "to-ya", "added": "2026-09-29"},
+      {"label": "それから / そして — \"and then\" vs \"and also\"", "card": "sorekara", "added": "2026-09-29"},
+      {"label": "なん vs なに — two ways to say \"what\"", "card": "nan-nani", "added": "2026-09-29"},
+      {"label": "Noun + します", "card": "noun-shimasu", "added": "2026-09-29"},
+      {"label": "お / ご — the polite prefix (ごしゅみ, おなまえ…)", "card": "polite-prefix", "added": "2026-09-29"},
+      {"label": "どんな — \"what kind of…?\"", "card": "donna", "added": "2026-10-06"},
+      {"label": "Place + で — where something happens", "card": "place-de", "added": "2026-10-06"},
+      {"label": "My family vs someone else's (+ と \"with\")", "card": "family-l3", "added": "2026-10-06"},
     ] },
   },
   cards: {
