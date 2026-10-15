@@ -1062,6 +1062,9 @@
      everyone); the Andrew pill inside it still hides/shows via inline
      style, same as level-pill-untaught does in the row above. */
   .level-filter-row.andrew-row { margin-top: 8px; }
+  /* Second pill row (2026-10-15) - same pill style and spacing as the main row. */
+  .level-filter-row.optional-row { margin-top: 8px; gap: 6px; }
+  .level-filter-row.optional-row .level-pill { padding: 6px 14px; }
   /* Pill-shaped search field - same 99px radius/border language as
      .level-pill, but a text input + submit icon instead of a button. flex:1
      so it fills the row on its own when the Andrew pill next to it is
@@ -1127,7 +1130,10 @@
   #vocab-level-filter-row.showing-theme-colours #level-pill-2:not(.active) { color: #e88a4d; border-color: rgba(232,138,77,0.4); }
   #vocab-level-filter-row.showing-theme-colours #level-pill-3:not(.active) { color: #26a69a; border-color: rgba(38,166,154,0.4); }
   #vocab-level-filter-row.showing-theme-colours #level-pill-grammar:not(.active) { color: #b07a5e; border-color: rgba(176,122,94,0.45); }
-  #vocab-level-filter-row.showing-theme-colours #level-pill-untaught:not(.active) { color: #9b59d0; border-color: rgba(155,89,208,0.4); }
+  /* Tourist / Untaught (second row, 2026-10-15) take the colours their words'
+     card edges already use: curated (tourist) purple, encountered green. */
+  #vocab-optional-filter-row.showing-theme-colours #level-pill-tourist:not(.active) { color: #9b59d0; border-color: rgba(155,89,208,0.4); }
+  #vocab-optional-filter-row.showing-theme-colours #level-pill-untaught:not(.active) { color: #43a047; border-color: rgba(67,160,71,0.45); }
   #vocab-level-filter-row.showing-theme-colours #level-pill-random:not(.active) { color: var(--green); border-color: rgba(111,207,151,0.4); }
   .latest-range-row { justify-content: center; gap: 6px; flex-wrap: nowrap; }
   .latest-range-row .level-pill { padding-left: 12px; padding-right: 12px; white-space: nowrap; }
@@ -1467,10 +1473,18 @@
     <!-- "Work offline" toggle removed 2026-10-06 - offline is now always on
          (see syncServiceWorkerRegistration). -->
 
+    <div class="group-card" id="show-tourist-toggle-card" onclick="toggleShowTourist()" style="cursor:pointer;">
+      <div class="group-info">
+        <div class="group-name">Tourist words</div>
+        <div class="group-count">About 250 words and phrases for a trip to Japan, in sections (food, getting around, the hotel, shops, health…) — adds a Tourist pill, off by default</div>
+      </div>
+      <div class="toggle" id="show-tourist-toggle"></div>
+    </div>
+
     <div class="group-card" id="show-untaught-toggle-card" onclick="toggleShowUntaught()" style="cursor:pointer;">
       <div class="group-info">
         <div class="group-name">Untaught vocabulary</div>
-        <div class="group-count">Trip words and phrases (start with Tourist essentials), real Japanese from photos, and any private word lists — outside the taught course, off by default</div>
+        <div class="group-count">Real Japanese from photos (menus, stations, hotels, signs…) and any private word lists — outside the taught course, adds an Untaught pill, off by default</div>
       </div>
       <div class="toggle" id="show-untaught-toggle"></div>
     </div>
@@ -1520,7 +1534,7 @@
       <div class="share-divider"></div>
       <a class="share-link" href="https://andrewbrittle.github.io/ab-kcdrill/" target="_blank" rel="noopener">
         <div class="group-name">Kanji cards →</div>
-        <div class="group-count">Drill the kanji from the course, card by card</div>
+        <div class="group-count">Drill a set of the 500 most common kanji</div>
       </a>
       <div class="share-divider"></div>
       <a class="share-link" href="https://andrewbrittle.github.io/ab-kcdraw/" target="_blank" rel="noopener">
@@ -1530,7 +1544,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.003</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261015.004</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2064,11 +2078,20 @@
            Useful to anyone, not just Andrew. In line with the others
            (unlike Andrew below) since it's a real, named tier rather than a
            scratchpad - hidden via display:none until switched on. -->
-      <button class="level-pill" id="level-pill-untaught" onclick="setMatchLevel('untaught')" style="display:none;">Untaught</button>
       <!-- Genki tier retired (2026-09-28), then moved out of the app
            entirely (2026-10-02) into a private vocab pack - its categories
            lead the Untaught list only on a device where the pack is loaded
            (see PRIVATE VOCAB PACKS and buildMatchCategoryList). -->
+    </div>
+
+    <!-- Second pill row (2026-10-15): the optional tiers, each shown only when
+         its Settings toggle is on, and the whole row hidden when neither is
+         (applyOptionalPillRow). Untaught moved down here from the main row,
+         where it kept scrolling off the edge; Tourist is new - the tourist
+         words split out of Untaught so they can be switched on by themselves. -->
+    <div class="level-filter-row optional-row" id="vocab-optional-filter-row" style="display:none;">
+      <button class="level-pill" id="level-pill-tourist" onclick="setMatchLevel('tourist')" style="display:none;">Tourist</button>
+      <button class="level-pill" id="level-pill-untaught" onclick="setMatchLevel('untaught')" style="display:none;">Untaught</button>
     </div>
 
     <!-- Search + Andrew's personal staging tier, sharing one row. Search is
@@ -2197,9 +2220,16 @@
       <div class="group-card cat-tile" data-random-key="untaught" id="random-untaught-card" onclick="selectRandomChoice('untaught')" style="cursor:pointer; display:none;">
         <div class="cat-tile-top cat-tile-top-stack">
           <div class="group-name">Random – Untaught</div>
-          <div class="random-choice-desc">20 random words from Untaught vocabulary</div>
+          <div class="random-choice-desc">20 random words from Untaught vocabulary (not the tourist words)</div>
         </div>
         <div class="cat-bar" id="random-untaught-swatch"></div>
+      </div>
+      <div class="group-card cat-tile" data-random-key="tourist" id="random-tourist-card" onclick="selectRandomChoice('tourist')" style="cursor:pointer; display:none;">
+        <div class="cat-tile-top cat-tile-top-stack">
+          <div class="group-name">Random – Tourist</div>
+          <div class="random-choice-desc">20 random words from the tourist words</div>
+        </div>
+        <div class="cat-bar" id="random-tourist-swatch"></div>
       </div>
 
       <div class="group-card" id="drill-mode-toggle-card" onclick="toggleDrillByMeaning()" style="cursor:pointer;">
@@ -4046,6 +4076,14 @@ const THEMES = window.JP_DRILL_GROUPS || {};
 // don't assume it's silent just because the AND flip was.
 function tagQueryMatches(itemTags, query) {
   if (!itemTags) return false;
+  // Object form without `any` (2026-10-15): { all:[...], none:[...] } -
+  // every `all` tag and none of the `none` tags. `none` works with `any` too.
+  // Used to keep tourist words out of the Untaught pill's cards.
+  if (query && typeof query === 'object' && !Array.isArray(query) && query.none &&
+      query.none.some(tag => itemTags.includes(tag))) return false;
+  if (query && typeof query === 'object' && !Array.isArray(query) && !query.any) {
+    return (query.all || []).every(tag => itemTags.includes(tag));
+  }
   if (query && typeof query === 'object' && !Array.isArray(query) && query.any) {
     // optional `all` (2026-10-07): every one of these too - e.g. any of
     // food-type/drink AND taught, for the taught-only Food & drink Group.
@@ -5180,7 +5218,9 @@ function colourBorderStyle(en, score) {
 // Categories whose word screen offers "Show romaji instead of kana"
 // (2026-10-01) - Tourist essentials, so a classmate going to Japan with
 // little kana can use the page as a phrasebook. Grid display only.
-const ROMAJI_VIEW_CATEGORIES = ['theme-tourist-essentials'];
+// The Tourist pill's section cards (2026-10-15) offer it too.
+const ROMAJI_VIEW_CATEGORIES = ['theme-tourist-essentials', 'theme-te-phrases', 'theme-te-little', 'theme-te-food', 'theme-te-around',
+  'theme-te-hotel', 'theme-te-shops', 'theme-te-health', 'theme-te-weather'];
 function toggleTileShowRomaji() {
   appSettings.tileShowRomaji = !appSettings.tileShowRomaji;
   saveSettings();
@@ -6607,7 +6647,7 @@ const SETTINGS_KEY = 'jpDrillSettings';
 // than a fetch that can fail or behave differently offline. 215 was
 // approximately the mid-market GBP/JPY rate as of build time (July 2026);
 // it'll drift, which is exactly why it's an editable field, not a constant.
-let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty: false, workOffline: false, showAndrewMode: false, showUntaught: null, gbpJpyRate: 215, decayAffectsColours: false, lastSeenChangelog: null, tileShowRomaji: false, tileTapToSpeak: false, soundOn: true };
+let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty: false, workOffline: false, showAndrewMode: false, showUntaught: null, showTourist: null, gbpJpyRate: 215, decayAffectsColours: false, lastSeenChangelog: null, tileShowRomaji: false, tileTapToSpeak: false, soundOn: true };
 
 // WHAT'S NEW FLAG (2026-09-01) - HOW TO ADD AN ENTRY, so this stays
 // consistent across sessions and not just something Andrew has to remember
@@ -6629,7 +6669,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-15b';
+const LATEST_CHANGELOG_ENTRY = '2026-10-15c';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -6687,8 +6727,14 @@ try {
     // so the migration really is one-time (it then saves without the key).
     if (migratingGenkiToUntaught) delete savedSettings.showGenki;
 
+    // One-time (2026-10-15): tourist words split out of Untaught under their
+    // own toggle. Anyone who had Untaught on keeps seeing them - showTourist
+    // starts as a copy of showUntaught. Runs once because the key then exists.
+    const migratingTourist = !('showTourist' in savedSettings) || savedSettings.showTourist === null;
+    if (migratingTourist) savedSettings.showTourist = !!savedSettings.showUntaught;
+
     Object.assign(appSettings, savedSettings);
-    if (migratingFromCustomContent || migratingToUntaught || migratingGenkiToUntaught) saveSettings();
+    if (migratingFromCustomContent || migratingToUntaught || migratingGenkiToUntaught || migratingTourist) saveSettings();
   }
 } catch (e) {
   // localStorage unavailable or corrupt — fall back to defaults silently
@@ -6732,6 +6778,11 @@ function saveSettings() {
 // here and gets tagged the same way untaught content already is.
 function itemTierVisible(item) {
   const tags = item.tags || [];
+  // Tourist words (2026-10-15) have their own toggle, separate from the rest
+  // of Untaught, so someone can have the trip words without the photo
+  // materials. A tourist word that has been taught (no 'untaught') is
+  // always visible, like any taught word.
+  if (tags.includes('untaught') && tags.includes('tourist')) return appSettings.showTourist;
   if (tags.includes('untaught')) return appSettings.showUntaught;
   if (tags.includes('andrew')) return appSettings.showAndrewMode;
   // Genki tier (2026-09-12), folded into Untaught (2026-09-28): gated the
@@ -6923,12 +6974,34 @@ function applyShowUntaughtVisibility() {
   if (!on && currentMatchLevel === 'untaught') setMatchLevel('theme');
   const card = document.getElementById('show-untaught-toggle-card');
   if (card) card.classList.toggle('selected', on);
+  applyOptionalPillRow();
 }
 
 function toggleShowUntaught() {
   appSettings.showUntaught = !appSettings.showUntaught;
   saveSettings();
   applyShowUntaughtVisibility();
+}
+
+// Tourist words (2026-10-15) - their own toggle and pill, split from Untaught.
+function applyShowTouristVisibility() {
+  const on = !!appSettings.showTourist;
+  const pill = document.getElementById('level-pill-tourist');
+  if (pill) pill.style.display = on ? '' : 'none';
+  if (!on && currentMatchLevel === 'tourist') setMatchLevel('theme');
+  const card = document.getElementById('show-tourist-toggle-card');
+  if (card) card.classList.toggle('selected', on);
+  applyOptionalPillRow();
+}
+function toggleShowTourist() {
+  appSettings.showTourist = !appSettings.showTourist;
+  saveSettings();
+  applyShowTouristVisibility();
+}
+// The second pill row only shows when it has a pill in it.
+function applyOptionalPillRow() {
+  const row = document.getElementById('vocab-optional-filter-row');
+  if (row) row.style.display = (appSettings.showTourist || appSettings.showUntaught) ? '' : 'none';
 }
 
 // Genki vocabulary (2026-09-12) - working through the Genki textbook
@@ -6977,6 +7050,7 @@ function applyAllSettingsUI() {
   applyWorkOfflineUI();
   applyShowAndrewModeVisibility();
   applyShowUntaughtVisibility();
+  applyShowTouristVisibility();
   applySettingsButtonUpdateFlag();
 }
 
@@ -7804,6 +7878,8 @@ function orderThemeCards() {
 // The three "everything" drills and the per-level randoms all live here now,
 // so Groups and the level pages are purely things you pick words from.
 let randomChoice = null;
+// Untaught without the tourist words (they have their own pill since 2026-10-15).
+const UNTAUGHT_ONLY_QUERY = { all: ['untaught'], none: ['tourist'] };
 function refreshRandomView() {
   setupCatBar(document.getElementById('theme-all-vocab-swatch'), getCategoryBandCounts(getCoreVocabPool()));
   setupCatBar(document.getElementById('theme-weakest-vocab-swatch'), getCategoryBandCounts(getWeakestVocabItems(20)));
@@ -7815,9 +7891,14 @@ function refreshRandomView() {
     const all = uniq(getAllVocabPool()), un = uniq(getUntestedVocabItems());
     const fmt = n => n.toLocaleString('en-GB');
     let txt = ` (${fmt(un.length)} of ${fmt(all.length)}`;
-    if (appSettings.showUntaught) {
-      const t = un.filter(i => (i.tags || []).includes('taught')).length;
-      txt += ` · ${fmt(t)} taught, ${fmt(un.length - t)} untaught`;
+    if (appSettings.showUntaught || appSettings.showTourist) {
+      const has = (i, tag) => (i.tags || []).includes(tag);
+      const t = un.filter(i => has(i, 'taught')).length;
+      const tour = un.filter(i => has(i, 'untaught') && has(i, 'tourist')).length;
+      const parts = [`${fmt(t)} taught`];
+      if (appSettings.showTourist) parts.push(`${fmt(tour)} tourist`);
+      if (appSettings.showUntaught) parts.push(`${fmt(un.length - t - tour)} untaught`);
+      txt += ' · ' + parts.join(', ');
     }
     untestedEl.textContent = txt + ')';
   }
@@ -7828,9 +7909,15 @@ function refreshRandomView() {
   const untaughtCard = document.getElementById('random-untaught-card');
   if (untaughtCard) {
     untaughtCard.style.display = appSettings.showUntaught ? '' : 'none';
-    if (appSettings.showUntaught) setupCatBar(document.getElementById('random-untaught-swatch'), getCategoryBandCounts(scanVocabByTag('untaught')));
+    if (appSettings.showUntaught) setupCatBar(document.getElementById('random-untaught-swatch'), getCategoryBandCounts(scanVocabByTag(UNTAUGHT_ONLY_QUERY)));
   }
   if (randomChoice === 'untaught' && !appSettings.showUntaught) randomChoice = null;
+  const touristCard = document.getElementById('random-tourist-card');
+  if (touristCard) {
+    touristCard.style.display = appSettings.showTourist ? '' : 'none';
+    if (appSettings.showTourist) setupCatBar(document.getElementById('random-tourist-swatch'), getCategoryBandCounts(scanVocabByTag('tourist')));
+  }
+  if (randomChoice === 'tourist' && !appSettings.showTourist) randomChoice = null;
   // Weakest needs something already tested, Untested needs something not yet
   // tested - dim whichever has nothing in it rather than a Start that does nothing.
   const empty = { weakest: !getWeakestVocabItems(1).length, untested: !getUntestedVocabItems().length };
@@ -7872,6 +7959,7 @@ function startSelectedRandom() {
   else if (randomChoice === 'weakest') startWeakestVocab();
   else if (randomChoice === 'untested') startUntestedVocab();
   else if (randomChoice === 'untaught') startRandomForLevel('untaught');
+  else if (randomChoice === 'tourist') startRandomForLevel('tourist');
   else if (randomChoice === 'verbforms') startVerbFormDrill();
   else if (randomChoice === 'particles') startParticleDrill();
   else if (randomChoice === 'sokuon') startSokuonDrill();
@@ -9367,6 +9455,7 @@ function updateNumberTimeSwatches() {
 function setMatchLevel(level) {
   if (level === 'andrew' && !appSettings.showAndrewMode) return; // backstop - pill is also hidden via CSS
   if (level === 'untaught' && !appSettings.showUntaught) return; // backstop - pill is also hidden via CSS
+  if (level === 'tourist' && !appSettings.showTourist) return;
   currentMatchLevel = level;
   document.getElementById('level-pill-1').classList.toggle('active', level === 1);
   document.getElementById('level-pill-2').classList.toggle('active', level === 2);
@@ -9380,14 +9469,18 @@ function setMatchLevel(level) {
   if (andrewPill) andrewPill.classList.toggle('active', level === 'andrew');
   const untaughtPill = document.getElementById('level-pill-untaught');
   if (untaughtPill) untaughtPill.classList.toggle('active', level === 'untaught');
+  const touristPill = document.getElementById('level-pill-tourist');
+  if (touristPill) touristPill.classList.toggle('active', level === 'tourist');
   document.getElementById('vocab-level-filter-row').classList.toggle('showing-theme-colours', level === 'theme');
+  const optRow = document.getElementById('vocab-optional-filter-row');
+  if (optRow) optRow.classList.toggle('showing-theme-colours', level === 'theme');
   // Andrew mode and Untaught vocabulary both deliberately reuse the same
   // generic Level 1/2 list view (match-vocab-view + buildMatchCategoryList)
   // rather than getting their own dedicated view like Collections has - so
   // a new category just needs level:'andrew' or level:'untaught' in VOCAB
   // and shows up automatically, no hand-built card needed. Genki (2026-09-12)
   // joins the same list for the same reason.
-  document.getElementById('match-vocab-view').style.display = (level === 1 || level === 2 || level === 3 || level === 'andrew' || level === 'untaught') ? 'flex' : 'none';
+  document.getElementById('match-vocab-view').style.display = (level === 1 || level === 2 || level === 3 || level === 'andrew' || level === 'untaught' || level === 'tourist') ? 'flex' : 'none';
   document.getElementById('match-theme-view').style.display = level === 'theme' ? 'flex' : 'none';
   document.getElementById('match-random-view').style.display = level === 'random' ? 'flex' : 'none';
   document.getElementById('match-grammar-view').style.display = level === 'grammar' ? 'flex' : 'none';
@@ -9520,8 +9613,7 @@ function buildMatchCategoryList() {
     // TOURIST ESSENTIALS FIRST (2026-10-01) - ahead of Genki for anyone
     // switching Untaught on just to prepare for a trip (see
     // theme-tourist-essentials in THEMES).
-    Object.keys(THEMES).filter(key => THEMES[key].show === 'untaught-top')
-      .forEach(key => container.appendChild(buildCategoryTile(key)));
+    // (Tourist essentials moved to its own Tourist pill, 2026-10-15 - see below.)
     // Private vocab pack categories (e.g. Genki) - only present on a device
     // where the pack file has been loaded (see PRIVATE VOCAB PACKS).
     PRIVATE_VOCAB_KEYS.forEach(key => container.appendChild(buildCategoryTile(key)));
@@ -9545,11 +9637,25 @@ function buildMatchCategoryList() {
     const untaughtThemeKeys = Object.keys(THEMES).filter(key => THEMES[key].show === 'untaught');
     const untaughtVocabKeys = Object.keys(VOCAB).filter(key =>
       (VOCAB[key].level || 1) === 'untaught' && VOCAB[key].standaloneCard !== false);
+    // Cards whose words are all tourist words (Weather, Polite tourist
+    // phrases) are empty here since 2026-10-15 - those words are on the
+    // Tourist pill - so leave them out rather than show a 0-word card.
     untaughtThemeKeys.concat(untaughtVocabKeys)
+      .filter(key => resolveVocabCategory(key).items.length > 0)
       .map(key => ({ key, label: (THEMES[key] || VOCAB[key]).label }))
       .sort((a, b) => a.label.localeCompare(b.label))
       .forEach(({ key }) => container.appendChild(buildCategoryTile(key)));
     container.appendChild(document.createElement('div')).className = 'section-divider';
+  }
+  // TOURIST PILL (2026-10-15): "All tourist words" first, then one card per
+  // section in data order (theme-te-* in vocab.js, show:'tourist').
+  if (currentMatchLevel === 'tourist') {
+    Object.keys(THEMES).filter(key => THEMES[key].show === 'tourist-top')
+      .forEach(key => container.appendChild(buildCategoryTile(key)));
+    container.appendChild(document.createElement('div')).className = 'section-divider';
+    Object.keys(THEMES).filter(key => THEMES[key].show === 'tourist')
+      .forEach(key => container.appendChild(buildCategoryTile(key)));
+    return;
   }
   // Appliances reference card removed from here (2026-08-31) - folded into
   // Hotel: Appliances & machines' own tile-selection screen instead, along
@@ -12682,7 +12788,9 @@ function startRandomForLevel(level) {
   if (level === 1 || level === 2 || level === 3) {
     allItems = scanVocabByTag('L' + level);
   } else if (level === 'untaught') {
-    allItems = scanVocabByTag('untaught');
+    allItems = scanVocabByTag(UNTAUGHT_ONLY_QUERY);
+  } else if (level === 'tourist') {
+    allItems = scanVocabByTag('tourist');
   } else {
     // Level 3 moved to the tag scan above (2026-09-29) once it had content -
     // most L3 words are tagged forward from other categories, so walking
