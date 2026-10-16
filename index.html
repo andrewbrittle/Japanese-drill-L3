@@ -716,6 +716,9 @@
   #match-grammar-view { flex-direction: column; gap: 0.5rem; }
   .grammar-page-head { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-top: 0.9rem; }
   .grammar-page-head:first-child { margin-top: 0.2rem; }
+  /* Back (2026-10-16): top-left of every inner page, naming where it goes. */
+  .nav-back { align-self: flex-start; background: none; border: none; padding: 2px 0; margin: 0 0 -0.4rem; font: inherit; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer; text-align: left; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nav-back:active { opacity: 0.6; }
   /* "You can turn this page off in Settings" line (2026-10-15) - top of the
      Tourist / Untaught lists and the Kanji page. */
   .tier-off-note { font-size: 12px; color: var(--text-muted); text-align: center; line-height: 1.4; margin: 0 0.5rem; }
@@ -1418,7 +1421,7 @@
 <header>
   <div class="app-heading"><span class="app-heading-tap" onclick="triggerSpontaneousProverbs()">日本語</span> <span>drill</span></div>
   <div class="nav-row">
-    <button class="settings-btn" id="settings-btn" onclick="showSettingsScreen()" title="Settings" aria-label="Settings">⚙</button>
+    <button class="settings-btn" id="settings-btn" onclick="toggleSettings()" title="Settings" aria-label="Settings">⚙</button>
     <!-- Global sound switch (2026-10-02) - off = the app makes no sound at
          all (see soundAllowed), so it never cuts into music. -->
     <button class="settings-btn" id="sound-btn" onclick="toggleSoundOn()" title="Sound on" aria-label="Sound on"></button>
@@ -1560,7 +1563,7 @@
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261016.001</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261016.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -1625,7 +1628,6 @@
       <div class="toggle"></div>
     </div>
     <button class="start-btn" id="hira-selection-drill-btn" onclick="drillHiraganaSelection()" disabled style="margin-top:0.5rem;">Drill with this selection</button>
-    <button class="btn-secondary" onclick="showKanaSelection()">← Back</button>
   </div>
 
   <!-- Katakana reference screen -->
@@ -1659,7 +1661,6 @@
       <div class="toggle"></div>
     </div>
     <button class="start-btn" id="kata-selection-drill-btn" onclick="drillKatakanaSelection()" disabled style="margin-top:0.5rem;">Drill with this selection</button>
-    <button class="btn-secondary" onclick="showKanaSelection()">← Back</button>
   </div>
 
   <!-- Kanji settings screen -->
@@ -1743,7 +1744,6 @@
     </div>
 
     <button class="start-btn" id="kanji-selection-drill-btn" onclick="drillKanjiSelection()" disabled style="margin-top:0.5rem;">Drill with this selection</button>
-    <button class="btn-secondary" onclick="showKanjiIndex()">← Back</button>
   </div>
 
   <!-- Vocab tile-selection reference screen (flat categories: colours, trip-prep) -->
@@ -1840,7 +1840,7 @@
     </div>
 
     <button class="start-btn" id="vocab-tile-drill-btn" onclick="drillVocabTileSelection()" disabled style="margin-top:0.5rem;">Drill with this selection</button>
-    <button class="btn-secondary" onclick="showMatchSettings()">← Back</button>
+    <button class="btn-secondary" onclick="navBack()">← Back</button>
   </div>
 
   <!-- Drill screen -->
@@ -2063,7 +2063,6 @@
     <div id="counter-quiz-selection-list"></div>
     <div class="number-tool-hint" id="counter-quiz-selection-count">0 of 4 selected</div>
     <button class="start-btn" id="counter-quiz-start-btn" onclick="startCounterQuizFromSelection()" disabled>Start</button>
-    <button class="btn-secondary" onclick="showNumbersScreen()">← Back</button>
   </div>
 
   <!-- Match settings screen -->
@@ -2287,7 +2286,7 @@
     <div class="settings-title" id="vocab-ref-title">Reference</div>
     <div class="settings-sub">A quick look — tap Back when you're done.</div>
     <div id="vocab-ref-list"></div>
-    <button class="btn-secondary" onclick="closeVocabReference()">← Back</button>
+    <button class="btn-secondary" onclick="navBack()">← Back</button>
   </div>
 
   <!-- DESK SHEETS (2026-10-13): two printable A4 landscape pages - the
@@ -2300,7 +2299,6 @@
       <div class="ds-buttons">
         <button type="button" class="ds-btn" onclick="buildDeskSheets()">Shuffle words</button>
         <button type="button" class="ds-btn ds-btn-main" onclick="window.print()">Print / save PDF</button>
-        <button type="button" class="ds-btn" onclick="showGrammarPage()">← Back</button>
       </div>
     </div>
     <div class="ds-scroll"><div id="desk-sheets"></div></div>
@@ -5723,10 +5721,89 @@ function startRandomKanji() {
   startDrill(buildRandomKanjiPool(), buildRandomKanjiPool);
 }
 
+// NAVIGATION HISTORY (2026-10-16, Andrew: "make it feel like a proper app").
+// Every screen change is recorded here, so Back - the "← Page" button at the
+// top-left of inner pages, the phone's own back gesture, and the settings cog
+// tapped a second time - always goes exactly one step up. Rules:
+//  - The four tab pages (かな / 漢字 / Numbers / Vocab) are roots: arriving at
+//    one starts history afresh, and Back there does nothing (so you can't
+//    leave the app by accident). Switching Vocab pills doesn't add history.
+//  - The drill and results screens are never stepped back INTO: Back from
+//    either goes to wherever the drill was started. (Settings opened mid-drill
+//    is the exception - Back returns to the drill.)
+//  - Going to the screen that's already one step back counts as going back
+//    (results -> "Change words" -> the word list), so history never doubles up.
+// Going back calls each screen's own show function (NAV_RESTORE) so its lists
+// and score colours are redrawn up to date.
+var navStack = [], navCurrent = null, navGoingBack = false; // var: showScreen runs at start-up
+const NAV_ROOTS = ['kana-selection', 'kanji-index', 'numbers', 'match-settings'];
+const NAV_TRANSIENT = ['drill', 'results'];
+function navRecord(id) {
+  const prev = navCurrent;
+  navCurrent = id;
+  if (navGoingBack || !prev || prev === id) return;
+  if (NAV_ROOTS.includes(id)) { navStack = []; return; }
+  if (navStack.length && navStack[navStack.length - 1] === id) { navStack.pop(); return; }
+  if (NAV_TRANSIENT.includes(prev) && id !== 'settings') return;
+  navStack.push(prev);
+}
+const NAV_RESTORE = {
+  'match-settings': () => { showScreen('match-settings'); setMatchLevel(currentMatchLevel); },
+  'vocab-tile-selection': () => showVocabTileSelection(vocabTileCategory),
+  'kana-selection': () => showKanaSelection(),
+  'hiragana-selection': () => showHiraganaSelection(activeHiraganaSection),
+  'katakana-selection': () => showKatakanaSelection(activeKatakanaSection),
+  'kanji-index': () => showKanjiIndex(),
+  'kanji-selection': () => showKanjiSelection(),
+  'numbers': () => showNumbersScreen(),
+  'counter-quiz-selection': () => showCounterQuizSelection(),
+  'settings': () => showSettingsScreen(),
+};
+function navBack() {
+  // A popup open? Back closes that first, like a phone app.
+  const pop = document.querySelector('.proverb-overlay.show');
+  if (pop) { if (pop.id === 'verb-forms-overlay') dismissVerbFormsPopup(); else dismissProverbOverlay(); return; }
+  if (typeof hideTilePeekBubble === 'function') hideTilePeekBubble();
+  if (!navStack.length) return;
+  const target = navStack.pop();
+  navGoingBack = true;
+  try { (NAV_RESTORE[target] || (() => showScreen(target)))(); } finally { navGoingBack = false; }
+  renderNavBack();
+}
+// The cog opens Settings, and tapped again closes it (back to where you were).
+function toggleSettings() {
+  if (navCurrent === 'settings' && navStack.length) navBack();
+  else if (navCurrent !== 'settings') showSettingsScreen();
+}
+function navLabel(id) {
+  if (id === 'match-settings') return ({ theme: 'Groups', random: 'Random', grammar: 'Grammar', 1: 'L1', 2: 'L2', 3: 'L3', tourist: 'Tourist', untaught: 'Untaught', andrew: 'Andrew' })[currentMatchLevel] || 'Vocab';
+  if (id === 'drill') return 'Drill';
+  if (id === 'results') return 'Results';
+  const t = document.querySelector('#screen-' + id + ' .settings-title');
+  return (t && t.textContent.trim()) || 'Back';
+}
+// "← Food & drink" at the top-left of every inner page, naming where Back goes.
+function renderNavBack() {
+  document.querySelectorAll('.nav-back').forEach(b => b.remove());
+  if (!navStack.length) return;
+  const scr = document.getElementById('screen-' + navCurrent);
+  if (!scr) return;
+  let label = navLabel(navStack[navStack.length - 1]);
+  if (label.length > 30) label = label.slice(0, 28).trim() + '…';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'nav-back';
+  btn.textContent = '← ' + label;
+  btn.onclick = navBack;
+  scr.insertBefore(btn, scr.firstChild);
+}
+
 function showScreen(id) {
   if (l3cPlay) l3cStopPlay(); // leaving the Sentence order card mid-step-through
+  navRecord(id);
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('visible'));
   document.getElementById('screen-' + id).classList.add('visible');
+  renderNavBack();
   document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
   const settingsBtn = document.getElementById('settings-btn');
   if (settingsBtn) settingsBtn.classList.toggle('active', id === 'settings');
@@ -5755,9 +5832,10 @@ function showScreen(id) {
     const p = document.getElementById(pillIdByOrigin[lastSettingsScreen] || 'nav-numbers');
     if (p) p.classList.add('active');
   }
+  // The Vocab and Numbers tabs used to turn into "Back" on inner pages; since
+  // 2026-10-16 Back has its own button (renderNavBack), so tabs stay tabs.
   const navMatch = document.getElementById('nav-match');
-  const inReadSubScreen = id === 'vocab-tile-selection' || id === 'vocab-reference' ||
-    (id === 'drill' && (lastSettingsScreen === 'match-settings' || lastSettingsScreen === 'vocab-tile-selection'));
+  const inReadSubScreen = false;
   if (inReadSubScreen) {
     navMatch.textContent = 'Back';
     navMatch.classList.add('sub-screen');
@@ -5795,9 +5873,9 @@ function showScreen(id) {
   const navNumbers = document.getElementById('nav-numbers');
   if (navNumbers) {
     const inNumbersDrill = id === 'drill' && isPendingDrillNumbers();
-    navNumbers.textContent = inNumbersDrill ? 'Back' : (isPendingDrillNumbers() ? 'Resume' : 'Numbers');
+    navNumbers.textContent = inNumbersDrill ? 'Numbers' : (isPendingDrillNumbers() ? 'Resume' : 'Numbers');
     navNumbers.onclick = inNumbersDrill ? showNumbersScreen : tryResumeOrNumbers;
-    navNumbers.classList.toggle('sub-screen', inNumbersDrill);
+    navNumbers.classList.remove('sub-screen');
   }
   if (id === 'kana-selection') refreshKanaSelectionSwatches();
   else if (id === 'hiragana-selection') Object.keys(HIRAGANA_SECTIONS).forEach(key => refreshKanaScoreShading('hiragana-grid-' + key));
@@ -6686,7 +6764,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-15d';
+const LATEST_CHANGELOG_ENTRY = '2026-10-16a';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -13665,9 +13743,13 @@ window.addEventListener('keydown', handleDrillKeydown);
 // straight back on this same page instead of leaving it. In-app navigation
 // (nav pills, the Back/Change groups/Quit buttons already in the app) is
 // unaffected and remains the real way to move around.
+// Since 2026-10-16 the back gesture goes one step back in the app (navBack);
+// on a tab's main page it still does nothing, so the app can't be left by
+// accident. History is kept one entry deep and re-armed after every press.
 history.pushState({ trap: true }, '');
 window.addEventListener('popstate', () => {
   history.pushState({ trap: true }, '');
+  navBack();
 });
 </script>
 </body>
