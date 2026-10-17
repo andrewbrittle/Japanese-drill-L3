@@ -1376,7 +1376,7 @@
   .tile-peek-bubble.peek-kana { display: flex; align-items: center; gap: 12px; text-align: left; }
   .tile-peek-bubble .peek-svg { width: 84px; height: 84px; flex: none; background: var(--surface2); border-radius: 8px; }
   .tile-peek-bubble .peek-kana-text .peek-romaji { margin-top: 0; }
-  .peek-stroke { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 5; }
+  .peek-stroke { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 5; vector-effect: non-scaling-stroke; }
   .peek-stroke.ghost { stroke: color-mix(in srgb, var(--text) 14%, transparent); }
   .peek-stroke.done { stroke: var(--text); }
   .kana-ref-card.tile-peeking { border-color: var(--accent); }
@@ -1581,14 +1581,14 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261017.001</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261017.002</div>
   </div>
 
   <!-- Katakana settings screen -->
   <!-- Hiragana reference screen -->
   <div class="screen" id="screen-kana-selection">
     <div class="settings-title">Kana</div>
-    <div class="settings-sub">Tap a row to drill that set.</div>
+    <div class="settings-sub">Tap a row to drill that set.<br>Inside, touch and hold any character to see its strokes.</div>
     <!-- Hiragana/Katakana merged into one index page here (2026-09-22,
          Andrew) - one nav pill instead of two, six rows instead of two
          in-screen pill-switchers. showHiraganaSelection/showKatakanaSelection
@@ -1599,7 +1599,6 @@
     <div class="group-card cat-tile" id="kana-hiragana-base-card" onclick="showHiraganaSelection('base')" style="cursor:pointer;">
       <div class="cat-tile-top"><div class="group-name">Hiragana</div></div>
       <div class="cat-bar" id="kana-hiragana-base-swatch"></div>
-      <div class="kana-hold-hint">Touch and hold a character to see its strokes</div>
     </div>
     <div class="group-card cat-tile" id="kana-hiragana-diacritics-card" onclick="showHiraganaSelection('diacritics')" style="cursor:pointer;">
       <div class="cat-tile-top"><div class="group-name">Hiragana — Dakuten / handakuten</div></div>
@@ -1613,7 +1612,6 @@
     <div class="group-card cat-tile" id="kana-katakana-base-card" onclick="showKatakanaSelection('base')" style="cursor:pointer;">
       <div class="cat-tile-top"><div class="group-name">Katakana</div></div>
       <div class="cat-bar" id="kana-katakana-base-swatch"></div>
-      <div class="kana-hold-hint">Touch and hold a character to see its strokes</div>
     </div>
     <div class="group-card cat-tile" id="kana-katakana-diacritics-card" onclick="showKatakanaSelection('diacritics')" style="cursor:pointer;">
       <div class="cat-tile-top"><div class="group-name">Katakana — Dakuten / handakuten</div></div>
@@ -5346,11 +5344,14 @@ function showTilePeekBubble(tile, item) {
   // go to open every form (showVerbFormsPopup). The arrow is filled in once
   // the bubble's side is known, since it isn't always above the card.
   const verbHint = isVerbItem(item) ? '<div class="peek-hint"><span class="peek-arrow">↑</span> slide here for all forms</div>' : '';
-  if (item.strokes) {
+  if (item.glyphs) {
     // Kana (2026-10-16, from the Kanji Strokes app): the character drawn
-    // stroke by stroke, with its romaji and stroke count.
+    // stroke by stroke, with its romaji and stroke count. Contracted kana
+    // (きゃ, 2026-10-17) are two characters drawn side by side.
+    const total = item.glyphs.reduce((t, g) => t + g.length, 0);
+    const lay = peekGlyphLayout(item.chars || [], item.glyphs.length);
     b.classList.add('peek-kana');
-    b.innerHTML = `<svg class="peek-svg" viewBox="0 0 109 109" aria-hidden="true"></svg><div class="peek-kana-text"><div class="peek-romaji">${item.romaji}</div><div class="peek-en">${item.strokes.length} stroke${item.strokes.length === 1 ? '' : 's'}</div></div>`;
+    b.innerHTML = `<svg class="peek-svg" viewBox="0 0 ${lay.width} 109" style="width:${Math.round(84 * lay.width / 109)}px" aria-hidden="true"></svg><div class="peek-kana-text"><div class="peek-romaji">${item.romaji}</div><div class="peek-en">${total} stroke${total === 1 ? '' : 's'}</div></div>`;
   } else {
   b.innerHTML = `<div class="peek-jp">${markSmallKana(item.jp)}</div><div class="peek-romaji">${item.romaji}</div><div class="peek-en">${item.en}</div>${verbHint}`;
   }
@@ -5381,21 +5382,44 @@ function showTilePeekBubble(tile, item) {
     const dx = (left + bw / 2) - (r.left + r.width / 2), dy = (top + bh / 2) - (r.top + r.height / 2);
     arrow.textContent = Math.abs(dy) >= Math.abs(dx) ? (dy < 0 ? '↑' : '↓') : (dx < 0 ? '←' : '→');
   }
-  if (item.strokes) playPeekStrokes(b.querySelector('.peek-svg'), item.strokes);
+  if (item.glyphs) playPeekStrokes(b.querySelector('.peek-svg'), item.glyphs, peekGlyphLayout(item.chars || [], item.glyphs.length));
   return b;
 }
 // Stroke order, drawn one stroke after another (from the Kanji Strokes app):
 // every stroke faint first, then each drawn in turn and held.
 let peekStrokeToken = 0;
 const PEEK_REDUCED_MOTION = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-async function playPeekStrokes(svg, strokes) {
+// Where each character sits when several are drawn in a row. KanjiVG draws
+// small kana (ゃ, っ…) at about 80% size in the middle of the box; printed
+// ones are smaller and sit low, close to the character before - so after
+// another character they're scaled to 75% from the bottom-left and moved in.
+const PEEK_SMALL_KANA = 'ぁぃぅぇぉゃゅょっゎァィゥェォャュョッヮ';
+function peekGlyphLayout(chars, n) {
+  const pos = []; let x = 0;
+  for (let i = 0; i < n; i++) {
+    const small = i > 0 && PEEK_SMALL_KANA.includes(chars[i] || '');
+    if (small) x -= 22;
+    pos.push({ x, small });
+    x += small ? 87 : 109;
+  }
+  return { pos, width: x };
+}
+// glyphs = one list of stroke paths per character, drawn left to right.
+async function playPeekStrokes(svg, glyphs, lay) {
   const token = ++peekStrokeToken;
   const NS = 'http://www.w3.org/2000/svg';
-  const mk = (d, cls) => { const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); p.setAttribute('class', 'peek-stroke ' + cls); svg.appendChild(p); return p; };
-  strokes.forEach(d => mk(d, 'ghost'));
-  for (const d of strokes) {
+  lay = lay || peekGlyphLayout([], glyphs.length);
+  const groups = glyphs.map((g, i) => {
+    const el = document.createElementNS(NS, 'g');
+    const p = lay.pos[i];
+    el.setAttribute('transform', `translate(${p.x},0)` + (p.small ? ' translate(14,100) scale(0.75) translate(-14,-100)' : ''));
+    svg.appendChild(el); return el;
+  });
+  const mk = (d, cls, gi) => { const p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); p.setAttribute('class', 'peek-stroke ' + cls); groups[gi].appendChild(p); return p; };
+  glyphs.forEach((g, gi) => g.forEach(d => mk(d, 'ghost', gi)));
+  for (const [gi, g] of glyphs.entries()) for (const d of g) {
     if (token !== peekStrokeToken) return;
-    const p = mk(d, 'done');
+    const p = mk(d, 'done', gi);
     if (PEEK_REDUCED_MOTION) continue;
     const L = p.getTotalLength(), ms = Math.round(120 + L * 3.5);
     p.style.strokeDasharray = L + ' ' + L; p.style.strokeDashoffset = L;
@@ -9332,7 +9356,7 @@ let activeHiraganaSection = 'base';
 // Base kana have stroke order on hold (2026-10-16); the line under the title says so.
 function kanaSelectionSub(id, section) {
   const el = document.getElementById(id);
-  if (el) el.textContent = 'Tap a row to select it for drilling.' + (section === 'base' ? ' Touch and hold a character to see its strokes.' : '');
+  if (el) el.textContent = 'Tap a row to select it for drilling. Touch and hold a character to see its strokes.';
 }
 function showHiraganaSelection(sectionKey) {
   activeHiraganaSection = sectionKey || 'base';
@@ -9377,9 +9401,12 @@ function buildKanaSectionGrid(containerId, section) {
         card.dataset.scoreKey = char;
         const scoreClass = kanaScoreClass(char);
         if (scoreClass) card.classList.add(scoreClass);
-        // Hold to see the stroke order (base hiragana / katakana only, 2026-10-16).
-        const strokes = (window.JP_DRILL_KANA_STROKES || {})[char];
-        if (strokes) attachTilePeek(card, { jp: char, romaji: rom, en: '', strokes });
+        // Hold to see the stroke order (base kana 2026-10-16; dakuten,
+        // handakuten and contracted 2026-10-17). Every character in the cell
+        // needs stroke data, else no bubble.
+        const S = window.JP_DRILL_KANA_STROKES || {};
+        const glyphs = [...char].map(c => S[c]);
+        if (glyphs.every(Boolean)) attachTilePeek(card, { jp: char, romaji: rom, en: '', glyphs, chars: [...char] });
       }
       rowEl.appendChild(card);
     });
