@@ -1376,9 +1376,13 @@
   .tile-peek-bubble.peek-kana { display: flex; align-items: center; gap: 12px; text-align: left; }
   .tile-peek-bubble .peek-svg { width: 84px; height: 84px; flex: none; background: var(--surface2); border-radius: 8px; }
   .tile-peek-bubble .peek-kana-text .peek-romaji { margin-top: 0; }
-  .peek-stroke { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 5; vector-effect: non-scaling-stroke; }
+  .peek-stroke { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 4; vector-effect: non-scaling-stroke; } /* screen px */
   .peek-stroke.ghost { stroke: color-mix(in srgb, var(--text) 14%, transparent); }
   .peek-stroke.done { stroke: var(--text); }
+  /* Word strip (2026-10-17): shaded panel, gold ink - not another copy of the word. */
+  .tile-peek-bubble .peek-word-svg { display: block; margin: 8px auto 0; padding: 5px 7px; box-sizing: content-box; background: var(--surface2); border-radius: 8px; overflow: visible; }
+  .peek-stroke.word { stroke: var(--accent); stroke-width: 2.4; } /* screen px (non-scaling) */
+  .peek-word-static { font-family: 'BIZ UDPGothic', sans-serif; font-size: 88px; fill: var(--text-dim); }
   .kana-ref-card.tile-peeking { border-color: var(--accent); }
   .kana-hold-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
   .tile-peek-bubble .peek-hint { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-top: 6px; border-top: 1px solid var(--border); padding-top: 5px; }
@@ -1581,7 +1585,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261017.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261017.003</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -5354,6 +5358,8 @@ function showTilePeekBubble(tile, item) {
     b.innerHTML = `<svg class="peek-svg" viewBox="0 0 ${lay.width} 109" style="width:${Math.round(84 * lay.width / 109)}px" aria-hidden="true"></svg><div class="peek-kana-text"><div class="peek-romaji">${item.romaji}</div><div class="peek-en">${total} stroke${total === 1 ? '' : 's'}</div></div>`;
   } else {
   b.innerHTML = `<div class="peek-jp">${markSmallKana(item.jp)}</div><div class="peek-romaji">${item.romaji}</div><div class="peek-en">${item.en}</div>${verbHint}`;
+  var wordStrip = peekWordStrip(item);
+  if (wordStrip) b.insertBefore(wordStrip.svg, b.querySelector('.peek-hint'));
   }
   document.body.appendChild(b);
   const r = tile.getBoundingClientRect();
@@ -5383,6 +5389,7 @@ function showTilePeekBubble(tile, item) {
     arrow.textContent = Math.abs(dy) >= Math.abs(dx) ? (dy < 0 ? '↑' : '↓') : (dx < 0 ? '←' : '→');
   }
   if (item.glyphs) playPeekStrokes(b.querySelector('.peek-svg'), item.glyphs, peekGlyphLayout(item.chars || [], item.glyphs.length));
+  else if (wordStrip) playPeekWord(wordStrip);
   return b;
 }
 // Stroke order, drawn one stroke after another (from the Kanji Strokes app):
@@ -5403,6 +5410,83 @@ function peekGlyphLayout(chars, n) {
     x += small ? 87 : 109;
   }
   return { pos, width: x };
+}
+// WORD STROKES (2026-10-17, stage 2): holding a course or tourist word
+// writes it out underneath, on its own shaded strip in gold so it doesn't
+// read as a second copy of the word above. Kana are drawn stroke by stroke,
+// quickly; anything without stroke data (a kanji like 北, 〜, …, digits)
+// just appears, in grey, when the writing reaches it. Not for the untaught
+// authentic materials (Andrew). Long phrases wrap, breaking at a space
+// where there is one.
+const PEEK_WORD_UNIT = 28;             // px per character
+const PEEK_WORD_ROW_UNITS = 109 * 9;   // up to 9 characters a line
+function peekWordStrip(item) {
+  const tags = item.tags || [];
+  if (!(tags.includes('taught') || tags.includes('tourist'))) return null;
+  const S = window.JP_DRILL_KANA_STROKES || {};
+  const chars = [...(item.jp || '')];
+  if (!chars.some(c => S[c])) return null;
+  // Lay out: each character gets an x/row; small kana tuck in after a character.
+  const cells = []; const rows = [[]];
+  let x = 0, row = 0, lastSpace = -1, prevChar = false;
+  chars.forEach(c => {
+    if (c === ' ' || c === '\u3000') { if (x > 0) { x += 45; lastSpace = cells.length; } prevChar = false; return; }
+    const small = prevChar && PEEK_SMALL_KANA.includes(c);
+    const narrow = '、。…・'.includes(c);
+    const latin = /[0-9A-Za-z]/.test(c);   // digits and letters (100円, DIY) are half width
+    if (small) x -= 22;
+    const adv = small ? 87 : latin ? 62 : narrow ? 70 : 109;
+    if (x + adv > PEEK_WORD_ROW_UNITS && x > 0) {
+      // wrap: move everything after the last space (if on this row) down a line
+      const from = lastSpace > -1 && cells[lastSpace] && cells[lastSpace].row === row ? lastSpace : cells.length;
+      row++; let nx = 0;
+      for (let i = from; i < cells.length; i++) { cells[i].row = row; cells[i].x = nx + (cells[i].small ? -22 : 0); nx = cells[i].x + cells[i].adv; }
+      x = nx; lastSpace = -1;
+      if (small) x -= 22;
+    }
+    cells.push({ c, x, row, small, adv, strokes: S[c] || null });
+    x += adv; prevChar = true;
+  });
+  const rowCount = Math.max(...cells.map(cl => cl.row)) + 1;
+  const width = Math.max(...cells.map(cl => cl.x + cl.adv));
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'peek-word-svg');
+  svg.setAttribute('viewBox', `0 0 ${width} ${109 * rowCount}`);
+  svg.setAttribute('aria-hidden', 'true');
+  svg.style.width = Math.round(PEEK_WORD_UNIT * width / 109) + 'px';
+  svg.style.height = Math.round(PEEK_WORD_UNIT * rowCount) + 'px';
+  return { svg, cells };
+}
+async function playPeekWord(strip) {
+  const token = ++peekStrokeToken;
+  const NS = 'http://www.w3.org/2000/svg';
+  for (const cl of strip.cells) {
+    if (token !== peekStrokeToken) return;
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('transform', `translate(${cl.x},${109 * cl.row})` + (cl.small ? ' translate(14,100) scale(0.75) translate(-14,-100)' : ''));
+    strip.svg.appendChild(g);
+    if (!cl.strokes) {
+      const t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', String(cl.adv / 2)); t.setAttribute('y', '88'); t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('class', 'peek-word-static'); t.textContent = cl.c;
+      g.appendChild(t);
+      if (!PEEK_REDUCED_MOTION) await new Promise(r => setTimeout(r, 120));
+      continue;
+    }
+    for (const d of cl.strokes) {
+      if (token !== peekStrokeToken) return;
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', d); p.setAttribute('class', 'peek-stroke word');
+      g.appendChild(p);
+      if (PEEK_REDUCED_MOTION) continue;
+      const L = p.getTotalLength(), ms = Math.round(60 + L * 1.5);
+      p.style.strokeDasharray = L + ' ' + L; p.style.strokeDashoffset = L;
+      p.getBoundingClientRect();
+      p.style.transition = 'stroke-dashoffset ' + ms + 'ms ease-in-out'; p.style.strokeDashoffset = 0;
+      await new Promise(r => setTimeout(r, ms + 20));
+    }
+  }
 }
 // glyphs = one list of stroke paths per character, drawn left to right.
 async function playPeekStrokes(svg, glyphs, lay) {
