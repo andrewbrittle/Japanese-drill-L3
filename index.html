@@ -185,11 +185,10 @@
   /* The "日本語" in the app's own logo/wordmark was missing this too - same
      audit that turned up the pill bug. */
   .app-heading { font-size: 19px; font-weight: 700; letter-spacing: 0.02em; color: var(--text); font-family: 'BIZ UDPGothic', -apple-system, sans-serif; }
-  .app-heading span { color: var(--accent); }
-  /* Cancels the rule above for this one span specifically - see the
-     easter-egg comment above triggerSpontaneousProverbs() further down for
-     why it's deliberately not gold/hinted at all. */
-  .app-heading .app-heading-tap { color: var(--text); cursor: pointer; }
+  /* Name colours match the kanji apps (2026-10-18): the Japanese part gold,
+     the English part plain - 日本語 drill like 漢字 cards / 漢字 strokes. */
+  .app-heading span { color: var(--text); }
+  .app-heading .app-heading-tap { color: var(--accent); cursor: pointer; }
 
   .nav-row { display: flex; align-items: center; justify-content: flex-end; gap: 8px; } /* tabs right-aligned under the ⚙ / sound buttons (2026-10-16) */
   .app-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -1460,7 +1459,7 @@
   <!-- Settings screen -->
   <div class="screen" id="screen-settings">
     <div class="settings-title">Settings</div>
-    <div class="settings-sub">All data and settings are stored on this device and never go anywhere else.</div>
+    <div class="settings-sub">Everything is stored on this device only.</div>
 
     <div style="text-align:center; margin-top:0.9rem; margin-bottom:0.4rem; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
       <a href="./instructions.html" target="_blank" style="display:inline-block; font-size:13px; font-weight:600; color:var(--text-muted); text-decoration:none; border:1px solid var(--border); border-radius:99px; padding:8px 18px;">How this app works →</a>
@@ -1579,13 +1578,13 @@
       <div class="share-divider"></div>
       <a class="share-link" href="https://andrewbrittle.github.io/ab-kcdraw/" target="_blank" rel="noopener">
         <div class="group-name">Kanji strokes →</div>
-        <div class="group-count">Practise writing hiragana and katakana stroke by stroke, with kanji there for later</div>
+        <div class="group-count">Practise writing hiragana, katakana and kanji stroke by stroke</div>
       </a>
     </div>
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261017.003</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261018.001</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -6944,7 +6943,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-17a';
+const LATEST_CHANGELOG_ENTRY = '2026-10-18a';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
