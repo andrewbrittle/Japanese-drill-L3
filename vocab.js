@@ -659,7 +659,7 @@ window.JP_DRILL_VOCAB = {
       {jp:'きょねん', romaji:'kyonen', en:'last year', tags:['L2','time-l2','taught'], dateAdded:'2026-08-01'},
       {jp:'ことし', romaji:'kotoshi', en:'this year', tags:['L2','time-l2','taught'], dateAdded:'2026-08-01'},
       {jp:'らいねん', romaji:'rainen', en:'next year', tags:['L2','time-l2','taught'], dateAdded:'2026-08-01'},
-      {jp:'たんじょうび', romaji:'tanjoubi', en:'birthday', tags:['L2','time-l2','taught'], altForm:'誕生日', altIsStandard:true, dateAdded:'2026-08-01'},
+      {jp:'たんじょうび', romaji:'tanjoubi', en:'birthday', tags:['L2','time-l2','taught','L3','occasions-l3','l3-4'], altForm:'誕生日', altIsStandard:true, dateAdded:'2026-08-01'},
     ],
   },
   'vocab-days-l2': {
@@ -812,6 +812,17 @@ window.JP_DRILL_VOCAB = {
       {jp:'およぎます', romaji:'oyogimasu', en:'to swim', tags:['L3','verbs-l3','taught','l3-2'], altForm:'泳ぎます', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'うんどうします', romaji:'undoushimasu', en:'to exercise', tags:['L3','verbs-l3','taught','l3-2'], altForm:'運動します', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'うたいます', romaji:'utaimasu', en:'to sing', tags:['L3','verbs-l3','taught','l3-2'], altForm:'歌います', altIsStandard:true, dateAdded:'2026-10-06'},
+      // Lesson 4 (2026-10-20): giving and receiving - three give/receive pairs, plus
+      // the getting-in-touch verbs. All take Person に (to the giver, from the receiver).
+      {jp:'あげます', romaji:'agemasu', en:'to give', tags:['L3','verbs-l3','taught','l3-4'], dateAdded:'2026-10-20'},
+      {jp:'もらいます', romaji:'moraimasu', en:'to receive', tags:['L3','verbs-l3','taught','l3-4'], altForm:'貰います', dateAdded:'2026-10-20'},
+      {jp:'かします', romaji:'kashimasu', en:'to lend', tags:['L3','verbs-l3','taught','l3-4'], altForm:'貸します', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'かります', romaji:'karimasu', en:'to borrow', tags:['L3','verbs-l3','taught','l3-4'], altForm:'借ります', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'おしえます', romaji:'oshiemasu', en:'to teach', tags:['L3','verbs-l3','taught','l3-4'], altForm:'教えます', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'ならいます', romaji:'naraimasu', en:'to learn (from someone)', tags:['L3','verbs-l3','taught','l3-4'], altForm:'習います', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'かけます', romaji:'kakemasu', en:'to make (a phone call)', tags:['L3','verbs-l3','taught','l3-4'], altForm:'掛けます', dateAdded:'2026-10-20'},
+      {jp:'おくります', romaji:'okurimasu', en:'to send', tags:['L3','verbs-l3','taught','l3-4'], altForm:'送ります', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'かえします', romaji:'kaeshimasu', en:'to give back / return (a thing)', tags:['L3','verbs-l3','taught','l3-4'], altForm:'返します', altIsStandard:true, dateAdded:'2026-10-20'},
     ],
   },
   'vocab-hobbies-l3': {
@@ -871,6 +882,7 @@ window.JP_DRILL_VOCAB = {
       {jp:'それから', romaji:'sorekara', en:'and then / after that', tags:['L3','frequency-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'そして', romaji:'soshite', en:'and / and also', tags:['L3','frequency-l3','taught','l3-1'], dateAdded:'2026-09-29'},
       {jp:'なにも', romaji:'nanimo', en:'nothing (+ negative verb)', tags:['L3','frequency-l3','taught','l3-1'], altForm:'何も', altIsStandard:true, dateAdded:'2026-09-29'},
+      {jp:'だれにも', romaji:'dare ni mo', en:'to nobody (+ negative verb)', tags:['L3','frequency-l3','taught','l3-4'], altForm:'誰にも', altIsStandard:true, dateAdded:'2026-10-20'},
       {jp:'まいあさ', romaji:'maiasa', en:'every morning', tags:['L3','frequency-l3','taught','l3-1','time-l3'], altForm:'毎朝', altIsStandard:true, dateAdded:'2026-09-29'},
       {jp:'けさ', romaji:'kesa', en:'this morning', tags:['L3','frequency-l3','taught','l3-1','time-l3'], altForm:'今朝', altIsStandard:true, dateAdded:'2026-09-29'},
       {jp:'こんばん', romaji:'konban', en:'tonight / this evening', tags:['L3','frequency-l3','taught','l3-1','time-l3','genki','genki-1-3'], altForm:'今晩', altIsStandard:true, dateAdded:'2026-09-29'},
@@ -900,7 +912,7 @@ window.JP_DRILL_VOCAB = {
       // Lesson 2 (2026-10-06):
       {jp:'ふく', romaji:'fuku', en:'clothes', tags:['L3','general-l3','taught','l3-2'], altForm:'服', altIsStandard:true, dateAdded:'2026-10-06'},
       {jp:'はな', romaji:'hana', en:'flower', tags:['L3','general-l3','taught','l3-2'], altForm:'花', altIsStandard:true, dateAdded:'2026-10-06'},
-      {jp:'ハロウィン', romaji:'harowin', en:'Halloween (Oct 31)', tags:['L3','general-l3','taught','l3-2'], dateAdded:'2026-10-06'},
+      {jp:'ハロウィン', romaji:'harowin', en:'Halloween (Oct 31)', tags:['L3','general-l3','taught','l3-2','occasions-l3'], dateAdded:'2026-10-06'},
       {jp:'ころもがえ', romaji:'koromogae', en:'seasonal change of clothes (Oct 1)', tags:['L3','general-l3','taught','l3-2'], altForm:'衣替え', altIsStandard:true, dateAdded:'2026-10-06'},
       // Lesson 3 (2026-10-13): languages - taught as "country + ご"; えいご is the
       // irregular one (not イギリスご). Both were in the private Genki pack (same
@@ -908,6 +920,18 @@ window.JP_DRILL_VOCAB = {
       {jp:'にほんご', romaji:'nihongo', en:'Japanese language', tags:['L3','general-l3','taught','l3-3','genki','genki-1-1'], altForm:'日本語', altIsStandard:true, dateAdded:'2026-10-13'},
       {jp:'えいご', romaji:'eigo', en:'English (language)', tags:['L3','general-l3','taught','l3-3','genki','genki-1-2'], altForm:'英語', altIsStandard:true, dateAdded:'2026-10-13'},
       {jp:'ぶんぼうぐ', romaji:'bunbougu', en:'stationery', tags:['L3','general-l3','taught','l3-3'], altForm:'文房具', altIsStandard:true, dateAdded:'2026-10-13'},
+      // Lesson 4 (2026-10-20): from the lend/borrow pictures, the contact verbs and the
+      // homework reading. Languages again as "country + ご".
+      {jp:'でんわ', romaji:'denwa', en:'telephone / phone call', tags:['L3','general-l3','taught','l3-4'], altForm:'電話', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'おかね', romaji:'okane', en:'money', tags:['L3','general-l3','taught','l3-4'], altForm:'お金', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'いえ', romaji:'ie', en:'house / home', tags:['L3','general-l3','taught','l3-4'], altForm:'家', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'バッテリー', romaji:'batterii', en:'battery', tags:['L3','general-l3','taught','l3-4'], dateAdded:'2026-10-20'},
+      {jp:'うた', romaji:'uta', en:'song', tags:['L3','general-l3','taught','l3-4'], altForm:'歌', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'ドイツご', romaji:'doitsugo', en:'German (language)', tags:['L3','general-l3','taught','l3-4'], altForm:'ドイツ語', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'ちゅうごくご', romaji:'chuugokugo', en:'Chinese (language)', tags:['L3','general-l3','taught','l3-4'], altForm:'中国語', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'しんちょう', romaji:'shinchou', en:'height (of a person)', tags:['L3','general-l3','taught','l3-4'], altForm:'身長', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'センチ', romaji:'senchi', en:'centimetre', tags:['L3','general-l3','taught','l3-4'], dateAdded:'2026-10-20'},
+      {jp:'メートル', romaji:'meetoru', en:'metre', tags:['L3','general-l3','taught','l3-4'], dateAdded:'2026-10-20'},
     ],
   },
   // LEVEL 3 LESSON 2 (2026-10-06) - three new L3 categories. As in Lesson 1,
@@ -946,6 +970,9 @@ window.JP_DRILL_VOCAB = {
       {jp:'どうりょう', romaji:'douryou', en:'colleague', tags:['L3','family-l3','taught','l3-2'], altForm:'同僚', altIsStandard:true, dateAdded:'2026-10-06'},
       // Lesson 3 (2026-10-13)
       {jp:'かのじょ', romaji:'kanojo', en:'girlfriend / she', tags:['L3','family-l3','taught','l3-3'], altForm:'彼女', altIsStandard:true, dateAdded:'2026-10-13'},
+      // Lesson 4 (2026-10-20)
+      {jp:'じょうし', romaji:'joushi', en:'boss', tags:['L3','family-l3','taught','l3-4'], altForm:'上司', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'みなさん', romaji:'minasan', en:'everyone', tags:['L3','family-l3','taught','l3-4'], altForm:'皆さん', altIsStandard:true, dateAdded:'2026-10-20'},
     ],
   },
   // Places & rooms: places where an action happens (で), from the lesson's
@@ -1026,6 +1053,26 @@ window.JP_DRILL_VOCAB = {
       {jp:'おかし', romaji:'okashi', en:'sweets / snacks', tags:['L3','gifts-l3','taught','l3-3'], altForm:'お菓子', altIsStandard:true, dateAdded:'2026-10-13'},
       {jp:'せっけん', romaji:'sekken', en:'soap', tags:['L3','gifts-l3','taught','l3-3','objects'], altForm:'石鹸', dateAdded:'2026-10-13'},
       {jp:'ラップ', romaji:'rappu', en:'cling film', tags:['L3','gifts-l3','taught','l3-3','objects'], dateAdded:'2026-10-13'},
+      // Lesson 4 (2026-10-20): gift items, things around the home, and the
+      // culture quiz's gifts to avoid (くつした, はちうえ, ろうそく...).
+      {jp:'ケーキ', romaji:'keeki', en:'cake', tags:['L3','gifts-l3','taught','l3-4','food-type'], dateAdded:'2026-10-20'},
+      {jp:'カップ', romaji:'kappu', en:'cup', tags:['L3','gifts-l3','taught','l3-4','objects'], dateAdded:'2026-10-20'},
+      {jp:'グラス', romaji:'gurasu', en:'glass (for drinking)', tags:['L3','gifts-l3','taught','l3-4','objects'], dateAdded:'2026-10-20'},
+      {jp:'CD', romaji:'shii dii', en:'CD', tags:['L3','gifts-l3','taught','l3-4','objects'], dateAdded:'2026-10-20'},
+      {jp:'シャツ', romaji:'shatsu', en:'shirt', tags:['L3','gifts-l3','taught','l3-4','objects'], dateAdded:'2026-10-20'},
+      {jp:'コート', romaji:'kooto', en:'coat', tags:['L3','gifts-l3','taught','l3-4','objects'], dateAdded:'2026-10-20'},
+      {jp:'コースター', romaji:'koosutaa', en:'coaster', tags:['L3','gifts-l3','taught','l3-4','objects'], dateAdded:'2026-10-20'},
+      {jp:'え', romaji:'e', en:'picture / painting', tags:['L3','gifts-l3','taught','l3-4','objects'], altForm:'絵', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'にんぎょう', romaji:'ningyou', en:'doll', tags:['L3','gifts-l3','taught','l3-4','objects'], altForm:'人形', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'おきもの', romaji:'okimono', en:'ornament', tags:['L3','gifts-l3','taught','l3-4','objects'], altForm:'置物', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'おさら', romaji:'osara', en:'plate', tags:['L3','gifts-l3','taught','l3-4','objects'], altForm:'お皿', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'はちうえ', romaji:'hachiue', en:'potted plant', tags:['L3','gifts-l3','taught','l3-4','objects'], altForm:'鉢植え', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'くつした', romaji:'kutsushita', en:'socks', tags:['L3','gifts-l3','taught','l3-4','objects'], altForm:'靴下', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'きく', romaji:'kiku', en:'chrysanthemum', tags:['L3','gifts-l3','taught','l3-4'], altForm:'菊', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'パジャマ', romaji:'pajama', en:'pyjamas', tags:['L3','gifts-l3','taught','l3-4','objects'], dateAdded:'2026-10-20'},
+      {jp:'ろうそく', romaji:'rousoku', en:'candle', tags:['L3','gifts-l3','taught','l3-4','objects'], altForm:'蝋燭', dateAdded:'2026-10-20'},
+      {jp:'ベルト', romaji:'beruto', en:'belt', tags:['L3','gifts-l3','taught','l3-4','objects'], dateAdded:'2026-10-20'},
+      {jp:'ナイフ', romaji:'naifu', en:'knife', tags:['L3','gifts-l3','taught','l3-4','objects'], dateAdded:'2026-10-20'},
     ],
   },
   // Lesson 3: adjectives for reacting to things (かわいいですね!). Words only -
@@ -1044,6 +1091,10 @@ window.JP_DRILL_VOCAB = {
       {jp:'すてき', romaji:'suteki', en:'lovely / wonderful', tags:['L3','adjectives-l3','taught','l3-3'], altForm:'素敵', dateAdded:'2026-10-13'},
       // From class: cold to the touch (drinks, water, hands) - さむい is cold weather.
       {jp:'つめたい', romaji:'tsumetai', en:'cold (to the touch)', tags:['L3','adjectives-l3','taught','l3-3'], altForm:'冷たい', altIsStandard:true, dateAdded:'2026-10-13'},
+      // Lesson 4 (2026-10-20). あかい / しろい from the gifts to avoid (red flowers, a white handkerchief).
+      {jp:'すごい', romaji:'sugoi', en:'amazing / great', tags:['L3','adjectives-l3','taught','l3-4'], altForm:'凄い', dateAdded:'2026-10-20'},
+      {jp:'あかい', romaji:'akai', en:'red', tags:['L3','adjectives-l3','taught','l3-4'], altForm:'赤い', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'しろい', romaji:'shiroi', en:'white', tags:['L3','adjectives-l3','taught','l3-4'], altForm:'白い', altIsStandard:true, dateAdded:'2026-10-20'},
     ],
   },
   // Lesson 3: inviting, arranging to meet, and set phrases for gifts.
@@ -1070,6 +1121,31 @@ window.JP_DRILL_VOCAB = {
       {jp:'これから よろしく おねがいします', romaji:'korekara yoroshiku onegaishimasu', en:'I look forward to knowing you (new neighbours)', tags:['L3','phrases-l3','taught','l3-3'], dateAdded:'2026-10-13'},
       {jp:'ひっこしの ごあいさつです', romaji:'hikkoshi no goaisatsu desu', en:'a hello gift - I\'ve just moved in', tags:['L3','phrases-l3','taught','l3-3'], dateAdded:'2026-10-13'},
       {jp:'これ、おみやげです', romaji:'kore, omiyage desu', en:'this is a souvenir (for you)', tags:['L3','phrases-l3','taught','l3-3'], dateAdded:'2026-10-13'},
+      // Lesson 4 (2026-10-20): visiting a friend's home.
+      {jp:'いらっしゃい', romaji:'irasshai', en:'welcome! (to my home)', tags:['L3','phrases-l3','taught','l3-4'], dateAdded:'2026-10-20'},
+      {jp:'どうぞ おあがりください', romaji:'douzo oagari kudasai', en:'please come in (step up inside)', tags:['L3','phrases-l3','taught','l3-4'], altForm:'どうぞ お上がりください', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'おじゃまします', romaji:'ojama shimasu', en:'sorry to intrude (said entering a home)', tags:['L3','phrases-l3','taught','l3-4'], altForm:'お邪魔します', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'〜は いかがですか', romaji:'~wa ikaga desu ka', en:'would you like …? (polite offer)', tags:['L3','phrases-l3','taught','l3-4'], dateAdded:'2026-10-20'},
+    ],
+  },
+  // LEVEL 3 LESSON 4 (2026-10-20): occasions for giving presents (たんじょうびに…).
+  // Tagged forward: たんじょうび (L2), ハロウィン (L3 General), and おしょうがつ /
+  // クリスマス (were untaught tourist words). おしょうがつ re-glossed to tell it
+  // apart from しんねん (it had no course score to lose).
+  'vocab-occasions-l3': {
+    level: 3,
+    hasReference: true,
+    label: 'Occasions',
+    chars: 'たんじょうび クリスマス おみまい…',
+    tagQuery: ['L3','occasions-l3'],
+    items: [
+      {jp:'しんねん', romaji:'shinnen', en:'New Year (the new year)', tags:['L3','occasions-l3','taught','l3-4'], altForm:'新年', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'バレンタインデー', romaji:'barentaindee', en:'Valentine\'s Day', tags:['L3','occasions-l3','taught','l3-4'], dateAdded:'2026-10-20'},
+      {jp:'イースター', romaji:'iisutaa', en:'Easter', tags:['L3','occasions-l3','taught','l3-4'], dateAdded:'2026-10-20'},
+      {jp:'ははのひ', romaji:'haha no hi', en:'Mother\'s Day', tags:['L3','occasions-l3','taught','l3-4'], altForm:'母の日', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'ちちのひ', romaji:'chichi no hi', en:'Father\'s Day', tags:['L3','occasions-l3','taught','l3-4'], altForm:'父の日', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'おみまい', romaji:'omimai', en:'visiting someone ill / a get-well gift', tags:['L3','occasions-l3','taught','l3-4'], altForm:'お見舞い', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'けっこんいわい', romaji:'kekkon iwai', en:'wedding present', tags:['L3','occasions-l3','taught','l3-4'], altForm:'結婚祝い', altIsStandard:true, dateAdded:'2026-10-20'},
     ],
   },
   // みず (water) moved out to Level 2's General vocabulary in Week 6, now
@@ -1505,8 +1581,8 @@ window.JP_DRILL_VOCAB = {
       {jp:'あき', romaji:'aki', en:'autumn', tags:['weather','seasons','untaught','curated','te-weather','tourist'], altForm:'秋', altIsStandard:true, source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-09-01'},
       {jp:'ふゆ', romaji:'fuyu', en:'winter', tags:['weather','seasons','untaught','curated','te-weather','tourist'], altForm:'冬', altIsStandard:true, source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-09-01'},
       // Tourist essentials additions (2026-10-11) - New Year and Christmas (te-weather).
-      {jp:'おしょうがつ', romaji:'oshougatsu', en:'New Year', tags:['weather','seasons','te-weather','untaught','curated','tourist'], altForm:'お正月', altIsStandard:true, source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
-      {jp:'クリスマス', romaji:'kurisumasu', en:'Christmas', tags:['weather','seasons','te-weather','untaught','curated','tourist'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
+      {jp:'おしょうがつ', romaji:'oshougatsu', en:'New Year (the holiday)', tags:['weather','seasons','te-weather','taught','curated','tourist','L3','occasions-l3','l3-4'], altForm:'お正月', altIsStandard:true, source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
+      {jp:'クリスマス', romaji:'kurisumasu', en:'Christmas', tags:['weather','seasons','te-weather','taught','curated','tourist','L3','occasions-l3','l3-4'], source: {location: 'Curated - added as a useful word (no specific sighting logged)'}, dateAdded:'2026-10-11'},
     ],
   },
   'vocab-signage-warnings': {
@@ -2118,7 +2194,7 @@ window.JP_DRILL_VOCAB = {
       // 営業時間 removed - duplicate of the Materials — Restaurants: Ops
       // entry (earlier date, dedup rule for two Materials copies).
       {jp:'夏季無休', romaji:'kaki mukyuu', en:'open all summer, no holidays', tags:['shopping','places','shops','untaught','encountered','service-ops'], source:{location:'Hokkaido (roadside melon stand)', date:'2026-08-11', file:'PXL_20260810_232600071.jpg'}, dateAdded:'2026-08-11', kanjiReading: [{char:'夏',reading:'ka'},{char:'季',reading:'ki'},{char:'無',reading:'mu'},{char:'休',reading:'kyuu'}]},
-      {jp:'ペット', romaji:'petto', en:'pet', tags:['shops','untaught','encountered','signage'], source:{location:'Hokkaido (roadside melon stand)', date:'2026-08-11', file:'PXL_20260810_232600071.jpg'}, dateAdded:'2026-08-11'},
+      {jp:'ペット', romaji:'petto', en:'pet', tags:['shops','taught','encountered','signage','L3','general-l3','l3-4'], source:{location:'Hokkaido (roadside melon stand)', date:'2026-08-11', file:'PXL_20260810_232600071.jpg'}, dateAdded:'2026-08-11'},
       {jp:'ご同伴', romaji:'go-douhan', en:'accompanying / bringing along', tags:['shops','untaught','encountered','signage'], source:{location:'Hokkaido (roadside melon stand)', date:'2026-08-11', file:'PXL_20260810_232600071.jpg'}, dateAdded:'2026-08-11', kanjiReadingBlocked: 'One of this word\'s kanji doesn\'t have a recorded reading yet'},
       // ご遠慮ください removed - duplicate of the Materials — Hotel:
       // Facilities entry (earlier date, dedup rule for two Materials
@@ -2290,7 +2366,7 @@ window.JP_DRILL_VOCAB = {
       {jp:'引き抜く', romaji:'hikinuku', en:'to pull out', tags:['appliances','untaught','encountered'], source:{location:'JR Inn Sapporo (Kita 2-jo)', date:'2026-08-11', file:'PXL_20260811_054656071.TS-000.jpg'}, dateAdded:'2026-08-11', kanjiReading: [{char:'引',reading:'hi'},{char:'抜',reading:'nu'}]},
       {jp:'使用上の注意', romaji:'shiyoujou no chuui', en:'usage precautions', tags:['appliances','untaught','encountered'], source:{location:'JR Inn Sapporo (Kita 2-jo)', date:'2026-08-11', file:'PXL_20260811_054656071.TS-000.jpg'}, dateAdded:'2026-08-11', kanjiReadingBlocked: 'One of this word\'s kanji doesn\'t have a recorded reading yet'},
       {jp:'手順', romaji:'tejun', en:'steps / procedure', tags:['appliances','untaught','encountered'], source:{location:'JR Inn Sapporo (Kita 2-jo)', date:'2026-08-11', file:'PXL_20260811_055321883.jpg'}, dateAdded:'2026-08-11', kanjiReading: [{char:'手',reading:'te'},{char:'順',reading:'jun'}]},
-      {jp:'スマホ', romaji:'sumaho', en:'smartphone', tags:['appliances','untaught','encountered','genki','genki-1-2'], source:{location:'JR Inn Sapporo (Kita 2-jo)', date:'2026-08-11', file:'PXL_20260811_055321883.jpg'}, dateAdded:'2026-08-11'},
+      {jp:'スマホ', romaji:'sumaho', en:'smartphone', tags:['appliances','taught','encountered','genki','genki-1-2','L3','general-l3','l3-4'], source:{location:'JR Inn Sapporo (Kita 2-jo)', date:'2026-08-11', file:'PXL_20260811_055321883.jpg'}, dateAdded:'2026-08-11'},
       {jp:'北海道限定', romaji:'Hokkaidou gentei', en:'Hokkaido-limited edition', tags:['appliances','untaught','encountered'], source:{location:'JR Inn Sapporo (Kita 2-jo)', date:'2026-08-11', file:'PXL_20260811_055321883.jpg'}, dateAdded:'2026-08-11', kanjiReadingBlocked: 'Irregular reading - doesn\'t break into standard sounds, worth memorising as a whole word'},
       {jp:'出力', romaji:'shutsuryoku', en:'output / power', tags:['appliances','untaught','encountered'], devices:['microwave'], source:{location:'JR Inn Sapporo (Kita 2-jo)', date:'2026-08-11', file:'PXL_20260811_061436925.jpg'}, dateAdded:'2026-08-11', kanjiReading: [{char:'出',reading:'shutsu'},{char:'力',reading:'ryoku'}]},
       {jp:'設定', romaji:'settei', en:'setting', tags:['appliances','untaught','encountered'], devices:['microwave'], source:{location:'JR Inn Sapporo (Kita 2-jo)', date:'2026-08-11', file:'PXL_20260811_061436925.jpg'}, dateAdded:'2026-08-11', kanjiReadingBlocked: 'Follows a regular sound-doubling rule not built yet - not irregular, just not modelled'},
