@@ -27,7 +27,7 @@ window.JP_DRILL_GRAMMAR = {
       {"label": "だれも/どこも/なにも + negative", "card": "question-negation", "added": "2026-08-13"},
     ] },
     3: { title: "Grammar notes — Level 3", entries: [
-      {"label": "Sentence order — doing something / going somewhere", "fn": "showL3SentenceOrderReference", "top": true},
+      {"label": "Sentence order — doing, going, giving & receiving", "fn": "showL3SentenceOrderReference", "top": true},
       {"label": "How verbs conjugate — ます / ません / ました / ませんでした", "fn": "showVerbConjugationL3Reference", "added": "2026-10-07"},
       {"label": "Giving and receiving — あげます / もらいます (かします/かります, おしえます/ならいます)", "card": "giving-receiving", "added": "2026-10-20"},
       {"label": "Inviting — ませんか / ましょう / 〜は どうですか", "card": "inviting", "added": "2026-10-13"},

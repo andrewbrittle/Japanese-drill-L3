@@ -682,7 +682,7 @@
   @media print {
     @page { size: A4 landscape; margin: 7mm; }
     html, body { background: #fff !important; color: #000 !important; }
-    header, .ds-toolbar, .screen:not(#screen-desk-sheets) { display: none !important; }
+    header, .ds-toolbar, .nav-back, .screen:not(#screen-desk-sheets) { display: none !important; }
     main { padding: 0 !important; display: block !important; }
     #screen-desk-sheets { display: block !important; max-width: none !important; }
     .ds-scroll { overflow: visible !important; }
@@ -1584,7 +1584,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261020.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261020.004</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2321,7 +2321,7 @@
   <div class="screen" id="screen-desk-sheets">
     <div class="ds-toolbar">
       <div class="settings-title">Desk sheets</div>
-      <div class="settings-sub">Two pages to keep in front of you whenever you want to make up sentences of your own: pick a word from each column and put the sentence together. Every word here has been taught. Shuffle for a different selection, then print or save as a PDF (A4, landscape). Phones sometimes start in portrait: switch to landscape in the print options.</div>
+      <div class="settings-sub">Three pages to keep in front of you whenever you want to make up sentences of your own: pick a word from each column and put the sentence together. Every word here has been taught. Shuffle for a different selection, then print or save as a PDF (A4, landscape). Phones sometimes start in portrait: switch to landscape in the print options.</div>
       <div class="ds-buttons">
         <button type="button" class="ds-btn" onclick="buildDeskSheets()">Shuffle words</button>
         <button type="button" class="ds-btn ds-btn-main" onclick="window.print()">Print / save PDF</button>
@@ -6943,7 +6943,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-20b';
+const LATEST_CHANGELOG_ENTRY = '2026-10-20c';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -11762,7 +11762,7 @@ function renderL3ModeRow() {
   const row = document.getElementById('l3c-mode-row');
   if (!row) return;
   row.innerHTML = '';
-  [['do', 'Doing something'], ['go', 'Going somewhere'], ['give', 'Giving & receiving']].forEach(([key, label]) => {
+  [['do', 'Doing'], ['go', 'Going'], ['give', 'Giving']].forEach(([key, label]) => {
     const btn = document.createElement('button');
     btn.className = 'level-pill' + (key === l3cMode ? ' active' : '');
     btn.textContent = label;
@@ -13838,6 +13838,41 @@ function sgGiftQA() {
   return [l1, l2, l3, l4, l5];
 }
 
+// GIVING & RECEIVING (L3 Lesson 4, 2026-10-20): the same words and rules as
+// the Sentence order card's Giving mode (l3cPickGive / l3cEnglishGive), so the
+// two always agree. A sentence, or a question with its answer.
+const SG_GIVE_ALL_ON = ['on', 'on', 'off', 'on', 'off', 'on', 'stmt'];
+function sgGiveWords() {
+  const tense = sgPick(['hab', 'past', 'past', 'fut']);
+  for (let i = 0; i < 40; i++) { const w = l3cPickGive(tense, null); if (w) return w; }
+  return null;
+}
+function sgGiveSentence() {
+  const w = sgGiveWords();
+  if (!w) return null;
+  const out = sgJoin([...w.subj.segs, w.time.seg, w.comp.seg, w.slot5.seg, sgVerb(w.verb, w.tense === 'past' ? 'past' : 'hab', false)]);
+  out.en = l3cEnPlain(l3cEnglishGive(w, SG_GIVE_ALL_ON, null, w.tense, false));
+  return [out];
+}
+// "What did Tanaka-san get from a friend at Christmas?" - "A hat." Or "Who
+// did ... give it to?" - "To my mother." (never asked about わたし).
+function sgGiveQA() {
+  let w = null;
+  for (let i = 0; i < 20 && (!w || w.subj.me || w.G.phone); i++) w = sgGiveWords();
+  if (!w || w.subj.me || w.G.phone) return null;
+  const v = sgVerb(w.verb, w.tense === 'past' ? 'past' : 'hab', false);
+  const askWhat = sgChance(0.6);
+  const st = SG_GIVE_ALL_ON.slice(); st[askWhat ? 5 : 3] = 'q';
+  const qSegs = askWhat ? [...w.subj.segs, w.time.seg, w.comp.seg, { jp: 'なに を', ro: 'nani o' }, v]
+    : [...w.subj.segs, w.time.seg, { jp: 'だれ に', ro: 'dare ni' }, w.slot5.seg, v];
+  const q = sgJoin(qSegs, null, true);
+  q.en = l3cEnPlain(l3cEnglishGive(w, st, null, w.tense, true));
+  const a = sgJoin(askWhat ? [w.slot5.seg, v] : [w.comp.seg, v]);
+  const prep = w.G.v === 'おしえます' ? 'to' : w.G.prep;
+  a.en = askWhat ? sgCap(w.slot5.en) + '.' : sgCap((prep ? prep + ' ' : '') + w.comp.en) + '.';
+  return [q, a];
+}
+
 // ==== DESK SHEETS (2026-10-13) ====
 // Two printable pages for class: the sentence skeleton across the top (same
 // slots and colours as the Level 3 Sentence order card) and word cards under
@@ -13903,6 +13938,32 @@ function dsColumns(mode) {
       ['あいます', 'meet (ともだちに)'], ['かきます', 'write'], ['とります', 'take (photos)']], 7);
     return [who, when, freq, comp, where, what, verb];
   }
+  if (mode === 'give') {
+    // Giving & receiving (L3 Lesson 4, 2026-10-20). Same slot colours as the
+    // card: column 4 is the other person (に), and there's no slot-5 column.
+    const occ = L3C_OCCASIONS.concat([{ jp: 'たんじょうび', en: 'on / for a birthday' }]).map(o => {
+      const it = dsItem(o.jp, o.en); if (it) { it.jp += 'に'; it.ro += ' ni'; } return it; });
+    const times = dsPick(dsTimePool().filter(t => ['きのう', 'あした', 'しゅうまつ', 'せんしゅう', 'らいしゅう', 'まいにち'].includes(t.jp)), [], 6);
+    const whenG = { role: 'When', particle: '(に)', note: 'に after days and occasions: たんじょうびに, クリスマスに', wide: true,
+      items: dsPick(occ, ['たんじょうびに', 'クリスマスに', 'ははのひに', 'ちちのひに'], 8).concat(times) };
+    const people = [dsItem('ともだち', 'a friend'), dsItem('せんせい', 'the teacher'), dsItem('どうりょう', 'a colleague'), dsItem('じょうし', 'my boss')]
+      .concat(sgMyFamily().map(m => dsItem(m.jp, 'my ' + m.en)), SENTENCE_NAME_POOL.slice(0, 4).map(n => ({ jp: n.jp, ro: n.romaji, en: n.en })));
+    const person = { role: 'To / from whom', particle: 'に', note: 'に = to (あげます) or from (もらいます)', items: dsPick(people, ['ともだち', 'はは', 'せんせい', 'どうりょう'], 9) };
+    const pair = (a, b, en) => sgW(a) && sgW(b) ? { jp: a + ' / ' + b, ro: sgW(a).ro + ' / ' + sgW(b).ro, en } : (sgW(a) ? dsItem(a) : null);
+    const grp = (verb, objs, k) => { const items = dsPick(objs.map(o => dsItem(o[0], o[2].replace(/^(a|an) /, ''))), [], k); return verb && items.length ? { verb, items } : null; };
+    const groups = [
+      grp(pair('あげます', 'もらいます', 'give / receive'), L3C_GIFTS, 6),
+      grp(pair('かします', 'かります', 'lend / borrow'), L3C_LENDS, 4),
+      grp(pair('おしえます', 'ならいます', 'teach / learn'), L3C_SKILLS, 4),
+      grp(pair('かきます', 'おくります', 'write / send'), [['てがみ', '', 'letter'], ['メール', '', 'email'], ['カード', '', 'card']], 3),
+    ].filter(Boolean);
+    const what = { role: 'What', particle: 'を', note: 'Each thing is listed under its verbs', wide: true, groups };
+    const verb = dsVerbColumn([['あげます', 'give'], ['もらいます', 'receive'], ['かします', 'lend'], ['かります', 'borrow'],
+      ['おしえます', 'teach'], ['ならいます', 'learn'], ['かきます', 'write'], ['おくります', 'send'], ['かけます', 'phone (でんわを かけます)']], 9, true);
+    const cols = [who, whenG, freq, person, what, verb];
+    [1, 2, 3, 4, 6, 7].forEach((slot, i) => { cols[i].slot = slot; });
+    return cols;
+  }
   const how = { role: 'How', particle: 'で', note: 'あるいて = on foot (no で)', items: dsPick(SG_TRANSPORT.map(t => dsItem(t[0], t[1].replace(/^by /, '').replace(/^on foot$/, 'on foot'))), ['でんしゃ', 'バス', 'くるま'], 8) };
   const destPool = Object.entries(SG_DEST).map(([jp, v]) => dsItem(jp, v[0].replace(/^to (the |a |an )?/, '')));
   const whereTo = { role: 'Where to', particle: 'に', note: 'へ works too', wide: true, items: dsPick(destPool, ['えき', 'がっこう', 'かいしゃ', 'スーパー', 'レストラン', 'こうえん', 'えいがかん', 'デパート'], 24) };
@@ -13912,12 +13973,12 @@ function dsColumns(mode) {
 // Verb column: the endings, shown on one example verb.
 // Verb column (2026-10-13, Andrew: "nothing that lists some handy verbs"):
 // handy verbs as cards, then one compact block of the endings.
-function dsVerbColumn(verbs, max) {
+function dsVerbColumn(verbs, max, noInvite) {
   // The first four always appear; the rest are a random pick, like the other columns.
   const pool = verbs.map(([jp, en]) => dsItem(jp, en)).filter(Boolean);
   const lead = dsPick(pool, verbs.slice(0, 4).map(v => v[0]), max);
   const ends = [['ます', 'do / will do'], ['ません', "don't"], ['ました', 'did'], ['ませんでした', "didn't"],
-    ['ませんか', "why don't we…?"], ['ましょう', "let's…"]];
+    ['ませんか', "why don't we…?"], ['ましょう', "let's…"]].slice(0, noInvite ? 4 : 6);
   return { role: 'Verb', particle: '。/か', note: 'take off ます, add an ending · か for a question', lead, ends };
 }
 function dsCardHtml(it, extraClass) {
@@ -13931,6 +13992,7 @@ function buildDeskSheets() {
   const pages = [
     { mode: 'do', title: 'Doing something', sub: 'Level 3 sentence order', ex: 'わたしは どようびに ともだちと カフェで コーヒーを のみました。' },
     { mode: 'go', title: 'Going somewhere', sub: 'Level 3 sentence order', ex: 'わたしは しゅうまつ ははと でんしゃで デパートに いきます。' },
+    { mode: 'give', title: 'Giving & receiving', sub: 'Level 3 sentence order', ex: 'わたしは たんじょうびに ともだちに ぼうしを もらいました。' },
   ];
   el.innerHTML = pages.map(p => {
     const cols = dsColumns(p.mode);
@@ -13942,7 +14004,7 @@ function buildDeskSheets() {
       else if (c.ends) body = c.lead.map(x => dsCardHtml(x, 'ds-verb')).join('')
         + `<div class="ds-ends">${c.ends.map(([e, en]) => `<div class="ds-end"><span class="ds-end-jp">〜${markSmallKana(e)}</span><span class="ds-end-en">${en}</span></div>`).join('')}</div>`;
       else body = c.items.map(x => dsCardHtml(x)).join('');
-      return `<div class="ds-col${c.wide ? ' wide' : ''}" style="--slot:var(--slot-${i + 1})">${head}${note}${body}</div>`;
+      return `<div class="ds-col${c.wide ? ' wide' : ''}" style="--slot:var(--slot-${c.slot || i + 1})">${head}${note}${body}</div>`;
     }).join('');
     return `<div class="ds-page"><div class="ds-page-title">${p.title}<span>${p.sub}</span><span class="ds-example">e.g. ${p.ex}</span></div><div class="ds-cols">${colHtml}</div></div>`;
   }).join('');
@@ -13955,7 +14017,8 @@ function showDeskSheets() {
 
 function sgGenerate() {
   const makers = [[sgObjectSentence, 4], [sgMotionSentence, 3], [sgRoutineSentence, 1], [sgJobProfile, 1], [sgMeetSentence, 1], [sgQA, 3],
-    [sgDonnaQA, 1.5], [sgWhereDeQA, 1.5], [sgWhatAtQA, 1.5], [sgInviteQA, 1.5], [sgMeetPlanQA, 1], [sgGiftQA, 0.75]];
+    [sgDonnaQA, 1.5], [sgWhereDeQA, 1.5], [sgWhatAtQA, 1.5], [sgInviteQA, 1.5], [sgMeetPlanQA, 1], [sgGiftQA, 0.75],
+    [sgGiveSentence, 2], [sgGiveQA, 1]];
   const total = makers.reduce((a, m) => a + m[1], 0);
   for (let tries = 0; tries < 50; tries++) {
     let r = sgRand() * total, fn = makers[0][0];
