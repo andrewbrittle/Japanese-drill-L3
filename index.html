@@ -1584,7 +1584,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261020.001</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261020.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -6943,7 +6943,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-20a';
+const LATEST_CHANGELOG_ENTRY = '2026-10-20b';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -11687,6 +11687,18 @@ const L3C_SLOTS = {
     { role: 'Destination (where to)', particle: 'に', q: ['どこ', 'doko', 'に', 'ni'], note: 'where you\'re going — へ also works' },
     { role: 'Verb', note: 'tense follows the time word — tap for か, ませんか, ましょう' },
   ],
+  // Giving & receiving (L3 Lesson 4, 2026-10-20). Same seven slot positions
+  // (so colours and Step through line up), but slot 4 isn't used: it stays
+  // 'off' and its row is hidden. Slot 3 is the other person, with に.
+  give: [
+    { role: 'Topic (who)', particle: 'は', q: ['だれ', 'dare', 'が', 'ga'], note: 'who it\'s about' },
+    { role: 'Time (when)', q: ['いつ', 'itsu', '', ''], note: 'に after a day or an occasion (たんじょうびに, クリスマスに) — none after あした, きのう…' },
+    { role: 'Frequency (how often)', note: 'no particle — あまり and ぜんぜん turn the verb negative' },
+    { role: 'Person (to / from whom)', particle: 'に', q: ['だれ', 'dare', 'に', 'ni'], note: 'に = <strong>to</strong> with あげます, かします, おしえます; <strong>from</strong> with もらいます, かります, ならいます' },
+    { role: '', hidden: true, note: '' },
+    { role: 'Object (what)', particle: 'を', q: ['なに', 'nani', 'を', 'o'], note: 'the present, the thing lent, the subject taught…' },
+    { role: 'Verb', note: 'tense follows the time word — tap for か' },
+  ],
 };
 let l3cMode = 'do';
 let l3SentStates = ['on', 'on', 'off', 'on', 'on', 'on', 'stmt'];
@@ -11705,7 +11717,7 @@ function showL3SentenceOrderReference() {
 
   const hint = document.createElement('div');
   hint.className = 'sentence-structure-hint';
-  hint.textContent = 'Tap a slot to include it, skip it, or ask it as a question. Frequency steps through いつも → よく → ときどき → あまり → ぜんぜん → skipped. The verb steps through statement → question → invitation (ませんか) → "let\'s" (ましょう).';
+  hint.textContent = 'Tap a slot to include it, skip it, or ask it as a question. Frequency steps through いつも → よく → ときどき → あまり → ぜんぜん → skipped. The verb steps through statement → question → invitation (ませんか) → "let\'s" (ましょう) — statement and question only for giving & receiving.';
   list.appendChild(hint);
 
   const rowsWrap = document.createElement('div');
@@ -11733,8 +11745,9 @@ function showL3SentenceOrderReference() {
   list.appendChild(playBtn);
   list.appendChild(shuffleBtn);
 
-  l3Note(list, 'One order for both kinds of sentence: <strong>who → when → how often → with whom → where / how → what / where to → verb</strong>. Doing something uses place で + object を; going somewhere uses means で + destination に (or へ). Anything you skip just drops out — the order of the rest never changes.');
+  l3Note(list, 'One order for doing and going: <strong>who → when → how often → with whom → where / how → what / where to → verb</strong>. Doing something uses place で + object を; going somewhere uses means で + destination に (or へ). Anything you skip just drops out — the order of the rest never changes.');
   l3Note(list, 'Put the companion after the topic: わたしは あねと デパートへ いきます, never ✗ わたしと あねは… The time word sets the tense: きのう → いきました, あした → いきます ("going to").');
+  l3Note(list, 'Giving &amp; receiving: <strong>who → when → how often → to / from whom に → what を → verb</strong>. に means "to" with あげます, かします, おしえます, かきます, おくります and でんわを かけます, and "from" with もらいます, かります, ならいます. Nobody あげます to わたし — say it the other way round with もらいます: わたしは ともだちに はなを もらいました.');
   l3Note(list, 'Going somewhere also uses きます (come) where "come" fits — to my house, to school, to a party: たなかさんは うちに きます. Invitations always use いきます.');
   l3Note(list, 'Romaji: を is written "o" here, as it\'s said. Level 2 wrote it "wo", as it was taught then — same particle, same sound.');
 
@@ -11749,11 +11762,18 @@ function renderL3ModeRow() {
   const row = document.getElementById('l3c-mode-row');
   if (!row) return;
   row.innerHTML = '';
-  [['do', 'Doing something'], ['go', 'Going somewhere']].forEach(([key, label]) => {
+  [['do', 'Doing something'], ['go', 'Going somewhere'], ['give', 'Giving & receiving']].forEach(([key, label]) => {
     const btn = document.createElement('button');
     btn.className = 'level-pill' + (key === l3cMode ? ' active' : '');
     btn.textContent = label;
-    btn.onclick = () => { if (l3cMode === key) return; l3cMode = key; renderL3ModeRow(); shuffleL3SentenceExample(); };
+    btn.onclick = () => {
+      if (l3cMode === key) return;
+      const wasGive = l3cMode === 'give';
+      l3cMode = key;
+      if (key === 'give') { l3SentStates[4] = 'off'; if (l3cInviting()) l3SentStates[6] = 'stmt'; }
+      else if (wasGive) l3SentStates[4] = 'on';
+      renderL3ModeRow(); shuffleL3SentenceExample();
+    };
     row.appendChild(btn);
   });
 }
@@ -11778,8 +11798,8 @@ function pickFreshL3SentenceWords() {
   const inviting = l3cInviting();
   for (let tries = 0; tries < 120; tries++) {
     const tense = inviting ? 'fut' : freqOn ? 'hab' : sgPick(['hab', 'hab', 'past', 'fut']);
-    const w = l3cMode === 'do' ? l3cPickDo(tense, freq) : l3cPickGo(tense, freq);
-    if (w && !(l3cIsQ() && w.subj.me) && l3cComeOk(w)) { l3SentWords = w; return; }
+    const w = l3cMode === 'do' ? l3cPickDo(tense, freq) : l3cMode === 'give' ? l3cPickGive(tense, freq) : l3cPickGo(tense, freq);
+    if (w && !(l3cIsQ() && w.subj.me) && l3cComeOk(w) && l3cPhoneOk(w)) { l3SentWords = w; return; }
   }
 }
 function l3cPickDo(tense, freq) {
@@ -11819,6 +11839,7 @@ const L3C_COME_DEST = { うち: ['to my house', 'outing'], がっこう: ['to sc
 // With no topic, a statement means "I": "I come to my house" makes no sense,
 // so うち + きます needs a topic or a question. Checked again whenever a slot
 // is tapped, since turning the topic off doesn't pick new words by itself.
+const l3cPhoneOk = w => !(w && w.G && w.G.phone && l3SentStates[5] === 'q');
 const l3cComeOk = w => !(w && w.verb === 'きます' && w.dest === 'うち' && l3SentStates[0] !== 'on' && !l3cIsQ());
 function l3cPickGo(tense, freq) {
   const subj = sgSubject();
@@ -11845,11 +11866,171 @@ function l3cPickGo(tense, freq) {
   };
 }
 
+// GIVING & RECEIVING (L3 Lesson 4, 2026-10-20): Topic は, Time, Frequency,
+// Person に, Object を, Verb. Each verb: English (base word), the preposition
+// its に turns into ('to' / 'from'; '' for phone, where English has none),
+// whether English needs "it" when the object is skipped, the tenses it suits
+// (lending isn't a habit; gifts are habitual only on an occasion), and its
+// objects as [kana, habitual English, one-off English].
+const L3C_GIFTS = [['はな', 'flowers', 'flowers'], ['ほん', 'books', 'a book'], ['チョコレート', 'chocolate', 'chocolate'], ['ケーキ', 'cakes', 'a cake'],
+  ['CD', 'CDs', 'a CD'], ['カード', 'cards', 'a card'], ['ぼうし', 'hats', 'a hat'], ['とけい', 'watches', 'a watch'], ['かばん', 'bags', 'a bag'],
+  ['ハンカチ', 'handkerchiefs', 'a handkerchief'], ['おかし', 'sweets', 'sweets'], ['シャツ', 'shirts', 'a shirt'], ['マグカップ', 'mugs', 'a mug'],
+  ['ぬいぐるみ', 'soft toys', 'a soft toy'], ['プレゼント', 'presents', 'a present'], ['さいふ', 'wallets', 'a wallet'], ['キーホルダー', 'keyrings', 'a keyring']];
+const L3C_LENDS = [['かさ', 'umbrellas', 'an umbrella'], ['ほん', 'books', 'a book'], ['くるま', 'cars', 'a car', 'adult'], ['おかね', 'money', 'money'],
+  ['バッテリー', 'batteries', 'a battery'], ['ゲーム', 'games', 'a game'], ['ふく', 'clothes', 'clothes'], ['ペン', 'pens', 'a pen'], ['CD', 'CDs', 'a CD']];
+const L3C_SKILLS = [['えいご', 'English', 'English'], ['にほんご', 'Japanese', 'Japanese'], ['ドイツご', 'German', 'German'], ['ちゅうごくご', 'Chinese', 'Chinese'],
+  ['ダンス', 'dance', 'dance'], ['テニス', 'tennis', 'tennis'], ['ピアノ', 'the piano', 'the piano'], ['りょうり', 'cooking', 'cooking'], ['かんじ', 'kanji', 'kanji'], ['ゴルフ', 'golf', 'golf']];
+const L3C_GIVE = [
+  { v: 'あげます', en: 'give', prep: 'to', it: true, gift: true, tenses: ['hab', 'past', 'fut'], objs: L3C_GIFTS },
+  { v: 'もらいます', en: 'get', prep: 'from', it: true, gift: true, tenses: ['hab', 'past', 'fut'], objs: L3C_GIFTS },
+  { v: 'かします', en: 'lend', prep: 'to', it: true, tenses: ['past', 'fut'], objs: L3C_LENDS },
+  { v: 'かります', en: 'borrow', prep: 'from', it: true, tenses: ['past', 'fut'], objs: L3C_LENDS },
+  { v: 'おしえます', en: 'teach', prep: 'to', skill: true, tenses: ['hab', 'past', 'fut'], objs: L3C_SKILLS },
+  { v: 'ならいます', en: 'learn', prep: 'from', skill: true, tenses: ['hab', 'past', 'fut'], objs: L3C_SKILLS },
+  { v: 'かきます', en: 'write', prep: 'to', contact: true, tenses: ['hab', 'past', 'fut'], objs: [['てがみ', 'letters', 'a letter'], ['メール', 'emails', 'an email'], ['カード', 'cards', 'a card']] },
+  { v: 'おくります', en: 'send', prep: 'to', it: true, contact: true, tenses: ['hab', 'past', 'fut'], objs: [['メール', 'emails', 'an email'], ['てがみ', 'letters', 'a letter'], ['カード', 'cards', 'a card'], ['プレゼント', 'presents', 'a present']] },
+  { v: 'かけます', en: 'phone', prep: '', phone: true, contact: true, tenses: ['hab', 'past', 'fut'], objs: [['でんわ', '', '']] },
+];
+// Occasions for the time slot (with に). Gifts, and cards sent or written.
+// mum/dad: only for わたし giving to (or writing to) はは / ちち. objs: only these things.
+// birthday: handled in l3cGiveTime (whose birthday decides the English).
+const L3C_OCCASIONS = [
+  { jp: 'クリスマス', en: 'at Christmas' }, { jp: 'バレンタインデー', en: 'on Valentine\'s Day' }, { jp: 'おしょうがつ', en: 'at New Year' },
+  { jp: 'イースター', en: 'at Easter', objs: ['チョコレート', 'カード', 'おかし', 'ケーキ'] },
+  { jp: 'ははのひ', en: 'on Mother\'s Day', mum: true }, { jp: 'ちちのひ', en: 'on Father\'s Day', dad: true },
+  { jp: 'けっこんいわい', en: 'as a wedding present', giftOnly: true, verbs: ['あげます', 'もらいます'], one: true },
+  { jp: 'おみまい', en: 'as a get-well present', giftOnly: true, verbs: ['あげます'], one: true, objs: ['はな', 'おかし', 'ほん', 'カード'] },
+];
+const l3cHer = en => /mother|sister|grandmother|wife|daughter/.test(en) ? 'her' : /father|brother|grandfather|husband|son/.test(en) ? 'his' : 'their';
+// The other person (に). Never the subject; never わたし (so nobody あげます to
+// me - the lesson's trap); your own family (はは) only when わたし is the topic.
+function l3cGivePerson(G, subj) {
+  const inSubj = jp => (subj.segs || []).some(s => s.jp.split(' ')[0] === jp);
+  const pool = [];
+  const add = (jp, en, wgt = 1) => { if (sgW(jp) && !inSubj(jp)) for (let i = 0; i < wgt; i++) pool.push({ jp, en }); };
+  if (G.v === 'おしえます' && /teacher/.test(subj.en || '') && sgW('がくせい')) return { jp: 'がくせい', en: 'the students' };
+  add('ともだち', 'a friend', 3);
+  SENTENCE_NAME_POOL.forEach(n => add(n.jp, n.en));
+  if (!subj.child) add('どうりょう', 'a colleague', 2);
+  if (G.v === 'ならいます') add('せんせい', 'the teacher', 4);
+  else if (G.v !== 'おしえます' && (!G.gift || subj.me)) add('せんせい', 'the teacher');
+  if (subj.me) {
+    sgMyFamily().forEach(m => add(m.jp, 'my ' + m.en));
+    if (!G.skill) add('じょうし', 'my boss');
+  }
+  return pool.length ? sgPick(pool) : null;
+}
+function l3cGiveTime(G, subj, person, o, tense, freq) {
+  // Occasions: gifts (habitual only on an occasion), and cards.
+  const canOcc = G.gift || (G.contact && o[0] === 'カード');
+  if (canOcc && (tense === 'hab' || sgChance(0.6))) {
+    const pool = L3C_OCCASIONS.filter(x => sgW(x.jp) && !(x.giftOnly && !G.gift) && !(x.verbs && !x.verbs.includes(G.v))
+      && !(x.objs && !x.objs.includes(o[0])) && !(x.one && tense === 'hab')
+      && !(x.mum && !(subj.me && person.jp === 'はは' && G.prep === 'to')) && !(x.dad && !(subj.me && person.jp === 'ちち' && G.prep === 'to')))
+      .map(x => ({ seg: sgSeg(x.jp, 'に', 'ni'), en: x.en, jp: x.jp, t: {} }));
+    // Birthdays: my own (getting presents), or the person I give to.
+    if (sgW('たんじょうび')) {
+      if (G.prep === 'from' && subj.me && G.gift) pool.push({ seg: sgSeg('たんじょうび', 'に', 'ni'), en: 'on my birthday', jp: 'たんじょうび', t: {} });
+      if (G.prep === 'to' && subj.me) pool.push({ seg: sgSeg('たんじょうび', 'に', 'ni'), en: `for ${l3cHer(person.en)} birthday`, jp: 'たんじょうび', t: {} });
+    }
+    if (pool.length) return sgPick(pool);
+    if (tense === 'hab') return null;
+  }
+  // Ordinary time words: days and weekends for habits (phone and email also
+  // every day / in the evening); past and future words for one-offs.
+  const daily = G.phone || o[0] === 'メール';
+  return sgTime(tense, (jp, t) => {
+    if (freq && freq.neg && SG_DAYS.some(d => d[0] === jp)) return false;
+    if (tense !== 'hab') return !t.morning && !t.evening || G.contact;
+    if (G.gift) return false;
+    if (jp === 'まいにち' || jp === 'よる') return daily;
+    return !t.morning && jp !== 'ひる' && jp !== 'まいあさ';
+  }, { freq: !!freq });
+}
+function l3cPickGive(tense, freq) {
+  const defs = L3C_GIVE.filter(G => sgW(G.v) && G.tenses.includes(tense) && G.objs.some(o => sgW(o[0])));
+  const G = sgPick(defs);
+  if (!G) return null;
+  const subj = sgSubject();
+  const objs = G.objs.filter(o => sgW(o[0]) && !(o[3] === 'adult' && subj.child) && !(subj.me && G.v === 'ならいます' && o[0] === 'えいご'));
+  const o = sgPick(objs);
+  if (!o) return null;
+  const person = l3cGivePerson(G, subj);
+  if (!person) return null;
+  const time = l3cGiveTime(G, subj, person, o, tense, freq);
+  if (!time) return null;
+  return {
+    mode: 'give', tense, subj, time, G, o, V: { v: G.v },
+    comp: { seg: sgSeg(person.jp, 'に', 'ni'), en: person.en },
+    slot4: null,
+    // A present is one thing even as a habit ("I give my mother a watch at Christmas").
+    slot5: { seg: sgSeg(o[0], 'を', 'o'), en: tense === 'hab' && !G.gift ? o[1] : o[2] },
+    verb: G.v,
+  };
+}
+// English for the giving & receiving mode - the same three shapes as
+// l3cEnglish (Who…? / question / statement), with to / from in place of "with".
+function l3cEnglishGive(w, st, f, tense, isQ) {
+  const G = w.G, neg = !!(f && f.neg), isAmari = !!(f && f.jp === 'あまり');
+  const whoQ = st[0] === 'q';
+  const asked = [5, 3, 1].filter(i => st[i] === 'q');
+  const me = st[0] !== 'on' || w.subj.me;
+  const S = st[0] === 'on' ? mk(0, w.subj.me ? 'I' : w.subj.en) : (isQ ? 'you' : 'I');
+  const third = st[0] === 'on' ? !w.subj.me : false;
+  // "teach a friend" (no object) but "teach English to a friend".
+  const prep = G.v === 'おしえます' && st[5] === 'off' ? '' : G.prep;
+  let obj = '';
+  if (G.phone) obj = '';
+  else if (st[5] === 'on') obj = mk(5, w.slot5.en);
+  else if (st[5] === 'q') obj = asked[0] === 5 && !whoQ ? '' : 'something';
+  else obj = G.it ? 'it' : '';
+  const P = G.en + (obj ? ' ' + obj : '');
+  const toWhom = prep === 'to' ? 'to whom' : prep === 'from' ? 'from whom' : 'who';
+  const extraWord = { 1: 'when', 3: toWhom, 5: 'what' };
+  const extrasText = list => list.length ? ', and ' + list.map(i => mk(i, extraWord[i])).join(', and ') : '';
+  const tail = [];
+  if (st[3] === 'on') tail.push(mk(3, (prep ? prep + ' ' : '') + w.comp.en));
+  if (st[1] === 'on') tail.push(mk(1, w.time.en));
+  const T = tail.length ? ' ' + tail.join(' ') : '';
+  const third3 = p => l3cVerb(p, 'third');
+  const base = p => l3cVerb(p, null);
+  const F = t => mk(2, t);
+  if (whoQ) {
+    let vp;
+    if (tense === 'past') vp = l3cVerb(P, 'past');
+    else if (tense === 'fut') vp = 'is going to ' + base(P);
+    else if (!f) vp = third3(P);
+    else if (!neg) vp = F(f.en) + ' ' + third3(P);
+    else vp = isAmari ? "doesn't " + F('often') + ' ' + base(P) : F('never') + ' ' + third3(P);
+    return mk(0, 'Who') + ' ' + vp + T + extrasText(asked) + '?';
+  }
+  if (isQ) {
+    let aux, mid;
+    const bP = base(P);
+    if (tense === 'past') { aux = 'did'; mid = bP; }
+    else if (tense === 'fut') { aux = third ? 'is' : 'are'; mid = 'going to ' + bP; }
+    else { aux = third ? 'does' : 'do'; mid = !f ? bP : !neg ? F(f.en) + ' ' + bP : isAmari ? F('often') + ' ' + bP : F('never') + ' ' + bP; if (isAmari) aux = third ? "doesn't" : "don't"; }
+    if (asked.length) {
+      const one = asked[0];
+      const wh = mk(one, { 1: 'When', 3: 'Who', 5: 'What' }[one]);
+      return `${wh} ${aux} ${S} ${mid}${one === 3 && prep ? ' ' + mk(3, prep) : ''}${T}${extrasText(asked.slice(1))}?`;
+    }
+    return `${sgCap(aux)} ${S} ${mid}${T}?`;
+  }
+  let vp;
+  if (tense === 'past') vp = l3cVerb(P, 'past');
+  else if (tense === 'fut') vp = (me && l3cEnPlain(S) === 'I' ? "'m going to " : 'is going to ') + base(P);
+  else if (!f) vp = third ? third3(P) : base(P);
+  else if (!neg) vp = F(f.en) + ' ' + (third ? third3(P) : base(P));
+  else vp = isAmari ? (third ? "doesn't" : "don't") + ' ' + F('often') + ' ' + base(P) : F('never') + ' ' + (third ? third3(P) : base(P));
+  return l3cCap(`${S}${vp.startsWith("'") ? '' : ' '}${vp}${T}.`);
+}
+
 // あまり/ぜんぜん + a day with に is stiff (Japanese would say げつようびは) -
 // swap in a time word without a particle, as the daily sentence does.
 function l3FixTimeForFreq() {
   const w = l3SentWords;
-  if (!w || l3SentStates[2] !== 'on' || !L3_FREQ_WORDS[l3FreqIdx].neg || !SG_DAYS.some(d => d[0] === w.time.jp)) return;
+  if (!w || w.mode === 'give' || l3SentStates[2] !== 'on' || !L3_FREQ_WORDS[l3FreqIdx].neg || !SG_DAYS.some(d => d[0] === w.time.jp)) return;
   const filt = w.mode === 'do'
     ? (jp, t) => !SG_DAYS.some(d => d[0] === jp) && sgActTimeOk(w.V, jp, t, 'hab') && sgPlaceTimeOk(l3cPlaceJp(w), jp, t)
     : (jp, t) => !SG_DAYS.some(d => d[0] === jp) && sgDestTimeOk(w.kind, jp, t, 'hab', null);
@@ -11863,9 +12044,14 @@ function renderL3SentenceRows() {
   if (!wrap) return;
   wrap.innerHTML = '';
   const w = l3SentWords;
+  let shown = 0;
   L3C_SLOTS[l3cMode].forEach((slot, idx) => {
     const state = l3SentStates[idx];
     const row = document.createElement('div');
+    // A slot this mode doesn't use stays in the list (so rows[i] is still
+    // slot i for Step through) but isn't shown.
+    if (slot.hidden) { row.className = 'sentence-slot-row l3c-row-hidden'; row.style.display = 'none'; wrap.appendChild(row); return; }
+    shown++;
     row.className = 'vocab-ref-row minute-row sentence-slot-row l3c-row' + (state === 'off' ? ' sentence-slot-off' : '');
     row.style.setProperty('--slot', `var(--slot-${idx + 1})`);
     row.onclick = () => cycleL3SentenceSlot(idx);
@@ -11891,6 +12077,8 @@ function renderL3SentenceRows() {
       badgeText = slot.q[0] + slot.q[2]; badgeClass += ' sentence-particle-badge-q'; stateLabel = '(asked as a question)';
     } else if (idx === 1) {
       badgeText = w && / に$/.test(w.time.seg.jp) ? 'に' : '∅';
+    } else if (idx === 3 && l3cMode === 'give') {
+      badgeText = 'に';
     } else if (idx === 3) {
       badgeText = w && w.comp && /ひとり/.test((w.comp.seg || {}).jp || '') ? 'で' : 'と';
     } else {
@@ -11898,7 +12086,7 @@ function renderL3SentenceRows() {
     }
     row.innerHTML = `
       <div class="sentence-structure-inner">
-        <div class="vocab-ref-num-big">${idx + 1}</div>
+        <div class="vocab-ref-num-big">${shown}</div>
         <div class="sentence-structure-text">
           <div class="sentence-structure-role">${slot.role}</div>
           <div class="sentence-structure-note">${slot.note}${stateLabel ? ` <span class="sentence-structure-state">${stateLabel}</span>` : ''}</div>
@@ -11914,7 +12102,7 @@ function cycleL3SentenceSlot(idx) {
   l3cStopPlay();
   if (idx === 6) {
     // statement -> question -> invitation (ませんか) -> let's (ましょう) -> statement
-    const vOrder = ['stmt', 'q', 'inv', 'lets'];
+    const vOrder = l3cMode === 'give' ? ['stmt', 'q'] : ['stmt', 'q', 'inv', 'lets'];
     // With a question word showing, statement and question look the same (か
     // either way), so the next tap goes straight on to inviting.
     if (l3cQWord() && (l3SentStates[6] === 'stmt' || l3SentStates[6] === 'q')) l3SentStates[6] = 'q';
@@ -11942,14 +12130,19 @@ function cycleL3SentenceSlot(idx) {
     // concert") - pick again if this one doesn't fit.
     else if (l3SentStates[2] === 'on' && !l3cFreqFits()) pickFreshL3SentenceWords();
     l3FixTimeForFreq();
+  } else if (L3C_SLOTS[l3cMode][idx].hidden) {
+    // not used in this mode
   } else {
-    const order = ['on', 'off', 'q'];
+    // でんわを かけます: "what do you phone?" isn't a question, so the
+    // object there is only on or skipped.
+    const order = idx === 5 && l3SentWords && l3SentWords.G && l3SentWords.G.phone ? ['on', 'off'] : ['on', 'off', 'q'];
     l3SentStates[idx] = order[(order.indexOf(l3SentStates[idx]) + 1) % order.length];
     // Asking something turns it into a question: questions never use わたし
     // as the topic or あまり / ぜんぜん (see pickFreshL3SentenceWords).
     if (l3cIsQ() && ((l3SentWords && l3SentWords.subj.me) || (l3SentStates[2] === 'on' && L3_FREQ_WORDS[l3FreqIdx].neg))) pickFreshL3SentenceWords();
   }
   if (!l3cComeOk(l3SentWords)) pickFreshL3SentenceWords();
+  if (!l3cPhoneOk(l3SentWords)) pickFreshL3SentenceWords();
   renderL3SentenceRows();
   renderL3SentenceExample();
 }
@@ -11957,6 +12150,7 @@ function l3cFreqFits() {
   const w = l3SentWords, f = L3_FREQ_WORDS[l3FreqIdx];
   if (!w) return false;
   if (w.mode === 'do') return !w.V.outing;
+  if (w.mode === 'give') return w.G.tenses.includes('hab') && !(f.neg && SG_DAYS.some(d => d[0] === w.time.jp));
   const kind = w.kind;
   if (kind === 'work') return false;
   return !(['outing', 'daytrip', 'event'].includes(kind) && f.jp === 'いつも') && sgDestTimeOk(kind, w.time.jp, w.time.t, 'hab', f.neg ? null : f);
@@ -12053,6 +12247,7 @@ const l3cVerb = (p, form) => { const r = form ? sgVerbEn(p, form) : p; const i =
 const L3C_BARE = { たべます: 'eat', のみます: 'drink', みます: 'watch', ききます: 'listen', よみます: 'read', かきます: 'write', かいます: 'buy', とります: 'take', します: 'do' };
 const L3C_NEEDS_OBJ = ['write', 'buy', 'take', 'do'];
 function l3cEnglish(w, st, f, tense, isQ) {
+  if (w.mode === 'give') return l3cEnglishGive(w, st, f, tense, isQ);
   const neg = !!(f && f.neg), isAmari = !!(f && f.jp === 'あまり');
   const whoQ = st[0] === 'q';
   // Several question words (2026-10-14): English asks one and tags the rest
@@ -12216,6 +12411,7 @@ function l3cTogglePlay() {
       return;
     }
     const present = !!document.querySelector(`#sentence-structure-example-jp .l3c-chunk[data-slot="${i}"]`);
+    if (L3C_SLOTS[l3cMode][i] && L3C_SLOTS[l3cMode][i].hidden) { l3cPlay.timer = setTimeout(next, 0); return; }
     if (!present) {
       const row = document.querySelectorAll('#sentence-structure-rows .sentence-slot-row')[i];
       if (row) row.classList.add('l3c-row-skip');
@@ -12838,6 +13034,9 @@ const SG_VERB_EN = {
   do: ['does', 'did'], go: ['goes', 'went'], cook: ['cooks', 'cooked'], study: ['studies', 'studied'], dance: ['dances', 'danced'],
   get: ['gets', 'got'], work: ['works', 'worked'], rest: ['rests', 'rested'], meet: ['meets', 'met'], come: ['comes', 'came'],
   swim: ['swims', 'swam'], exercise: ['exercises', 'exercised'], sing: ['sings', 'sang'],
+  // Lesson 4 (2026-10-20): giving & receiving
+  give: ['gives', 'gave'], lend: ['lends', 'lent'], borrow: ['borrows', 'borrowed'], teach: ['teaches', 'taught'],
+  learn: ['learns', 'learned'], send: ['sends', 'sent'], phone: ['phones', 'phoned'],
 };
 function sgVerbEn(phrase, form) { // form: base | third | past
   if (form === 'base') return phrase;
