@@ -376,6 +376,15 @@
     background: var(--surface2); cursor: pointer;
   }
   .cat-bar .seg { height: 100%; min-width: 3px; }
+  /* Production score (2026-10-22): a thin teal bar under the confidence bar on
+     category cards, and along the bottom of a word tile once it's been typed. */
+  .prod-bar { height: 3px; border-radius: 99px; background: var(--surface2); margin-top: 4px; overflow: hidden; }
+  .cat-tile .prod-bar { margin-top: -0.3rem; }
+  .prod-bar span, .prod-mark span { display: block; height: 100%; background: var(--slot-4); border-radius: 99px; }
+  .kana-ref-card { position: relative; }
+  .prod-mark { position: absolute; left: 6px; right: 6px; bottom: 3px; height: 3px; border-radius: 99px; background: color-mix(in srgb, var(--slot-4) 18%, transparent); overflow: hidden; pointer-events: none; }
+  .feedback.nearly { color: var(--slot-4); }
+  .type-answer-input.nearly, input.nearly { border-color: var(--slot-4) !important; }
   /* Level 1/2 category cards need a flex row (text left, swatch right) to
      hold this - scoped to #match-category-list only so the unrelated
      "Random reading" card (also .match-card-select, but plain stacked text,
@@ -676,6 +685,46 @@
   .ds-end:last-child { border-bottom: none; }
   .ds-end-jp { font-family: 'BIZ UDPGothic', sans-serif; font-weight: 700; font-size: 13px; }
   .ds-end-en { font-size: 9.5px; color: var(--text-muted); }
+  /* SENTENCE BUILDER (2026-10-22) - the desk-sheet columns, tappable. */
+  #screen-sentence-builder { max-width: none; }
+  .sb-head { max-width: 640px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
+  .sb-rows { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .sb-strip { position: sticky; top: 0; z-index: 5; max-width: 760px; width: 100%; margin: 0 auto; box-sizing: border-box; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
+  .sb-prompt { font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 6px; }
+  .sb-jp { font-family: 'BIZ UDPGothic', sans-serif; font-weight: 700; font-size: 20px; line-height: 1.6; }
+  .sb-ro { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .sb-empty { font-size: 13px; color: var(--text-dim); padding: 6px 0; }
+  .sb-chunk.sb-wrong, .sb-chunk.sb-extra { text-decoration: line-through; opacity: 0.6; }
+  .sb-chunk.sb-right { box-shadow: inset 0 -3px 0 var(--green); }
+  .sb-answer { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); cursor: pointer; }
+  .sb-verdict { font-size: 12.5px; color: var(--text-muted); margin-top: 6px; }
+  .sb-verdict.good { color: var(--green); font-weight: 700; }
+  .sb-buttons { margin-top: 8px; }
+  .sb-stats { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
+  .sb-scroll { width: 100%; overflow-x: auto; padding-bottom: 6px; }
+  .sb-cols { display: flex; gap: 6px; align-items: flex-start; width: max-content; margin: 0 auto; }
+  .sb-col { flex: 0 0 112px; }
+  .sb-col.wide { flex-basis: 228px; }
+  .sb-card { cursor: pointer; user-select: none; -webkit-user-select: none; }
+  .sb-card.sb-picked { background: color-mix(in srgb, var(--slot) 28%, var(--bg)); border-color: var(--slot); box-shadow: 0 0 0 1.5px var(--slot); }
+  .sb-card.sb-ok { box-shadow: 0 0 0 2px var(--green); }
+  .sb-card.sb-should { outline: 2px dashed var(--green); outline-offset: -2px; }
+  .sb-ends { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+  .sb-end { font-family: 'BIZ UDPGothic', sans-serif; font-size: 13px; font-weight: 700; padding: 5px 4px; border-radius: 7px; border: 1px solid var(--border); border-left: 3px solid var(--slot-7); background: var(--bg); color: var(--text); cursor: pointer; }
+  .sb-end.active { background: color-mix(in srgb, var(--slot-7) 28%, var(--bg)); border-color: var(--slot-7); }
+  .sb-end-q { font-size: 11.5px; }
+  .sb-tip { font-size: 11px; color: var(--text-dim); text-align: center; max-width: 640px; margin: 0 auto; }
+  /* Phone on its side: a slimmer strip, so more of the columns show under it. */
+  @media (max-height: 500px) {
+    .sb-strip { padding: 6px 10px; }
+    .sb-prompt { font-size: 14px; margin-bottom: 2px; }
+    .sb-jp { font-size: 17px; line-height: 1.45; }
+    .sb-empty, .sb-verdict { font-size: 12px; padding: 0; margin-top: 2px; }
+    .sb-buttons { margin-top: 4px; }
+    .sb-buttons .ds-btn { padding: 4px 14px; }
+    .sb-stats { display: none; }
+    #screen-sentence-builder .sb-head .settings-title { display: none; }
+  }
   @media print {
     @page { size: A4 landscape; margin: 7mm; }
     html, body { background: #fff !important; color: #000 !important; }
@@ -1553,7 +1602,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261022.001</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261022.002</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2297,6 +2346,26 @@
       </div>
     </div>
     <div class="ds-scroll"><div id="desk-sheets"></div></div>
+  </div>
+
+  <div class="screen" id="screen-sentence-builder">
+    <div class="sb-head">
+      <div class="settings-title">Sentence builder</div>
+      <div class="sb-rows">
+        <div class="level-filter-row" id="sb-kind-row">
+          <button type="button" class="level-pill" data-kind="build" onclick="sbSetChallenge(false)">Build</button>
+          <button type="button" class="level-pill" data-kind="challenge" onclick="sbSetChallenge(true)">Challenge</button>
+        </div>
+        <div class="level-filter-row" id="sb-mode-row">
+          <button type="button" class="level-pill" data-mode="do" onclick="sbSetMode('do')">Doing</button>
+          <button type="button" class="level-pill" data-mode="go" onclick="sbSetMode('go')">Going</button>
+          <button type="button" class="level-pill" data-mode="give" onclick="sbSetMode('give')">Giving</button>
+        </div>
+      </div>
+    </div>
+    <div class="sb-strip" id="sb-strip"></div>
+    <div class="sb-scroll"><div class="sb-cols" id="sb-cols"></div></div>
+    <div class="sb-tip">Works best with your phone turned sideways. Challenge answers count towards each word's typed-from-memory score, never against its greens.</div>
   </div>
 
   <!-- Match game screen -->
@@ -5601,6 +5670,9 @@ function buildVocabTileGrid(categoryKey) {
     tile.dataset.scoreKey = scoreKey;
     const scoreClass = kanaScoreClass(scoreKey);
     if (scoreClass) tile.classList.add(scoreClass);
+    // Production (typed) score: a thin bar along the bottom once tried.
+    const prod = prodScores[scoreKey];
+    if (prod) tile.insertAdjacentHTML('beforeend', `<span class="prod-mark" title="Typed it yourself: ${Math.round(prod.p * 100)}%"><span style="width:${Math.max(6, Math.round(prod.p * 100))}%"></span></span>`);
     // While a random-20 pick is disguising the grid, every tile shows as
     // selected regardless of whether it's actually one of the 20 - that's
     // the whole point (no clue which ones are really included).
@@ -5908,7 +5980,7 @@ function navBack() {
   try { (NAV_RESTORE[target] || (() => showScreen(target)))(); } finally { navGoingBack = false; }
   renderNavBack();
 }
-const NAV_HOME = { 'desk-sheets': 'grammar', 'hiragana-selection': 'kana-selection', 'katakana-selection': 'kana-selection', 'kanji-selection': 'kanji-index', 'counter-quiz-selection': 'numbers' };
+const NAV_HOME = { 'desk-sheets': 'grammar', 'sentence-builder': 'grammar', 'hiragana-selection': 'kana-selection', 'katakana-selection': 'kana-selection', 'kanji-selection': 'kanji-index', 'counter-quiz-selection': 'numbers' };
 // The cog opens Settings, and tapped again closes it (back to where you were).
 function toggleSettings() {
   if (navCurrent === 'settings' && navStack.length) navBack();
@@ -6912,7 +6984,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-22a';
+const LATEST_CHANGELOG_ENTRY = '2026-10-22b';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -7416,6 +7488,68 @@ function saveKanaScores() {
   }
 }
 
+// PRODUCTION SCORES (2026-10-22, Andrew). Typing the answer yourself (romaji,
+// Japanese, a verb form) is a different skill from picking it out of four, so
+// it has its own score and can never cost a recognition green:
+//   - a correct typed answer still ADDS to the recognition score as before;
+//     a wrong or nearly-right one leaves recognition alone;
+//   - the production score is graded upwards, like the Strokes app: exact = 1,
+//     nearly (one slip) = 0.6, after a hint = at most 0.5, wrong = 0.
+// prodScores[key] = { p: 0..1, n: attempts, lastSeen }. p climbs a third of
+// the way towards each attempt's credit, and a lower credit only pulls it
+// down a tenth of the way, so a bad day barely dents it. Same keys as
+// kanaScores (getScoreKey).
+const PROD_SCORE_KEY = 'jpDrillProdScores';
+let prodScores = {};
+try { prodScores = JSON.parse(localStorage.getItem(PROD_SCORE_KEY)) || {}; } catch (e) { prodScores = {}; }
+function saveProdScores() {
+  try { localStorage.setItem(PROD_SCORE_KEY, JSON.stringify(prodScores)); } catch (e) { /* fail silently */ }
+}
+function recordProduction(key, credit) {
+  if (!key) return;
+  const cur = prodScores[key] || { p: 0, n: 0 };
+  const p = credit >= cur.p ? cur.p + (credit - cur.p) / 3 : cur.p - (cur.p - credit) / 10;
+  prodScores[key] = { p: Math.round(p * 1000) / 1000, n: cur.n + 1, lastSeen: Date.now() };
+  saveProdScores();
+}
+// Edit distance (insert / delete / swap one letter), for "nearly".
+function editDistance(a, b) {
+  a = [...a]; b = [...b];
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[b.length];
+}
+// Nearly = one slip on a word of 4+ letters (romaji) or 3+ kana, two slips
+// from 9+ letters. Anything shorter has to be exact - one letter is the
+// whole word there.
+function isNearly(typed, target, kana) {
+  if (!typed || !target) return false;
+  const len = [...target].length;
+  const allow = kana ? (len >= 3 ? 1 : 0) : (len >= 9 ? 2 : len >= 4 ? 1 : 0);
+  return allow > 0 && editDistance(typed, target) <= allow;
+}
+// One typed answer: production credit, and recognition only ever goes up.
+// Returns the credit (1 / 0.6 / 0.5 / 0.3 / 0).
+function recordTypedAnswer(q, result) { // result: 'exact' | 'nearly' | 'wrong'
+  const hinted = hintUsedThisQuestion && !listenMode; // in listen mode hearing it IS the question
+  let credit = result === 'exact' ? 1 : result === 'nearly' ? 0.6 : 0;
+  if (hinted && credit) credit = Math.min(credit, credit === 1 ? 0.5 : 0.3);
+  if (isTrackedItem(q)) recordProduction(getScoreKey(q), credit);
+  if (result === 'exact') recordKanaResult(q, true);
+  return credit;
+}
+// Average production over a list of vocab items (untried words count as 0),
+// and whether any have been tried - for the thin bar under a category card.
+function getItemsProduction(items) {
+  let total = 0, tried = 0;
+  (items || []).forEach(it => { const e = prodScores[it.jp + '|' + it.en]; if (e) { total += e.p; tried++; } });
+  return { avg: items && items.length ? total / items.length : 0, tried };
+}
+
 // BACKUP/RESTORE - SHIPPED (2026-09-12, see downloadScoresBackup() below
 // for the real implementation). Kept the original plan below as-is for the
 // reasoning trail (why Tier 1 was chosen over live sync, and what Tiers 2/3
@@ -7479,7 +7613,9 @@ function saveKanaScores() {
 // actual score write), so reading kanaScores directly is what guarantees
 // the file always reflects the current shape.
 function downloadScoresBackup() {
-  const data = JSON.stringify(kanaScores);
+  // Production scores ride along under one extra key (__prod), so the file
+  // keeps its old shape and older backups still restore.
+  const data = JSON.stringify(Object.assign({}, kanaScores, { __prod: prodScores }));
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -7521,6 +7657,8 @@ function handleRestoreFileSelected(event) {
       return;
     }
     if (!window.confirm("This replaces your current progress with what's in this backup. Continue?")) return;
+    if (parsed.__prod && typeof parsed.__prod === 'object') { prodScores = parsed.__prod; saveProdScores(); }
+    delete parsed.__prod;
     // Same bare-number -> {score,lastSeen} normalisation the app runs on
     // load (see above KANA_SCORE_KEY) - cheap and idempotent, and protects
     // against restoring an old-shape export without duplicating the whole
@@ -8747,7 +8885,8 @@ function chooseTypedJapanese(rawInput, q) {
   const typed = normaliseTypedJapanese(rawInput);
   const forms = [q.char, q.altForm, q.speakAs, ...(VERB_TYPING_KANJI[q.char] || []), ...String(q.char).split(/\s*[\/／]\s*/)].filter(Boolean);
   const isCorrect = !!typed && forms.some(f => normaliseTypedJapanese(f) === typed);
-  if (input) input.classList.add(isCorrect ? 'correct' : 'wrong');
+  const nearly = !isCorrect && forms.some(f => isNearly(typed, normaliseTypedJapanese(f), true));
+  if (input) input.classList.add(isCorrect ? 'correct' : nearly ? 'nearly' : 'wrong');
   // Right, but not as it's usually written (other script, or kana for a word
   // normally in kanji) - say how it's normally written.
   const asTyped = (rawInput || '').normalize('NFKC').replace(/\s/g, '');
@@ -8757,12 +8896,16 @@ function chooseTypedJapanese(rawInput, q) {
   else if (isCorrect && asTyped !== String(q.char).replace(/\s/g, '')) note = `<div class="feedback-standard-note">Usually written: ${markSmallKana(usual)}</div>`;
   else if (q.altIsStandard && q.altForm) note = `<div class="feedback-standard-note">Normally shown as: ${markSmallKana(q.altForm)}</div>`;
   else if (q.altAfterAnswer && q.altForm) note = `<div class="feedback-standard-note">Also seen as: ${markSmallKana(q.altForm)}</div>`;
-  recordKanaResult(q, isCorrect);
+  recordTypedAnswer(q, isCorrect ? 'exact' : nearly ? 'nearly' : 'wrong');
   const fb = document.getElementById('q-feedback');
   if (isCorrect) {
     score++;
     fb.innerHTML = 'Correct!' + note;
     fb.className = 'feedback good';
+  } else if (nearly) {
+    score++;
+    fb.innerHTML = `Nearly! — check it: "${markSmallKana(q.char)}" (${q.answerRomaji})` + note;
+    fb.className = 'feedback nearly';
   } else {
     wrong++;
     fb.innerHTML = `Not quite — the answer is "${markSmallKana(q.char)}" (${q.answerRomaji})` + note;
@@ -9144,8 +9287,10 @@ function chooseTypedVerbForm(rawInput, q) {
   if (submitBtn) submitBtn.disabled = true;
   const typed = normaliseTypedJapanese(rawInput);
   const isCorrect = !!typed && [q.formJp, ...(q.formKanji || [])].some(f => normaliseTypedJapanese(f) === typed);
+  // A verb form one kana out is usually the ending itself (たべません / たべました),
+  // which is the whole point of the question - so no "nearly" here.
   if (input) input.classList.add(isCorrect ? 'correct' : 'wrong');
-  recordKanaResult(q, isCorrect);
+  recordTypedAnswer(q, isCorrect ? 'exact' : 'wrong');
   const fb = document.getElementById('q-feedback');
   if (isCorrect) {
     score++;
@@ -9259,8 +9404,10 @@ function chooseTyped(rawInput, answer, char) {
   const submitBtn = document.getElementById('type-answer-submit');
   if (input) input.disabled = true;
   if (submitBtn) submitBtn.disabled = true;
-  const isCorrect = canonicalizeRomaji(rawInput) === canonicalizeRomaji(answer);
-  if (input) input.classList.add(isCorrect ? 'correct' : 'wrong');
+  const typedCanon = canonicalizeRomaji(rawInput), answerCanon = canonicalizeRomaji(answer);
+  const isCorrect = typedCanon === answerCanon;
+  const nearly = !isCorrect && isNearly(typedCanon, answerCanon, false);
+  if (input) input.classList.add(isCorrect ? 'correct' : nearly ? 'nearly' : 'wrong');
   // Reveal the materials context card that renderQuestion held back for
   // typeAnswerMode (see the comment there) - content's already populated
   // by renderQuestion, this just un-hides it now that answering is done
@@ -9280,7 +9427,7 @@ function chooseTyped(rawInput, answer, char) {
     : (currentQ && currentQ.altAfterAnswer && currentQ.altForm)
     ? `<div class="feedback-standard-note">Also seen as: ${markSmallKana(currentQ.altForm)}</div>`
     : '';
-  recordKanaResult(currentQ, isCorrect);
+  recordTypedAnswer(currentQ, isCorrect ? 'exact' : nearly ? 'nearly' : 'wrong');
   revealListenWord(currentQ);
   // Show the accepted spelling either way, not just on a miss - per Andrew,
   // the point is to teach the canonical romanization, and what was typed
@@ -9290,6 +9437,10 @@ function chooseTyped(rawInput, answer, char) {
     score++;
     fb.innerHTML = `Correct! — accepted spelling: "${answer}"` + hint + standardNote;
     fb.className = 'feedback good';
+  } else if (nearly) {
+    score++;
+    fb.innerHTML = `Nearly! — check the spelling: "${answer}"` + hint + standardNote;
+    fb.className = 'feedback nearly';
   } else {
     wrong++;
     fb.innerHTML = `Not quite — the answer is "${answer}"` + hint + standardNote;
@@ -9784,6 +9935,10 @@ function buildCategoryTile(key) {
     </div>
     <div class="cat-bar" title="Tap to include words you haven't drilled yet"></div>
   `;
+  // Production: a thin second bar, how far the set is towards being typed
+  // from memory (untried words count as nothing). Only once something's been tried.
+  const prodAvg = getItemsProduction(resolvedItems);
+  if (prodAvg.tried) card.insertAdjacentHTML('beforeend', `<div class="prod-bar" title="Typed from memory: ${Math.round(prodAvg.avg * 100)}%"><span style="width:${Math.max(2, Math.round(prodAvg.avg * 100))}%"></span></div>`);
   // TRIAL (2026-09-22): per-tile confidence spread bar, replacing the old
   // single-colour .cat-swatch average blob on this screen. showUntested is
   // local to this one tile's closure, not appSettings/localStorage - a
@@ -11465,6 +11620,7 @@ function renderGrammarPage() {
   const open = e => e.card ? () => showGrammarCard(e.card) : () => { const fn = window[e.fn]; if (typeof fn === 'function') fn(); };
   head('Building sentences');
   all.filter(e => e.top).forEach(e => card(e.label, e.lvl, open(e)));
+  card('Sentence builder', null, showSentenceBuilder, 'Tap a word from each column to build a sentence, or take the challenge');
   card('Desk sheets', null, showDeskSheets, 'Printable word lists for putting sentences together yourself');
   head('Grammar notes — newest first');
   all.filter(e => !e.top).sort((a, b) => (b.added || '').localeCompare(a.added || '') || a.order - b.order)
@@ -13855,6 +14011,245 @@ function showDeskSheets() {
   buildDeskSheets();
   showScreen('desk-sheets');
   window.scrollTo(0, 0);
+}
+
+// ==== SENTENCE BUILDER (2026-10-22, Andrew) ====
+// The desk sheets as something to play with: the same coloured columns
+// (dsColumns), tap one card from each (or skip a column) and the sentence
+// builds along the top, particles added. Two ways to use it:
+//   Build     - free play: make any sentence, hear it.
+//   Challenge - an English sentence from the Sentence order engine; build the
+//               Japanese. Each part right first time earns full production
+//               credit for its word (recordProduction), half on a second go.
+//               Recognition scores are never touched. Columns are re-picked
+//               for every challenge, so they don't go stale.
+// Slots are the Sentence order card's 0-6 (colours --slot-1..7); Giving has
+// no slot 4.
+let sbMode = 'do', sbChallenge = false, sbCols = [], sbSel = {}, sbEnd = 0, sbQ = false;
+let sbTarget = null, sbTry = 0, sbDone = false, sbResult = null, sbStats = { right: 0, total: 0 };
+const SB_ENDS = [['ます', 'masu', 'hab', false], ['ません', 'masen', 'hab', true], ['ました', 'mashita', 'past', false], ['ませんでした', 'masendeshita', 'past', true]];
+const sbNorm = s => String(s || '').replace(/\s/g, '');
+// The particle each slot adds after the chosen word, for this mode.
+function sbParticle(slot, it) {
+  if (!it) return ['', ''];
+  if (slot === 0) return ['は', 'wa'];
+  if (slot === 3) return /で$/.test(it.jp) ? ['', ''] : sbMode === 'give' ? ['に', 'ni'] : ['と', 'to'];
+  if (slot === 4) return it.jp === 'あるいて' ? ['', ''] : ['で', 'de'];
+  if (slot === 5) return sbMode === 'go' ? ['に', 'ni'] : ['を', 'o'];
+  return ['', ''];
+}
+// Columns for the current mode, from the desk sheets. In a challenge the
+// "what" groups are flattened (the group would give the verb away) and the
+// target word is slipped into every column it needs.
+function sbBuildColumns() {
+  const cols = dsColumns(sbMode).map((c, i) => Object.assign({}, c, { slotIdx: (c.slot || i + 1) - 1 }));
+  // Doing lists its object verbs (たべます, のみます…) as group heads, not in
+  // the verb column - add them there so any verb can be picked and conjugated.
+  const groupVerbs = [];
+  cols.forEach(c => (c.groups || []).forEach(g => { if (!/\//.test(g.verb.jp) && sgW(g.verb.jp)) groupVerbs.push(g.verb); }));
+  cols.forEach(c => {
+    if (c.ends) { c.items = c.lead.concat(groupVerbs.filter(v => !c.lead.some(x => x.jp === v.jp))); delete c.ends; c.verbCol = true; }
+    if (c.groups && sbChallenge) { c.items = shuffle(c.groups.flatMap(g => g.items)).slice(0, 12); delete c.groups; c.wide = false; }
+  });
+  if (sbChallenge && sbTarget) {
+    cols.forEach(c => {
+      const t = sbTarget.slots[c.slotIdx];
+      if (!t) return;
+      const list = c.items || [];
+      if (!list.some(x => sbNorm(x.jp) === sbNorm(t.word))) {
+        list.splice(Math.floor(Math.random() * (Math.min(list.length, 8) + 1)), 0, { jp: t.word, ro: t.ro, en: t.en || '' });
+        if (list.length > 13) list.length = 13; // the target went in within the first nine
+      }
+      c.items = list;
+    });
+  }
+  sbCols = cols;
+}
+// A challenge target from the Sentence order engine. Uses the card's own
+// globals for a moment and puts them back, so an open card isn't disturbed.
+function sbNewTarget() {
+  const saved = [l3cMode, l3SentStates.slice(), l3FreqIdx, l3SentWords];
+  try {
+    l3cMode = sbMode;
+    const on = () => 'on';
+    l3SentStates = [on(), Math.random() < 0.85 ? 'on' : 'off', Math.random() < 0.25 ? 'on' : 'off',
+      sbMode === 'give' || Math.random() < 0.55 ? 'on' : 'off', sbMode === 'give' ? 'off' : (Math.random() < 0.7 ? 'on' : 'off'), 'on', Math.random() < 0.25 ? 'q' : 'stmt'];
+    l3FreqIdx = Math.floor(Math.random() * L3_FREQ_WORDS.filter(f => !(l3SentStates[6] === 'q' && f.neg)).length);
+    pickFreshL3SentenceWords();
+    l3FixTimeForFreq();
+    const w = l3SentWords;
+    if (!w) return null;
+    const ex = buildL3SentenceExample();
+    const slots = {};
+    const S = L3C_SLOTS[sbMode];
+    [0, 1, 2, 3, 4, 5].forEach(i => {
+      const ps = ex.parts.filter(p => p.slot === i);
+      if (!ps.length) return;
+      let jp = ps.map(p => p.jp).join(''), ro = ps.map(p => p.ro).join(' ');
+      const part = sbParticle(i, { jp });
+      if (part[0] && jp.endsWith(part[0])) { jp = jp.slice(0, -part[0].length); ro = ro.replace(new RegExp(' ' + part[1] + '$'), ''); }
+      const it = l3TaughtItem(jp);
+      slots[i] = { word: jp, ro, en: it ? it.en : '', key: it ? it.jp + '|' + it.en : null };
+    });
+    const f = l3SentStates[2] === 'on' ? L3_FREQ_WORDS[l3FreqIdx] : null;
+    const neg = !!(f && f.neg);
+    const tense = f ? 'hab' : w.tense;
+    const vIt = l3TaughtItem(w.verb);
+    slots[6] = { word: w.verb, ro: sgW(w.verb).ro, en: vIt ? vIt.en : '', key: vIt ? vIt.jp + '|' + vIt.en : null,
+      end: (tense === 'past' ? 2 : 0) + (neg ? 1 : 0), q: l3cIsQ() };
+    // "I" with no topic: わたし or nothing are both right.
+    const meImplied = !slots[0] && w.subj.me;
+    return { slots, en: ex.en, jp: ex.jp, romaji: ex.romaji, meImplied };
+  } finally {
+    [l3cMode, l3SentStates, l3FreqIdx, l3SentWords] = saved;
+  }
+}
+function sbNewChallenge() {
+  for (let i = 0; i < 10 && !(sbTarget = sbNewTarget()); i++);
+  sbSel = {}; sbEnd = 0; sbQ = false; sbTry = 0; sbDone = false; sbResult = null;
+  sbBuildColumns();
+  sbRender();
+}
+function showSentenceBuilder() {
+  if (sbChallenge) sbNewChallenge(); else { sbBuildColumns(); sbRender(); }
+  showScreen('sentence-builder');
+  window.scrollTo(0, 0);
+}
+function sbSetMode(m) { if (sbMode === m) return; sbMode = m; sbSel = {}; if (sbChallenge) sbNewChallenge(); else { sbBuildColumns(); sbRender(); } }
+function sbSetChallenge(on) { if (sbChallenge === on) return; sbChallenge = on; sbSel = {}; sbEnd = 0; sbQ = false; if (on) sbNewChallenge(); else { sbTarget = null; sbBuildColumns(); sbRender(); } }
+function sbShuffle() { if (sbChallenge) sbNewChallenge(); else { sbBuildColumns(); sbSel = {}; sbRender(); } }
+function sbClear() { if (sbDone) return; sbSel = {}; sbEnd = 0; sbQ = false; sbRender(); }
+function sbPick(slotIdx, it, groupVerb) {
+  if (sbDone) return;
+  if (sbResult && sbResult[slotIdx] === 'right') return; // locked after a right answer
+  const same = sbSel[slotIdx] && sbNorm(sbSel[slotIdx].jp) === sbNorm(it.jp);
+  if (same) delete sbSel[slotIdx]; else sbSel[slotIdx] = it;
+  // Doing: an object listed under a verb brings that verb with it.
+  if (!same && groupVerb && sbMode === 'do' && !(sbResult && sbResult[6] === 'right')) sbSel[6] = groupVerb;
+  if (!same) speakJapanese(it.jp);
+  sbRender();
+}
+function sbSetEnd(i) { if (sbDone || (sbResult && sbResult[6] === 'right')) return; sbEnd = i; sbRender(); }
+function sbToggleQ() { if (sbDone || (sbResult && sbResult[6] === 'right')) return; sbQ = !sbQ; sbRender(); }
+// The sentence built so far, as coloured chunks.
+function sbBuilt() {
+  const chunks = [];
+  [0, 1, 2, 3, 4, 5, 6].forEach(i => {
+    const it = sbSel[i];
+    if (!it) return;
+    if (i === 6) {
+      const e = SB_ENDS[sbEnd], v = sgW(it.jp) ? sgVerb(it.jp, e[2], e[3]) : { jp: it.jp, ro: it.ro };
+      chunks.push({ slot: 6, jp: v.jp + (sbQ ? 'か' : ''), ro: v.ro + (sbQ ? ' ka' : '') });
+      return;
+    }
+    const p = sbParticle(i, it);
+    chunks.push({ slot: i, jp: it.jp + p[0], ro: it.ro + (p[1] ? ' ' + p[1] : '') });
+  });
+  return chunks;
+}
+function sbSay() { const t = sbBuilt().map(c => c.jp).join(''); if (t) speakJapanese(t); }
+function sbSayTarget() { if (sbTarget) speakJapanese(sbTarget.jp.replace(/[\s。]/g, '')); }
+// Check a challenge: each slot right / wrong / missing / extra.
+function sbCheck() {
+  if (!sbTarget || sbDone) return;
+  sbTry++;
+  const T = sbTarget.slots, res = {};
+  [0, 1, 2, 3, 4, 5, 6].forEach(i => {
+    const t = T[i], s = sbSel[i];
+    if (sbResult && sbResult[i] === 'right') { res[i] = 'right'; return; }
+    if (i === 0 && !t && sbTarget.meImplied) { res[i] = !s || s.jp === 'わたし' ? (s ? 'right' : null) : 'wrong'; return; }
+    if (!t && !s) return;
+    if (!t) { res[i] = 'extra'; return; }
+    if (!s) { res[i] = 'missing'; return; }
+    let ok = sbNorm(s.jp) === sbNorm(t.word);
+    if (i === 6) ok = ok && sbEnd === t.end && sbQ === t.q;
+    res[i] = ok ? 'right' : 'wrong';
+  });
+  // Production credit for each target word, the first time it's settled.
+  const credit = sbTry === 1 ? 1 : 0.5;
+  Object.keys(T).forEach(i => {
+    const t = T[i], was = sbResult && sbResult[i] === 'right';
+    if (was || !t.key) return;
+    if (res[i] === 'right') recordProduction(t.key, credit);
+    else if (sbTry >= 2) recordProduction(t.key, 0);
+  });
+  if (sbTry === 1) { sbStats.total += Object.keys(T).length; sbStats.right += Object.keys(T).filter(i => res[i] === 'right').length; }
+  // Clear wrong picks so the second go starts from what's right.
+  Object.keys(res).forEach(i => { if (res[i] === 'wrong' || res[i] === 'extra') { if (sbTry < 2) delete sbSel[i]; } });
+  sbResult = res;
+  const allRight = Object.keys(T).every(i => res[i] === 'right') && !Object.values(res).some(r => r === 'extra' || r === 'wrong');
+  if (allRight || sbTry >= 2) { sbDone = true; sbSayTarget(); }
+  sbRender();
+}
+function sbRender() {
+  const top = document.getElementById('sb-strip'), colsEl = document.getElementById('sb-cols');
+  if (!top || !colsEl) return;
+  document.querySelectorAll('#sb-mode-row button').forEach(b => b.classList.toggle('active', b.dataset.mode === sbMode));
+  document.querySelectorAll('#sb-kind-row button').forEach(b => b.classList.toggle('active', (b.dataset.kind === 'challenge') === sbChallenge));
+  const built = sbBuilt();
+  const chunkHtml = (c, field) => `<span class="l3c-chunk sb-chunk${sbResult && sbResult[c.slot] ? ' sb-' + sbResult[c.slot] : ''}" style="--slot:var(--slot-${c.slot + 1})">${field === 'jp' ? markSmallKana(c.jp) : c.ro}</span>`;
+  let html = '';
+  if (sbChallenge && sbTarget) html += `<div class="sb-prompt">"${sbTarget.en}"</div>`;
+  html += built.length ? `<div class="sb-jp">${built.map(c => chunkHtml(c, 'jp')).join(' ')}。</div><div class="sb-ro">${built.map(c => chunkHtml(c, 'ro')).join(' ')}</div>`
+    : `<div class="sb-empty">${sbChallenge ? 'Tap a word in each column you need — skip the ones you don\'t.' : 'Tap a word from each column to build a sentence.'}</div>`;
+  if (sbChallenge && sbResult) {
+    const missing = Object.keys(sbResult).filter(i => sbResult[i] === 'missing').map(i => L3C_SLOTS[sbMode][i].role.replace(/ \(.*\)$/, ''));
+    const wrongN = Object.values(sbResult).filter(r => r === 'wrong' || r === 'extra').length;
+    if (sbDone) {
+      const n = Object.keys(sbTarget.slots).length, r = Object.keys(sbTarget.slots).filter(i => sbResult[i] === 'right').length;
+      html += `<div class="sb-answer" onclick="sbSayTarget()"><div class="sb-jp">${markSmallKana(sbTarget.jp)}</div><div class="sb-ro">${sbTarget.romaji}</div></div>`
+        + `<div class="sb-verdict ${r === n ? 'good' : ''}">${r === n ? (sbTry === 1 ? 'All right first time!' : 'All right on the second go.') : `${r} of ${n} parts right — the answer is above.`}</div>`;
+    } else {
+      html += `<div class="sb-verdict">${wrongN ? `${wrongN} part${wrongN === 1 ? '' : 's'} not right (taken off)` : ''}${wrongN && missing.length ? ' · ' : ''}${missing.length ? 'missing: ' + missing.join(', ') : ''} — one more go.</div>`;
+    }
+  }
+  const btn = (label, fn, main) => `<button type="button" class="ds-btn${main ? ' ds-btn-main' : ''}" onclick="${fn}">${label}</button>`;
+  html += '<div class="ds-buttons sb-buttons">';
+  if (built.length) html += btn('🔊 Hear it', 'sbSay()');
+  if (sbChallenge) html += sbDone ? btn('Next →', 'sbNewChallenge()', true) : btn(sbTry ? 'Check again' : 'Check', 'sbCheck()', true) + btn('Clear', 'sbClear()');
+  else html += btn('Clear', 'sbClear()') + btn('Shuffle words', 'sbShuffle()');
+  html += '</div>';
+  if (sbChallenge && sbStats.total) html += `<div class="sb-stats">This session: ${sbStats.right} of ${sbStats.total} parts right first time</div>`;
+  top.innerHTML = html;
+  // Columns
+  const S = L3C_SLOTS[sbMode];
+  colsEl.innerHTML = '';
+  sbCols.forEach((c, n) => {
+    const i = c.slotIdx;
+    const col = document.createElement('div');
+    col.className = 'ds-col sb-col' + (c.wide ? ' wide' : '');
+    col.style.setProperty('--slot', `var(--slot-${i + 1})`);
+    const partic = i === 6 ? (sbQ ? 'か' : '。') : c.particle;
+    col.innerHTML = `<div class="ds-head"><div class="ds-head-top"><span class="ds-num">${n + 1}</span><span class="ds-role">${c.role}</span><span class="ds-particle">${markSmallKana(partic)}</span></div></div>`;
+    const target = sbDone && sbTarget && sbTarget.slots[i];
+    const card = (it, groupVerb) => {
+      const el = document.createElement('div');
+      const picked = sbSel[i] && sbNorm(sbSel[i].jp) === sbNorm(it.jp);
+      const isAns = target && sbNorm(it.jp) === sbNorm(target.word);
+      el.className = 'ds-card sb-card' + (i === 6 ? ' ds-verb' : '') + (picked ? ' sb-picked' : '') + (picked && sbResult && sbResult[i] === 'right' ? ' sb-ok' : '') + (isAns && !picked ? ' sb-should' : '');
+      const len = [...it.jp].length;
+      el.innerHTML = `<div class="ds-jp${len >= 8 ? ' xlong' : len >= 6 ? ' long' : ''}">${markSmallKana(it.jp)}</div><div class="ds-ro">${it.ro}</div><div class="ds-en">${it.en || ''}</div>`;
+      el.onclick = () => sbPick(i, it, groupVerb);
+      col.appendChild(el);
+    };
+    if (c.groups) c.groups.forEach(g => {
+      const h = document.createElement('div');
+      h.className = 'ds-group-head';
+      h.innerHTML = `<span class="ds-jp">${markSmallKana(g.verb.jp)}</span> <span class="ds-ro">${g.verb.ro}</span>`;
+      col.appendChild(h);
+      const single = !/\//.test(g.verb.jp) && sgW(g.verb.jp);
+      g.items.forEach(x => card(x, single ? g.verb : null));
+    });
+    else (c.items || []).forEach(x => card(x));
+    if (i === 6) {
+      const ends = document.createElement('div');
+      ends.className = 'sb-ends';
+      ends.innerHTML = SB_ENDS.map((e, k) => `<button type="button" class="sb-end${sbEnd === k ? ' active' : ''}" onclick="sbSetEnd(${k})">〜${e[0]}</button>`).join('')
+        + `<button type="button" class="sb-end sb-end-q${sbQ ? ' active' : ''}" onclick="sbToggleQ()">＋か (question)</button>`;
+      col.appendChild(ends);
+    }
+    colsEl.appendChild(col);
+  });
 }
 
 function sgGenerate() {
