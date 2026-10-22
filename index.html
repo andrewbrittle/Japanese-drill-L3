@@ -696,6 +696,7 @@
   .sb-empty { font-size: 13px; color: var(--text-dim); padding: 6px 0; }
   .sb-chunk.sb-wrong, .sb-chunk.sb-extra { text-decoration: line-through; opacity: 0.6; }
   .sb-chunk.sb-right { box-shadow: inset 0 -3px 0 var(--green); }
+  .sb-chunk.sb-ending { text-decoration: underline wavy var(--slot-5); text-underline-offset: 4px; }
   .sb-answer { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); cursor: pointer; }
   .sb-verdict { font-size: 12.5px; color: var(--text-muted); margin-top: 6px; }
   .sb-verdict.good { color: var(--green); font-weight: 700; }
@@ -1602,7 +1603,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261022.002</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261022.003</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -14124,13 +14125,14 @@ function sbPick(slotIdx, it, groupVerb) {
   if (sbResult && sbResult[slotIdx] === 'right') return; // locked after a right answer
   const same = sbSel[slotIdx] && sbNorm(sbSel[slotIdx].jp) === sbNorm(it.jp);
   if (same) delete sbSel[slotIdx]; else sbSel[slotIdx] = it;
+  if (sbResult) delete sbResult[slotIdx]; // a new pick sheds the last check's mark
   // Doing: an object listed under a verb brings that verb with it.
   if (!same && groupVerb && sbMode === 'do' && !(sbResult && sbResult[6] === 'right')) sbSel[6] = groupVerb;
   if (!same) speakJapanese(it.jp);
   sbRender();
 }
-function sbSetEnd(i) { if (sbDone || (sbResult && sbResult[6] === 'right')) return; sbEnd = i; sbRender(); }
-function sbToggleQ() { if (sbDone || (sbResult && sbResult[6] === 'right')) return; sbQ = !sbQ; sbRender(); }
+function sbSetEnd(i) { if (sbDone || (sbResult && sbResult[6] === 'right')) return; sbEnd = i; if (sbResult) delete sbResult[6]; sbRender(); }
+function sbToggleQ() { if (sbDone || (sbResult && sbResult[6] === 'right')) return; sbQ = !sbQ; if (sbResult) delete sbResult[6]; sbRender(); }
 // The sentence built so far, as coloured chunks.
 function sbBuilt() {
   const chunks = [];
@@ -14161,8 +14163,9 @@ function sbCheck() {
     if (!t && !s) return;
     if (!t) { res[i] = 'extra'; return; }
     if (!s) { res[i] = 'missing'; return; }
-    let ok = sbNorm(s.jp) === sbNorm(t.word);
-    if (i === 6) ok = ok && sbEnd === t.end && sbQ === t.q;
+    const ok = sbNorm(s.jp) === sbNorm(t.word);
+    // Right verb, wrong ending (or か): say so, and keep the verb picked.
+    if (i === 6 && ok && (sbEnd !== t.end || sbQ !== t.q)) { res[i] = 'ending'; return; }
     res[i] = ok ? 'right' : 'wrong';
   });
   // Production credit for each target word, the first time it's settled.
@@ -14195,12 +14198,14 @@ function sbRender() {
   if (sbChallenge && sbResult) {
     const missing = Object.keys(sbResult).filter(i => sbResult[i] === 'missing').map(i => L3C_SLOTS[sbMode][i].role.replace(/ \(.*\)$/, ''));
     const wrongN = Object.values(sbResult).filter(r => r === 'wrong' || r === 'extra').length;
+    const endingMsg = sbResult[6] === 'ending' ? (sbTarget.slots[6].q !== sbQ && sbTarget.slots[6].end === sbEnd ? 'right verb — check the か' : 'right verb — check the ending') : '';
     if (sbDone) {
       const n = Object.keys(sbTarget.slots).length, r = Object.keys(sbTarget.slots).filter(i => sbResult[i] === 'right').length;
       html += `<div class="sb-answer" onclick="sbSayTarget()"><div class="sb-jp">${markSmallKana(sbTarget.jp)}</div><div class="sb-ro">${sbTarget.romaji}</div></div>`
         + `<div class="sb-verdict ${r === n ? 'good' : ''}">${r === n ? (sbTry === 1 ? 'All right first time!' : 'All right on the second go.') : `${r} of ${n} parts right — the answer is above.`}</div>`;
     } else {
-      html += `<div class="sb-verdict">${wrongN ? `${wrongN} part${wrongN === 1 ? '' : 's'} not right (taken off)` : ''}${wrongN && missing.length ? ' · ' : ''}${missing.length ? 'missing: ' + missing.join(', ') : ''} — one more go.</div>`;
+      const bits = [wrongN ? `${wrongN} part${wrongN === 1 ? '' : 's'} not right (taken off)` : '', endingMsg, missing.length ? 'missing: ' + missing.join(', ') : ''].filter(Boolean);
+      html += `<div class="sb-verdict">${bits.join(' · ')} — one more go.</div>`;
     }
   }
   const btn = (label, fn, main) => `<button type="button" class="ds-btn${main ? ' ds-btn-main' : ''}" onclick="${fn}">${label}</button>`;
