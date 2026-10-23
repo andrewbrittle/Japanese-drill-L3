@@ -796,6 +796,7 @@
      (before " — ") is bold; the explanation after it is lighter and grey. */
   .grammar-page-card { gap: 8px; }
   #build-view { flex-direction: column; gap: 0.5rem; }
+  .build-divider { margin: 0.6rem 0; }
   .vocab-ref-card.grammar-page-card { color: var(--text); font-weight: 500; font-size: 13.5px; } /* beats .vocab-ref-card's gold, defined later */
   .grammar-page-card:hover { border-color: var(--accent); }
   .grammar-page-card .gp-label { font-weight: 700; }
@@ -1626,7 +1627,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.006</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.007</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2383,12 +2384,8 @@
 
   <div class="screen" id="screen-sentence-builder">
     <div class="sb-head">
-      <div class="settings-title">Sentence builder</div>
+      <div class="settings-title" id="sb-title">Sentence builder</div>
       <div class="sb-rows">
-        <div class="level-filter-row" id="sb-kind-row">
-          <button type="button" class="level-pill" data-kind="build" onclick="sbSetChallenge(false)">Build</button>
-          <button type="button" class="level-pill" data-kind="challenge" onclick="sbSetChallenge(true)">Challenge</button>
-        </div>
         <div class="level-filter-row" id="sb-mode-row">
           <button type="button" class="level-pill" data-mode="do" onclick="sbSetMode('do')">Doing</button>
           <button type="button" class="level-pill" data-mode="go" onclick="sbSetMode('go')">Going</button>
@@ -11709,15 +11706,17 @@ function renderBuildPage() {
     c.onclick = onclick;
     view.appendChild(c);
   };
-  head('Build and test');
-  card('Sentence builder', null, showSentenceBuilder, 'Tap a word from each column to build a sentence, or take the challenge');
-  const partsHtml = sbPartsPanelHtml();
-  if (partsHtml) view.insertAdjacentHTML('beforeend', partsHtml);
-  head('Sentence order');
+  // (2026-10-23, Andrew) The references first, a fine line, then the two
+  // ways to practise - the builder (free) and the challenge (tested), with
+  // the challenge's part scores under it.
   [3, 2].forEach(lvl => ((GRAMMAR.hubs[lvl] || {}).entries || []).filter(e => e.top).forEach(e =>
     card(e.label, lvl, e.card ? () => showGrammarCard(e.card) : () => { const fn = window[e.fn]; if (typeof fn === 'function') fn(); })));
-  head('To print');
   card('Desk sheets', null, showDeskSheets, 'Printable word lists for putting sentences together yourself');
+  view.insertAdjacentHTML('beforeend', '<div class="section-divider build-divider"></div>');
+  card('Sentence builder', null, () => showSentenceBuilder(false), 'Tap a word from each column to make any sentence, and hear it');
+  card('Sentence challenge', null, () => showSentenceBuilder(true), 'An English sentence to build in Japanese, checked part by part');
+  const partsHtml = sbPartsPanelHtml();
+  if (partsHtml) view.insertAdjacentHTML('beforeend', partsHtml);
 }
 function showGrammarCard(key) {
   const card = GRAMMAR.cards[key];
@@ -14264,7 +14263,7 @@ function sbPartsPanelHtml() {
       <span class="sbp-pct">${few ? '–' : p.pct + '%'}</span></div>`;
   }).join('');
   const weak = sbWeakestPart();
-  return `<div class="sbp-panel"><div class="sbp-title">Sentence challenge — right first time</div>${rows}
+  return `<div class="sbp-panel"><div class="sbp-title">Challenge parts — right first time</div>${rows}
     <div class="sbp-note">${weak ? `Most room to grow: <strong>${markSmallKana(weak.label)}</strong>. ` : ''}Over your last 20 tries of each part; a dash until there have been 5.</div></div>`;
 }
 
@@ -14285,7 +14284,13 @@ function sbNewChallenge() {
   sbBuildColumns();
   sbRender();
 }
-function showSentenceBuilder() {
+// Builder and challenge are two cards on the 作文 page (2026-10-23), sharing
+// one screen; the title says which.
+function showSentenceBuilder(challenge) {
+  sbChallenge = !!challenge;
+  sbSel = {}; sbEnd = 0; sbQ = false; sbTarget = null;
+  const t = document.getElementById('sb-title');
+  if (t) t.textContent = sbChallenge ? 'Sentence challenge' : 'Sentence builder';
   if (sbChallenge) sbNewChallenge(); else { sbBuildColumns(); sbRender(); }
   showScreen('sentence-builder');
   window.scrollTo(0, 0);
@@ -14383,7 +14388,6 @@ function sbRender() {
   const top = document.getElementById('sb-strip'), colsEl = document.getElementById('sb-cols');
   if (!top || !colsEl) return;
   document.querySelectorAll('#sb-mode-row button').forEach(b => b.classList.toggle('active', b.dataset.mode === sbMode));
-  document.querySelectorAll('#sb-kind-row button').forEach(b => b.classList.toggle('active', (b.dataset.kind === 'challenge') === sbChallenge));
   const built = sbBuilt();
   const chunkHtml = (c, field) => `<span class="l3c-chunk sb-chunk${sbResult && sbResult[c.slot] ? ' sb-' + sbResult[c.slot] : ''}" style="--slot:var(--slot-${c.slot + 1})">${field === 'jp' ? markSmallKana(c.jp) : c.ro}</span>`;
   let html = '';
