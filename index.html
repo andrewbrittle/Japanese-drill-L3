@@ -1658,7 +1658,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.011</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.012</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -12163,9 +12163,10 @@ function l3cGivePerson(G, subj) {
   if (!subj.child) add('どうりょう', 'a colleague', 2);
   if (G.v === 'ならいます') add('せんせい', 'the teacher', 4);
   else if (G.v !== 'おしえます' && (!G.gift || subj.me)) add('せんせい', 'the teacher');
-  if (subj.me) {
-    sgMyFamily().forEach(m => add(m.jp, 'my ' + m.en));
-    if (!G.skill) add('じょうし', 'my boss');
+  if (subj.me || subj.myFam) {
+    // My family: twice the weight of a single name (2026-10-23).
+    sgMyFamily(m => m.jp !== subj.myFam && 'my ' + m.en !== subj.en && !(subj.spouse && m.spouse)).forEach(m => add(m.jp, 'my ' + m.en, 2));
+    if (subj.me && !G.skill) add('じょうし', 'my boss');
   }
   return pool.length ? sgPick(pool) : null;
 }
@@ -13402,16 +13403,21 @@ const sgPoliteFamily = (f = () => true) => SG_FAMILY.filter(m => sgW(m.jp) && f(
 const sgFamFlags = m => ({ family: true, child: !!m.child, elderly: !!m.elderly, spouse: !!m.spouse, parent: !!m.parent });
 
 // Subjects: {segs, en, third, me, family, child, elderly, spouse}
+// WHO TURNS UP (2026-10-23, Andrew: "it feels more likely I'd want to talk
+// about my mum than my friend's younger sister or Tanaka-san"). Your own
+// family now comes up about twice as often as before, other people's family
+// and the named people a little less. Roughly: I 28%, my family 24%, my
+// friend 16%, names 18%, someone else's family 8%, the teacher 6%.
 function sgSubject(opts = {}) {
   const r = sgRand();
   if (r < 0.28) return { segs: sgChance(0.5) ? [sgSeg('わたし', 'は', 'wa')] : [], en: 'I', third: false, me: true };
-  if (r < 0.44) return { segs: [sgSeg('ともだち', 'は', 'wa')], en: 'my friend', third: true };
-  if (r < 0.52 && !opts.noTeacher) return { segs: [sgSeg('せんせい', 'は', 'wa')], en: 'the teacher', third: true };
-  if (r < 0.64) { // my own family: ちち は = "my father"
+  if (r < 0.52) { // my own family: ちち は = "my father"
     const pool = sgMyFamily(opts.famFilter);
-    if (pool.length) { const m = sgPick(pool); return { segs: [sgSeg(m.jp, 'は', 'wa')], en: 'my ' + m.en, third: true, ...sgFamFlags(m) }; }
+    if (pool.length) { const m = sgPick(pool); return { segs: [sgSeg(m.jp, 'は', 'wa')], en: 'my ' + m.en, third: true, myFam: m.jp, ...sgFamFlags(m) }; }
   }
-  if (r < 0.78) { // someone else's family: ともだち の おかあさん は
+  if (r < 0.68) return { segs: [sgSeg('ともだち', 'は', 'wa')], en: 'my friend', third: true };
+  if (r < 0.74 && !opts.noTeacher) return { segs: [sgSeg('せんせい', 'は', 'wa')], en: 'the teacher', third: true };
+  if (r < 0.82) { // someone else's family: ともだち の おかあさん は
     const pool = sgPoliteFamily(opts.famFilter);
     if (pool.length) {
       const owner = sgChance(0.5) ? ['ともだち', "my friend's"] : (n => [n.jp, n.en + "'s"])(sgPick(SENTENCE_NAME_POOL));
@@ -13431,17 +13437,30 @@ function sgCompanion(subj, dest, adultOnly, noFamily) {
   const inSubj = n => (subj.segs || []).some(s => s.jp.split(' ')[0] === n.jp);
   const names = SENTENCE_NAME_POOL.filter(n => !inSubj(n));
   const r = sgRand();
+  // One of MY family doing something - often with another of my family
+  // (ははは ちちと…), since the plain words all mean "my" (2026-10-23).
+  if (subj.myFam && r < 0.45) {
+    const pool = sgMyFamily(m => famOk(m) && m.jp !== subj.myFam && 'my ' + m.en !== subj.en && !(subj.spouse && m.spouse)); // not しゅじん with おっと, or つま with しゅじん
+    if (pool.length) { const m = sgPick(pool); return { seg: sgSeg(m.jp, 'と', 'to'), en: 'with my ' + m.en }; }
+  }
   if (subj.me) {
-    if (r < 0.2) return { seg: sgSeg('ともだち', 'と', 'to'), en: 'with a friend' };
-    if (r < 0.36) { const n = sgPick(names); return { seg: sgSeg(n.jp, 'と', 'to'), en: 'with ' + n.en }; }
-    if (r < 0.56) { const pool = sgMyFamily(famOk); if (pool.length) { const m = sgPick(pool); return { seg: sgSeg(m.jp, 'と', 'to'), en: 'with my ' + m.en }; } }
-    if (r < 0.66 && SG_COLLEAGUE_OK.includes(dest) && sgW('どうりょう')) return { seg: sgSeg('どうりょう', 'と', 'to'), en: 'with a colleague' };
-    if (r < 0.84) return { seg: { jp: 'ひとり で', ro: 'hitori de' }, en: 'on my own' };
+    // (2026-10-23) My family up from 20% to 32%.
+    if (r < 0.18) return { seg: sgSeg('ともだち', 'と', 'to'), en: 'with a friend' };
+    if (r < 0.30) { const n = sgPick(names); return { seg: sgSeg(n.jp, 'と', 'to'), en: 'with ' + n.en }; }
+    if (r < 0.62) { const pool = sgMyFamily(famOk); if (pool.length) { const m = sgPick(pool); return { seg: sgSeg(m.jp, 'と', 'to'), en: 'with my ' + m.en }; } }
+    if (r < 0.72 && SG_COLLEAGUE_OK.includes(dest) && sgW('どうりょう')) return { seg: sgSeg('どうりょう', 'と', 'to'), en: 'with a colleague' };
+    if (r < 0.88) return { seg: { jp: 'ひとり で', ro: 'hitori de' }, en: 'on my own' };
     const pool = noFamily ? [] : sgPoliteFamily(m => !m.child && !m.elderly);
     if (pool.length) { const m = sgPick(pool); return { segs: [sgSeg('ともだち', 'の', 'no'), sgSeg(m.jp, 'と', 'to')], en: `with my friend's ${m.en}` }; }
     return { seg: sgSeg('ともだち', 'と', 'to'), en: 'with a friend' };
   }
-  if (/friend/.test(subj.en || '') || r < 0.5) { const n = sgPick(names); return { seg: sgSeg(n.jp, 'と', 'to'), en: 'with ' + n.en }; }
+  // Anyone else: sometimes with one of MY family too ("my friend goes with
+  // my mother") - about a quarter of the time (2026-10-23).
+  if (r < 0.25 && !subj.child) {
+    const pool = sgMyFamily(m => famOk(m) && m.jp !== subj.myFam && !(subj.spouse && m.spouse));
+    if (pool.length) { const m = sgPick(pool); return { seg: sgSeg(m.jp, 'と', 'to'), en: 'with my ' + m.en }; }
+  }
+  if (/friend/.test(subj.en || '') || r < 0.65) { const n = sgPick(names); return { seg: sgSeg(n.jp, 'と', 'to'), en: 'with ' + n.en }; }
   return { seg: sgSeg('ともだち', 'と', 'to'), en: 'with a friend' };
 }
 
