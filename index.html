@@ -230,6 +230,10 @@
 
   .nav-pills { display: flex; gap: 6px; overflow-x: auto; flex-shrink: 0; scrollbar-width: none; }
   .nav-pills::-webkit-scrollbar { display: none; }
+  /* Six tabs since 作文 (2026-10-23): a little tighter on narrow phones so
+     they all fit, and if they ever don't, the row scrolls instead of
+     pushing the first tab off the left edge. */
+  .nav-row .nav-pills { flex-shrink: 1; min-width: 0; }
   .nav-pill {
     padding: 5px 10px; border-radius: 99px;
     border: 1px solid var(--border); background: transparent;
@@ -239,6 +243,8 @@
   }
   .nav-pill:hover { border-color: var(--border-hover); color: var(--text); }
   .nav-pill.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  @media (max-width: 400px) { .nav-pills { gap: 4px; } .nav-pill { padding: 5px 8px; } }
+  @media (max-width: 380px) { header { padding-left: 10px !important; padding-right: 10px !important; } .nav-pills { gap: 3px; } .nav-pill { padding: 5px 6px; font-size: 11.5px; } }
   /* Was hardcoded #fff from back when the app was dark-only - white text on
      "Back" stood out fine against a dark pill background, but on the light
      theme it meant white-on-pale (or white-on-white when not also .active),
@@ -789,6 +795,7 @@
      gold/bold of other ref cards, so the gold headings stand out. The topic
      (before " — ") is bold; the explanation after it is lighter and grey. */
   .grammar-page-card { gap: 8px; }
+  #build-view { flex-direction: column; gap: 0.5rem; }
   .vocab-ref-card.grammar-page-card { color: var(--text); font-weight: 500; font-size: 13.5px; } /* beats .vocab-ref-card's gold, defined later */
   .grammar-page-card:hover { border-color: var(--accent); }
   .grammar-page-card .gp-label { font-weight: 700; }
@@ -1481,8 +1488,9 @@
     <div class="nav-pills">
       <button class="nav-pill" id="nav-kana" onclick="showKanaSelection()">かな</button>
       <button class="nav-pill" id="nav-kanji" onclick="tryResumeKanji()">漢字</button>
-      <button class="nav-pill" id="nav-numbers" onclick="tryResumeOrNumbers()">Numbers</button>
       <button class="nav-pill active" id="nav-match" onclick="tryResumeMatch()">Vocab</button>
+      <button class="nav-pill" id="nav-build" onclick="showBuildPage()" lang="ja">作文</button>
+      <button class="nav-pill" id="nav-numbers" onclick="tryResumeOrNumbers()">Numbers</button>
       <button class="nav-pill" id="nav-grammar" onclick="showGrammarPage()">Grammar</button>
     </div>
   </div>
@@ -1618,7 +1626,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.005</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.006</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2343,9 +2351,18 @@
 
   <!-- Grammar screen (2026-10-16): its own tab, was a pill on the Vocab screen.
        renderGrammarPage() fills #match-grammar-view. -->
+  <!-- 作文 (2026-10-23, Andrew): "composition", the school word for writing
+       sentences. Everything for putting sentences together, apart from the
+       grammar notes - see renderBuildPage(). -->
+  <div class="screen" id="screen-build">
+    <div class="settings-title" lang="ja">作文</div>
+    <div class="settings-sub">Composition — putting sentences together: build them, test yourself, and see which parts need work.</div>
+    <div id="build-view" style="display:flex;"></div>
+  </div>
+
   <div class="screen" id="screen-grammar">
     <div class="settings-title">Grammar</div>
-    <div class="settings-sub">Sentence building first, then every note, newest first.</div>
+    <div class="settings-sub">Every grammar note, newest first.</div>
     <div id="match-grammar-view" style="display:flex;"></div>
   </div>
 
@@ -2381,7 +2398,7 @@
     </div>
     <div class="sb-strip" id="sb-strip"></div>
     <div class="sb-scroll"><div class="sb-cols" id="sb-cols"></div></div>
-    <div class="sb-tip">Works best with your phone turned sideways. Challenges keep a score for each part of the sentence (on the Grammar page); they never touch your word greens.</div>
+    <div class="sb-tip">Works best with your phone turned sideways. Challenges keep a score for each part of the sentence (on the 作文 page); they never touch your word greens.</div>
   </div>
 
   <!-- Match game screen -->
@@ -5956,7 +5973,7 @@ function startRandomKanji() {
 // Going back calls each screen's own show function (NAV_RESTORE) so its lists
 // and score colours are redrawn up to date.
 var navStack = [], navCurrent = null, navGoingBack = false; // var: showScreen runs at start-up
-const NAV_ROOTS = ['kana-selection', 'kanji-index', 'numbers', 'match-settings', 'grammar'];
+const NAV_ROOTS = ['kana-selection', 'kanji-index', 'numbers', 'match-settings', 'build', 'grammar'];
 const NAV_TRANSIENT = ['drill', 'results'];
 function navRecord(id) {
   // At start-up the first page is shown by the HTML itself, not showScreen,
@@ -5983,6 +6000,7 @@ const NAV_RESTORE = {
   'counter-quiz-selection': () => showCounterQuizSelection(),
   'settings': () => showSettingsScreen(),
   'grammar': () => showGrammarPage(),
+  'build': () => showBuildPage(),
 };
 function navBack() {
   // A popup open? Back closes that first, like a phone app.
@@ -5997,7 +6015,7 @@ function navBack() {
   try { (NAV_RESTORE[target] || (() => showScreen(target)))(); } finally { navGoingBack = false; }
   renderNavBack();
 }
-const NAV_HOME = { 'desk-sheets': 'grammar', 'sentence-builder': 'grammar', 'hiragana-selection': 'kana-selection', 'katakana-selection': 'kana-selection', 'kanji-selection': 'kanji-index', 'counter-quiz-selection': 'numbers' };
+const NAV_HOME = { 'desk-sheets': 'build', 'sentence-builder': 'build', 'hiragana-selection': 'kana-selection', 'katakana-selection': 'kana-selection', 'kanji-selection': 'kanji-index', 'counter-quiz-selection': 'numbers' };
 // The cog opens Settings, and tapped again closes it (back to where you were).
 function toggleSettings() {
   if (navCurrent === 'settings' && navStack.length) navBack();
@@ -6081,7 +6099,7 @@ function showScreen(id) {
   // The lit tab is the section you're in - the main page at the bottom of
   // the history (2026-10-16), so a grammar card lights Grammar and the kana
   // dakuten chart lights かな, not Vocab.
-  const NAV_TAB = { 'kana-selection': 'nav-kana', 'kanji-index': 'nav-kanji', 'numbers': 'nav-numbers', 'match-settings': 'nav-match', 'grammar': 'nav-grammar' };
+  const NAV_TAB = { 'kana-selection': 'nav-kana', 'kanji-index': 'nav-kanji', 'numbers': 'nav-numbers', 'match-settings': 'nav-match', 'build': 'nav-build', 'grammar': 'nav-grammar' };
   const navRoot = NAV_ROOTS.includes(id) ? id : (navStack[0] || NAV_HOME[id]);
   if (id !== 'settings' && NAV_TAB[navRoot]) {
     document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
@@ -11651,12 +11669,7 @@ function renderGrammarPage() {
     view.appendChild(c);
   };
   const open = e => e.card ? () => showGrammarCard(e.card) : () => { const fn = window[e.fn]; if (typeof fn === 'function') fn(); };
-  head('Building sentences');
-  all.filter(e => e.top).forEach(e => card(e.label, e.lvl, open(e)));
-  card('Sentence builder', null, showSentenceBuilder, 'Tap a word from each column to build a sentence, or take the challenge');
-  const partsHtml = sbPartsPanelHtml();
-  if (partsHtml) view.insertAdjacentHTML('beforeend', partsHtml);
-  card('Desk sheets', null, showDeskSheets, 'Printable word lists for putting sentences together yourself');
+  // Sentence building moved to its own tab, 作文 (2026-10-23) - renderBuildPage.
   head('Grammar notes — newest first');
   all.filter(e => !e.top).sort((a, b) => (b.added || '').localeCompare(a.added || '') || a.order - b.order)
     .forEach(e => card(e.label, e.lvl, open(e)));
@@ -11673,6 +11686,38 @@ function renderGrammarPage() {
 function showGrammarPage() {
   showScreen('grammar');
   renderGrammarPage();
+}
+// 作文 TAB (2026-10-23): the Sentence builder and its part scores, Sentence
+// order (the grammar hub's "top" entries) and the Desk sheets. Same card
+// style as the Grammar page.
+function showBuildPage() {
+  showScreen('build');
+  renderBuildPage();
+}
+function renderBuildPage() {
+  const view = document.getElementById('build-view');
+  if (!view) return;
+  view.innerHTML = '';
+  const head = text => { const h = document.createElement('div'); h.className = 'grammar-page-head'; h.textContent = text; view.appendChild(h); };
+  const card = (label, lvl, onclick, sub) => {
+    const c = document.createElement('div');
+    c.className = 'vocab-ref-card grammar-page-card';
+    const cut = label.indexOf(' — ');
+    const labelHtml = cut > 0 ? `${label.slice(0, cut)}<span class="gp-label-rest"> — ${label.slice(cut + 3)}</span>` : label;
+    c.innerHTML = `<span class="gp-text"><span class="gp-label">${labelHtml}</span>${sub ? `<span class="gp-sub">${sub}</span>` : ''}</span>`
+      + `${lvl ? `<span class="gp-lvl gp-lvl-${lvl}">L${lvl}</span>` : ''}<span class="vocab-ref-arrow">→</span>`;
+    c.onclick = onclick;
+    view.appendChild(c);
+  };
+  head('Build and test');
+  card('Sentence builder', null, showSentenceBuilder, 'Tap a word from each column to build a sentence, or take the challenge');
+  const partsHtml = sbPartsPanelHtml();
+  if (partsHtml) view.insertAdjacentHTML('beforeend', partsHtml);
+  head('Sentence order');
+  [3, 2].forEach(lvl => ((GRAMMAR.hubs[lvl] || {}).entries || []).filter(e => e.top).forEach(e =>
+    card(e.label, lvl, e.card ? () => showGrammarCard(e.card) : () => { const fn = window[e.fn]; if (typeof fn === 'function') fn(); })));
+  head('To print');
+  card('Desk sheets', null, showDeskSheets, 'Printable word lists for putting sentences together yourself');
 }
 function showGrammarCard(key) {
   const card = GRAMMAR.cards[key];
