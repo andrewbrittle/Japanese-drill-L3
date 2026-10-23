@@ -712,8 +712,22 @@
   .sb-stats { font-size: 11px; color: var(--text-dim); margin-top: 6px; }
   .sb-scroll { width: 100%; overflow-x: auto; padding-bottom: 6px; }
   .sb-cols { display: flex; gap: 6px; align-items: flex-start; width: max-content; margin: 0 auto; }
-  .sb-col { flex: 0 0 112px; }
-  .sb-col.wide { flex-basis: 228px; }
+  /* Column width grows with wide screens (laptops), and the card text with it,
+     so the builder fills the screen instead of sitting small in the middle. */
+  #screen-sentence-builder { --sbw: 112px; }
+  @media (min-width: 900px) and (min-height: 520px) {
+    #screen-sentence-builder { --sbw: clamp(112px, 10.5vw, 160px); }
+    .sb-card .ds-jp { font-size: clamp(14.5px, 1.25vw, 19px); }
+    .sb-card .ds-jp.long { font-size: clamp(13px, 1.1vw, 17px); }
+    .sb-card .ds-jp.xlong { font-size: clamp(11.5px, 0.95vw, 15px); }
+    .sb-card .ds-ro, .sb-card .ds-en { font-size: clamp(9.5px, 0.8vw, 12px); }
+    .sb-col .ds-role { font-size: clamp(11px, 0.85vw, 13px); }
+    .sb-strip { max-width: min(1000px, 100%); }
+    .sb-jp { font-size: clamp(20px, 1.8vw, 26px); }
+    .sb-ro { font-size: clamp(12px, 0.95vw, 14px); }
+  }
+  .sb-col { flex: 0 0 var(--sbw); }
+  .sb-col.wide { flex-basis: calc(var(--sbw) * 2 + 4px); }
   .sb-card { cursor: pointer; user-select: none; -webkit-user-select: none; }
   /* Romaji brighter than the English on builder cards (Andrew, 2026-10-23):
      find the word by its sound, not by scanning for "tomorrow". */
@@ -1629,7 +1643,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.009</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.010</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -14139,7 +14153,9 @@ function sbBuildColumns() {
   cols.forEach(c => (c.groups || []).forEach(g => { if (!/\//.test(g.verb.jp) && sgW(g.verb.jp)) groupVerbs.push(g.verb); }));
   cols.forEach(c => {
     if (c.ends) { c.items = c.lead.concat(groupVerbs.filter(v => !c.lead.some(x => x.jp === v.jp))); delete c.ends; c.verbCol = true; }
-    if (c.groups && sbChallenge) { c.items = shuffle(c.groups.flatMap(g => g.items)).slice(0, 12); delete c.groups; c.wide = false; }
+    // Flattened, but still a double column, so the challenge is the same
+    // width as the builder (Andrew noticed the difference on a laptop).
+    if (c.groups && sbChallenge) { c.items = shuffle(c.groups.flatMap(g => g.items)).slice(0, 14); delete c.groups; }
   });
   if (sbChallenge && sbTarget) {
     cols.forEach(c => {
