@@ -1487,12 +1487,14 @@
   </div>
   <div class="nav-row">
     <div class="nav-pills">
-      <button class="nav-pill" id="nav-kana" onclick="showKanaSelection()">かな</button>
-      <button class="nav-pill" id="nav-kanji" onclick="tryResumeKanji()">漢字</button>
-      <button class="nav-pill active" id="nav-match" onclick="tryResumeMatch()">Vocab</button>
-      <button class="nav-pill" id="nav-build" onclick="showBuildPage()" lang="ja">作文</button>
-      <button class="nav-pill" id="nav-numbers" onclick="tryResumeOrNumbers()">Numbers</button>
-      <button class="nav-pill" id="nav-grammar" onclick="showGrammarPage()">Grammar</button>
+      <!-- Tabs in Japanese, page titles in English (Andrew, 2026-10-23). Kana
+           for now; each can take its kanji (言葉 作文 数字 文法) once taught. -->
+      <button class="nav-pill" id="nav-kana" onclick="showKanaSelection()" lang="ja">かな</button>
+      <button class="nav-pill" id="nav-kanji" onclick="tryResumeKanji()" lang="ja">漢字</button>
+      <button class="nav-pill active" id="nav-match" onclick="tryResumeMatch()" lang="ja">ことば</button>
+      <button class="nav-pill" id="nav-build" onclick="showBuildPage()" lang="ja">さくぶん</button>
+      <button class="nav-pill" id="nav-numbers" onclick="tryResumeOrNumbers()" lang="ja">すうじ</button>
+      <button class="nav-pill" id="nav-grammar" onclick="showGrammarPage()" lang="ja">ぶんぽう</button>
     </div>
   </div>
 </header>
@@ -1627,7 +1629,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.008</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.009</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2131,7 +2133,7 @@
 
   <!-- Match settings screen -->
   <div class="screen visible" id="screen-match-settings">
-    <div class="settings-title">Vocab</div>
+    <div class="settings-title">Vocabulary</div>
     <div class="settings-sub">Pick a word set, or tap the dice for a random drill.</div>
 
     <div class="level-filter-row" id="vocab-level-filter-row">
@@ -2356,8 +2358,8 @@
        sentences. Everything for putting sentences together, apart from the
        grammar notes - see renderBuildPage(). -->
   <div class="screen" id="screen-build">
-    <div class="settings-title" lang="ja">作文</div>
-    <div class="settings-sub">Composition — putting sentences together: build them, test yourself, and see which parts need work.</div>
+    <div class="settings-title">Composition</div>
+    <div class="settings-sub">さくぶん (作文) — putting sentences together: build them, test yourself, and see which parts need work.</div>
     <div id="build-view" style="display:flex;"></div>
   </div>
 
@@ -2395,7 +2397,7 @@
     </div>
     <div class="sb-strip" id="sb-strip"></div>
     <div class="sb-scroll"><div class="sb-cols" id="sb-cols"></div></div>
-    <div class="sb-tip">Works best with your phone turned sideways. Challenges keep a score for each part of the sentence (on the 作文 page); they never touch your word greens.</div>
+    <div class="sb-tip">Works best with your phone turned sideways. Challenges keep a score for each part of the sentence (on the Composition page); they never touch your word greens.</div>
   </div>
 
   <!-- Match game screen -->
@@ -6019,7 +6021,7 @@ function toggleSettings() {
   else if (navCurrent !== 'settings') showSettingsScreen();
 }
 function navLabel(id) {
-  if (id === 'match-settings') return ({ theme: 'Groups', random: 'Random', grammar: 'Grammar', 1: 'L1', 2: 'L2', 3: 'L3', tourist: 'Tourist', untaught: 'Untaught', andrew: 'Andrew' })[currentMatchLevel] || 'Vocab';
+  if (id === 'match-settings') return ({ theme: 'Groups', random: 'Random', grammar: 'Grammar', 1: 'L1', 2: 'L2', 3: 'L3', tourist: 'Tourist', untaught: 'Untaught', andrew: 'Andrew' })[currentMatchLevel] || 'Vocabulary';
   if (id === 'drill') return 'Drill';
   if (id === 'results') return 'Results';
   const t = document.querySelector('#screen-' + id + ' .settings-title');
@@ -6117,7 +6119,7 @@ function showScreen(id) {
     // vocabRefBackTarget-aware function the in-page "← Back" button uses.
     navMatch.onclick = id === 'vocab-reference' ? closeVocabReference : tryResumeMatch;
   } else {
-    navMatch.textContent = 'Vocab';
+    navMatch.textContent = 'ことば';
     navMatch.classList.remove('sub-screen');
     navMatch.onclick = tryResumeMatch;
   }
@@ -6141,7 +6143,7 @@ function showScreen(id) {
   const navNumbers = document.getElementById('nav-numbers');
   if (navNumbers) {
     const inNumbersDrill = id === 'drill' && isPendingDrillNumbers();
-    navNumbers.textContent = inNumbersDrill ? 'Numbers' : (isPendingDrillNumbers() ? 'Resume' : 'Numbers');
+    navNumbers.textContent = inNumbersDrill ? 'すうじ' : (isPendingDrillNumbers() ? 'Resume' : 'すうじ');
     navNumbers.onclick = inNumbersDrill ? showNumbersScreen : tryResumeOrNumbers;
     navNumbers.classList.remove('sub-screen');
   }
