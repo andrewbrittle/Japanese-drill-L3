@@ -720,6 +720,15 @@
   .sb-end { font-family: 'BIZ UDPGothic', sans-serif; font-size: 13px; font-weight: 700; padding: 5px 4px; border-radius: 7px; border: 1px solid var(--border); border-left: 3px solid var(--slot-7); background: var(--bg); color: var(--text); cursor: pointer; }
   .sb-end.active { background: color-mix(in srgb, var(--slot-7) 28%, var(--bg)); border-color: var(--slot-7); }
   .sb-end-q { font-size: 11.5px; }
+  .sbp-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem 0.9rem; display: flex; flex-direction: column; gap: 6px; }
+  .sbp-title { font-size: 13.5px; font-weight: 700; margin-bottom: 2px; }
+  .sbp-row { display: grid; grid-template-columns: 9.5rem 1fr 2.6rem; align-items: center; gap: 8px; font-size: 12.5px; }
+  .sbp-label { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sbp-bar { height: 8px; border-radius: 99px; background: var(--surface2); overflow: hidden; }
+  .sbp-bar span { display: block; height: 100%; background: var(--slot); border-radius: 99px; }
+  .sbp-pct { text-align: right; font-weight: 700; color: var(--text-muted); }
+  .sbp-few .sbp-bar span { opacity: 0.35; }
+  .sbp-note { font-size: 11.5px; color: var(--text-dim); margin-top: 2px; }
   .sb-tip { font-size: 11px; color: var(--text-dim); text-align: center; max-width: 640px; margin: 0 auto; }
   /* Phone on its side: a slimmer strip, so more of the columns show under it. */
   @media (max-height: 500px) {
@@ -1609,7 +1618,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.004</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.005</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2372,7 +2381,7 @@
     </div>
     <div class="sb-strip" id="sb-strip"></div>
     <div class="sb-scroll"><div class="sb-cols" id="sb-cols"></div></div>
-    <div class="sb-tip">Works best with your phone turned sideways. Challenge answers count towards each word's typed-from-memory score, never against its greens.</div>
+    <div class="sb-tip">Works best with your phone turned sideways. Challenges keep a score for each part of the sentence (on the Grammar page); they never touch your word greens.</div>
   </div>
 
   <!-- Match game screen -->
@@ -5678,8 +5687,9 @@ function buildVocabTileGrid(categoryKey) {
     const scoreClass = kanaScoreClass(scoreKey);
     if (scoreClass) tile.classList.add(scoreClass);
     // Production (typed) score: a thin bar along the bottom once tried.
-    const prod = prodScores[scoreKey];
-    if (prod) tile.insertAdjacentHTML('beforeend', `<span class="prod-mark" title="Typed it yourself: ${Math.round(prod.p * 100)}%"><span style="width:${Math.max(6, Math.round(prod.p * 100))}%"></span></span>`);
+    // (2026-10-23) The thin production bar that sat here is gone (Andrew: a
+    // word's score mostly showed how often sentences used it). prodScores are
+    // still kept - sentence skills are measured by part instead (SB_PARTS).
     // While a random-20 pick is disguising the grid, every tile shows as
     // selected regardless of whether it's actually one of the 20 - that's
     // the whole point (no clue which ones are really included).
@@ -7638,7 +7648,7 @@ function getItemsProduction(items) {
 function downloadScoresBackup() {
   // Production scores ride along under one extra key (__prod), so the file
   // keeps its old shape and older backups still restore.
-  const data = JSON.stringify(Object.assign({}, kanaScores, { __prod: prodScores }));
+  const data = JSON.stringify(Object.assign({}, kanaScores, { __prod: prodScores, __parts: sbParts }));
   const blob = new Blob([data], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -7681,7 +7691,8 @@ function handleRestoreFileSelected(event) {
     }
     if (!window.confirm("This replaces your current progress with what's in this backup. Continue?")) return;
     if (parsed.__prod && typeof parsed.__prod === 'object') { prodScores = parsed.__prod; saveProdScores(); }
-    delete parsed.__prod;
+    if (parsed.__parts && typeof parsed.__parts === 'object') { sbParts = parsed.__parts; saveSbParts(); }
+    delete parsed.__prod; delete parsed.__parts;
     // Same bare-number -> {score,lastSeen} normalisation the app runs on
     // load (see above KANA_SCORE_KEY) - cheap and idempotent, and protects
     // against restoring an old-shape export without duplicating the whole
@@ -9960,8 +9971,7 @@ function buildCategoryTile(key) {
   `;
   // Production: a thin second bar, how far the set is towards being typed
   // from memory (untried words count as nothing). Only once something's been tried.
-  const prodAvg = getItemsProduction(resolvedItems);
-  if (prodAvg.tried) card.insertAdjacentHTML('beforeend', `<div class="prod-bar" title="Typed from memory: ${Math.round(prodAvg.avg * 100)}%"><span style="width:${Math.max(2, Math.round(prodAvg.avg * 100))}%"></span></div>`);
+  // (2026-10-23) Removed with the tile bars - see buildVocabTiles.
   // TRIAL (2026-09-22): per-tile confidence spread bar, replacing the old
   // single-colour .cat-swatch average blob on this screen. showUntested is
   // local to this one tile's closure, not appSettings/localStorage - a
@@ -11644,6 +11654,8 @@ function renderGrammarPage() {
   head('Building sentences');
   all.filter(e => e.top).forEach(e => card(e.label, e.lvl, open(e)));
   card('Sentence builder', null, showSentenceBuilder, 'Tap a word from each column to build a sentence, or take the challenge');
+  const partsHtml = sbPartsPanelHtml();
+  if (partsHtml) view.insertAdjacentHTML('beforeend', partsHtml);
   card('Desk sheets', null, showDeskSheets, 'Printable word lists for putting sentences together yourself');
   head('Grammar notes — newest first');
   all.filter(e => !e.top).sort((a, b) => (b.added || '').localeCompare(a.added || '') || a.order - b.order)
@@ -14154,6 +14166,63 @@ function sbNewTarget() {
     [l3cMode, l3SentStates, l3FreqIdx, l3SentWords] = saved;
   }
 }
+// SENTENCE PARTS (2026-10-23, Andrew): how each PART of a sentence is going,
+// rather than each word - "Verb endings 70%, Time 80%, With whom 30%". Every
+// challenge records, for each part, whether it was right at the first Check.
+// Kept per part as the last 20 results, so the figure follows improvement.
+// Verb and Verb ending are separate: the right verb with the wrong ending
+// counts as a right verb and a wrong ending. Picking a part the sentence
+// doesn't need (a frequency word that isn't there) counts against that part.
+const SB_PARTS_KEY = 'jpDrillSentenceParts';
+const SB_PART_DEFS = [
+  ['who', 'Who は', 1], ['when', 'When (に)', 2], ['often', 'How often', 3], ['with', 'With whom と', 4], ['to', 'To / from whom に', 4],
+  ['place', 'Where it happens で', 5], ['how', 'How (by) で', 5], ['what', 'What を', 6], ['whereTo', 'Where to に', 6],
+  ['verb', 'Verb', 7], ['ending', 'Verb ending (+か)', 7],
+];
+let sbParts = {};
+try { sbParts = JSON.parse(localStorage.getItem(SB_PARTS_KEY)) || {}; } catch (e) { sbParts = {}; }
+function saveSbParts() { try { localStorage.setItem(SB_PARTS_KEY, JSON.stringify(sbParts)); } catch (e) { /* fine */ } }
+// Slot (0-6) + mode -> part id.
+function sbPartId(slot, mode) {
+  return [
+    'who', 'when', 'often', mode === 'give' ? 'to' : 'with', mode === 'go' ? 'how' : 'place', mode === 'go' ? 'whereTo' : 'what', 'verb',
+  ][slot];
+}
+function sbRecordPart(id, ok) {
+  const e = sbParts[id] || { r: [], n: 0 };
+  e.r.push(ok ? 1 : 0);
+  if (e.r.length > 20) e.r = e.r.slice(-20);
+  e.n++;
+  sbParts[id] = e;
+}
+function sbPartStats() {
+  return SB_PART_DEFS.map(([id, label, slot]) => {
+    const e = sbParts[id];
+    const pct = e && e.r.length ? Math.round(100 * e.r.reduce((a, b) => a + b, 0) / e.r.length) : null;
+    return { id, label, slot, pct, n: e ? e.n : 0 };
+  });
+}
+// The part to work on: lowest first-time rate with at least 5 tries.
+function sbWeakestPart() {
+  const ok = sbPartStats().filter(p => p.n >= 5 && p.pct !== null).sort((a, b) => a.pct - b.pct);
+  return ok.length && ok[0].pct < 100 ? ok[0] : null;
+}
+// Panel for the Grammar page.
+function sbPartsPanelHtml() {
+  const stats = sbPartStats().filter(p => p.n > 0);
+  if (!stats.length) return '';
+  const rows = stats.map(p => {
+    const few = p.n < 5;
+    return `<div class="sbp-row${few ? ' sbp-few' : ''}" style="--slot:var(--slot-${p.slot})">
+      <span class="sbp-label">${markSmallKana(p.label)}</span>
+      <span class="sbp-bar"><span style="width:${p.pct}%"></span></span>
+      <span class="sbp-pct">${few ? '–' : p.pct + '%'}</span></div>`;
+  }).join('');
+  const weak = sbWeakestPart();
+  return `<div class="sbp-panel"><div class="sbp-title">Sentence challenge — right first time</div>${rows}
+    <div class="sbp-note">${weak ? `Most room to grow: <strong>${markSmallKana(weak.label)}</strong>. ` : ''}Over your last 20 tries of each part; a dash until there have been 5.</div></div>`;
+}
+
 // Every card a column could ever show, for copying an answer card's wording.
 function sbPoolCard(slotIdx, jp) {
   const pools = {
@@ -14242,7 +14311,22 @@ function sbCheck() {
     if (res[i] === 'right') recordProduction(t.key, credit);
     else if (sbTry >= 2) recordProduction(t.key, 0);
   });
-  if (sbTry === 1) { sbStats.total += Object.keys(T).length; sbStats.right += Object.keys(T).filter(i => res[i] === 'right').length; }
+  if (sbTry === 1) {
+    sbStats.total += Object.keys(T).length; sbStats.right += Object.keys(T).filter(i => res[i] === 'right').length;
+    // Parts, first Check only.
+    [0, 1, 2, 3, 4, 5, 6].forEach(i => {
+      const r = res[i];
+      if (!r) return; // not in the sentence and not picked (or "I" left out)
+      if (i === 6) {
+        if (r === 'missing') { sbRecordPart('verb', false); return; }
+        sbRecordPart('verb', r === 'right' || r === 'ending');
+        if (r === 'right' || r === 'ending') sbRecordPart('ending', r === 'right');
+        return;
+      }
+      sbRecordPart(sbPartId(i, sbMode), r === 'right');
+    });
+    saveSbParts();
+  }
   // Clear wrong picks so the second go starts from what's right.
   Object.keys(res).forEach(i => { if (res[i] === 'wrong' || res[i] === 'extra') { if (sbTry < 2) delete sbSel[i]; } });
   sbResult = res;
@@ -14280,7 +14364,10 @@ function sbRender() {
   if (sbChallenge) html += sbDone ? btn('Next →', 'sbNewChallenge()', true) : btn(sbTry ? 'Check again' : 'Check', 'sbCheck()', true) + btn('Clear', 'sbClear()');
   else html += btn('Clear', 'sbClear()') + btn('Shuffle words', 'sbShuffle()');
   html += '</div>';
-  if (sbChallenge && sbStats.total) html += `<div class="sb-stats">This session: ${sbStats.right} of ${sbStats.total} parts right first time</div>`;
+  if (sbChallenge && sbStats.total) {
+    const weak = sbWeakestPart();
+    html += `<div class="sb-stats">This session: ${sbStats.right} of ${sbStats.total} parts right first time${weak ? ` · most room to grow: ${markSmallKana(weak.label)} (${weak.pct}%)` : ''}</div>`;
+  }
   top.innerHTML = html;
   // Columns
   const S = L3C_SLOTS[sbMode];
