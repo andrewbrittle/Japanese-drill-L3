@@ -1609,7 +1609,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.003</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.004</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -13930,7 +13930,7 @@ function dsWhoPool(withMe) {
   pool.push(dsItem('ともだち', 'friend'));
   sgMyFamily().forEach(m => pool.push(dsItem(m.jp, 'my ' + m.en)));
   if (sgW('どうりょう')) pool.push(dsItem('どうりょう', 'colleague'));
-  SENTENCE_NAME_POOL.slice(0, 6).forEach(n => pool.push({ jp: n.jp, ro: n.romaji, en: n.en }));
+  SENTENCE_NAME_POOL.slice(0, 6).forEach(n => pool.push({ jp: n.jp, ro: sgW(n.jp).ro, en: n.en })); // names capitalised, as in the sentences
   return pool;
 }
 function dsTimePool() {
@@ -13977,7 +13977,7 @@ function dsColumns(mode) {
     const whenG = { role: 'When', particle: '(に)', note: 'に after days and occasions: たんじょうびに, クリスマスに', wide: true,
       items: dsPick(occ, ['たんじょうびに', 'クリスマスに', 'ははのひに', 'ちちのひに'], 8).concat(times) };
     const people = [dsItem('ともだち', 'a friend'), dsItem('せんせい', 'the teacher'), dsItem('どうりょう', 'a colleague'), dsItem('じょうし', 'my boss')]
-      .concat(sgMyFamily().map(m => dsItem(m.jp, 'my ' + m.en)), SENTENCE_NAME_POOL.slice(0, 4).map(n => ({ jp: n.jp, ro: n.romaji, en: n.en })));
+      .concat(sgMyFamily().map(m => dsItem(m.jp, 'my ' + m.en)), SENTENCE_NAME_POOL.slice(0, 4).map(n => ({ jp: n.jp, ro: sgW(n.jp).ro, en: n.en })));
     const person = { role: 'To / from whom', particle: 'に', note: 'に = to (あげます) or from (もらいます)', items: dsPick(people, ['ともだち', 'はは', 'せんせい', 'どうりょう'], 9) };
     const pair = (a, b, en) => sgW(a) && sgW(b) ? { jp: a + ' / ' + b, ro: sgW(a).ro + ' / ' + sgW(b).ro, en } : (sgW(a) ? dsItem(a) : null);
     const grp = (verb, objs, k) => { const items = dsPick(objs.map(o => dsItem(o[0], o[2].replace(/^(a|an) /, ''))), [], k); return verb && items.length ? { verb, items } : null; };
@@ -14133,7 +14133,13 @@ function sbNewTarget() {
       // its neighbours ("pool", not "at the pool").
       const engineEn = i === 0 || i === 1 || i === 3;
       const bare = String(en || '').replace(/^(at|in|on|by|to) (the |a |an )?/, '');
-      slots[i] = { word: jp, ro, en: engineEn ? (en || (it ? it.en : '')) : (it ? it.en : bare), key: it ? it.jp + '|' + it.en : null };
+      // If the word has a card of its own anywhere in that column's full list,
+      // the answer card copies it exactly ("on Saturday", not the sentence's
+      // "on Saturdays"), so nothing about it stands out (Andrew, 2026-10-23).
+      const twin = sbPoolCard(i, jp);
+      // Romaji: no capital unless it starts with a name (Watanabe-san).
+      const roFix = SENTENCE_NAME_POOL.some(n => jp.startsWith(n.jp)) ? ro : ro.charAt(0).toLowerCase() + ro.slice(1);
+      slots[i] = { word: jp, ro: twin ? twin.ro : roFix, en: twin ? twin.en : (engineEn ? (en || (it ? it.en : '')) : (it ? it.en : bare)), key: it ? it.jp + '|' + it.en : null };
     });
     const f = l3SentStates[2] === 'on' ? L3_FREQ_WORDS[l3FreqIdx] : null;
     const neg = !!(f && f.neg);
@@ -14147,6 +14153,17 @@ function sbNewTarget() {
   } finally {
     [l3cMode, l3SentStates, l3FreqIdx, l3SentWords] = saved;
   }
+}
+// Every card a column could ever show, for copying an answer card's wording.
+function sbPoolCard(slotIdx, jp) {
+  const pools = {
+    0: () => dsWhoPool(true),
+    1: () => dsTimePool().concat(L3C_OCCASIONS.concat([{ jp: 'たんじょうび', en: 'on / for a birthday' }]).map(o => { const it = dsItem(o.jp, o.en); if (it) { it.jp += 'に'; it.ro += ' ni'; } return it; })),
+    3: () => dsWhoPool(false).concat([dsItem('せんせい', 'the teacher'), dsItem('じょうし', 'my boss'), { jp: 'ひとりで', ro: 'hitori de', en: 'on my own' }]),
+  };
+  const f = pools[slotIdx];
+  if (!f) return null;
+  return f().filter(Boolean).find(x => sbNorm(x.jp) === sbNorm(jp)) || null;
 }
 function sbNewChallenge() {
   for (let i = 0; i < 10 && !(sbTarget = sbNewTarget()); i++);
