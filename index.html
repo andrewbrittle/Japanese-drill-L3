@@ -1658,7 +1658,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261024.001</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261024.003</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -2404,7 +2404,7 @@
   <div class="screen" id="screen-desk-sheets">
     <div class="ds-toolbar">
       <div class="settings-title">Desk sheets</div>
-      <div class="settings-sub">Three pages to keep in front of you whenever you want to make up sentences of your own: pick a word from each column and put the sentence together. Every word here has been taught. Shuffle for a different selection, then print or save as a PDF (A4, landscape). Phones sometimes start in portrait: switch to landscape in the print options.</div>
+      <div class="settings-sub">Four pages to keep in front of you whenever you want to make up sentences of your own: pick a word from each column and put the sentence together. Every word here has been taught. Shuffle for a different selection, then print or save as a PDF (A4, landscape). Phones sometimes start in portrait: switch to landscape in the print options.</div>
       <div class="ds-buttons">
         <button type="button" class="ds-btn" onclick="buildDeskSheets()">Shuffle words</button>
         <button type="button" class="ds-btn ds-btn-main" onclick="window.print()">Print / save PDF</button>
@@ -2421,6 +2421,7 @@
           <button type="button" class="level-pill" data-mode="do" onclick="sbSetMode('do')">Doing</button>
           <button type="button" class="level-pill" data-mode="go" onclick="sbSetMode('go')">Going</button>
           <button type="button" class="level-pill" data-mode="give" onclick="sbSetMode('give')">Giving</button>
+          <button type="button" class="level-pill" data-mode="being" onclick="sbSetMode('being')">Being</button>
         </div>
       </div>
     </div>
@@ -11956,6 +11957,17 @@ const L3C_SLOTS = {
     { role: 'Object (what)', particle: 'を', q: ['なに', 'nani', 'を', 'o'], note: 'the present, the thing lent, the subject taught…' },
     { role: 'Verb', note: 'tense follows the time word — tap for か' },
   ],
+  // Being (2026-10-24): "X is Y". Slots 2-4 aren't used; 5 is what they are
+  // / what it's like, always there; the verb is です and its endings.
+  being: [
+    { role: 'Topic (who / what)', particle: 'は', q: ['だれ', 'dare', 'が', 'ga'], note: 'a person — or a thing to describe' },
+    { role: 'Time (when)', note: 'いま, きょねん, らいねん — no particle; goes with jobs (きょねん → でした)' },
+    { role: '', hidden: true, note: '' },
+    { role: '', hidden: true, note: '' },
+    { role: '', hidden: true, note: '' },
+    { role: 'What they are / what it\'s like', fixed: true, note: 'a job, a nationality (〜じん) or a describing word — then です' },
+    { role: 'です', note: 'です / じゃありません / でした / じゃありませんでした — tap for か' },
+  ],
 };
 let l3cMode = 'do';
 let l3SentStates = ['on', 'on', 'off', 'on', 'on', 'on', 'stmt'];
@@ -11974,7 +11986,7 @@ function showL3SentenceOrderReference() {
 
   const hint = document.createElement('div');
   hint.className = 'sentence-structure-hint';
-  hint.textContent = 'Tap a slot to include it, skip it, or ask it as a question. Frequency steps through いつも → よく → ときどき → あまり → ぜんぜん → skipped. The verb steps through statement → question → invitation (ませんか) → "let\'s" (ましょう) — statement and question only for giving & receiving.';
+  hint.textContent = 'Tap a slot to include it, skip it, or ask it as a question. Frequency steps through いつも → よく → ときどき → あまり → ぜんぜん → skipped. The verb steps through statement → question → invitation (ませんか) → "let\'s" (ましょう) — statement and question only for giving and being.';
   list.appendChild(hint);
 
   const rowsWrap = document.createElement('div');
@@ -12005,6 +12017,7 @@ function showL3SentenceOrderReference() {
   l3Note(list, 'One order for doing and going: <strong>who → when → how often → with whom → where / how → what / where to → verb</strong>. Doing something uses place で + object を; going somewhere uses means で + destination に (or へ). Anything you skip just drops out — the order of the rest never changes.');
   l3Note(list, 'Put the companion after the topic: わたしは あねと デパートへ いきます, never ✗ わたしと あねは… The time word sets the tense: きのう → いきました, あした → いきます ("going to").');
   l3Note(list, 'Giving &amp; receiving: <strong>who → when → how often → to / from whom に → what を → verb</strong>. に means "to" with あげます, かします, おしえます, かきます, おくります and でんわを かけます, and "from" with もらいます, かります, ならいます. Nobody あげます to わたし — say it the other way round with もらいます: わたしは ともだちに はなを もらいました.');
+  l3Note(list, 'Being — "X is Y": <strong>who / what は → (when) → what they are / what it\'s like → です</strong>. A job (あには いしゃです), a nationality (〜じん) or a describing word (えいがは おもしろいです). です changes for the tense: じゃありません (isn\'t), でした (was), じゃありませんでした (wasn\'t). い-words like おもしろい only take です for now — their own past and negative come later.');
   l3Note(list, 'Going somewhere also uses きます (come) where "come" fits — to my house, to school, to a party: たなかさんは うちに きます. Invitations always use いきます.');
   l3Note(list, 'Romaji: を is written "o" here, as it\'s said. Level 2 wrote it "wo", as it was taught then — same particle, same sound.');
 
@@ -12019,16 +12032,22 @@ function renderL3ModeRow() {
   const row = document.getElementById('l3c-mode-row');
   if (!row) return;
   row.innerHTML = '';
-  [['do', 'Doing'], ['go', 'Going'], ['give', 'Giving']].forEach(([key, label]) => {
+  [['do', 'Doing'], ['go', 'Going'], ['give', 'Giving'], ['being', 'Being']].forEach(([key, label]) => {
     const btn = document.createElement('button');
     btn.className = 'level-pill' + (key === l3cMode ? ' active' : '');
     btn.textContent = label;
     btn.onclick = () => {
       if (l3cMode === key) return;
-      const wasGive = l3cMode === 'give';
+      const before = L3C_SLOTS[l3cMode];
       l3cMode = key;
-      if (key === 'give') { l3SentStates[4] = 'off'; if (l3cInviting()) l3SentStates[6] = 'stmt'; }
-      else if (wasGive) l3SentStates[4] = 'on';
+      // Slots this mode doesn't use go off; ones it uses again come back on
+      // (Frequency stays as it was, off by default).
+      L3C_SLOTS[key].forEach((sl, i) => {
+        if (sl.hidden) l3SentStates[i] = 'off';
+        else if (before[i] && before[i].hidden) l3SentStates[i] = i === 2 ? 'off' : 'on';
+      });
+      if (key === 'being') { l3SentStates[5] = 'on'; if (l3SentStates[1] === 'q') l3SentStates[1] = 'on'; }
+      if ((key === 'give' || key === 'being') && l3cInviting()) l3SentStates[6] = 'stmt';
       renderL3ModeRow(); shuffleL3SentenceExample();
     };
     row.appendChild(btn);
@@ -12055,7 +12074,8 @@ function pickFreshL3SentenceWords() {
   const inviting = l3cInviting();
   for (let tries = 0; tries < 120; tries++) {
     const tense = inviting ? 'fut' : freqOn ? 'hab' : sgPick(['hab', 'hab', 'past', 'fut']);
-    const w = l3cMode === 'do' ? l3cPickDo(tense, freq) : l3cMode === 'give' ? l3cPickGive(tense, freq) : l3cPickGo(tense, freq);
+    const w = l3cMode === 'being' ? beingPick({ needTime: l3SentStates[1] === 'on' && sgChance(0.7), person: l3SentStates[0] === 'q' })
+      : l3cMode === 'do' ? l3cPickDo(tense, freq) : l3cMode === 'give' ? l3cPickGive(tense, freq) : l3cPickGo(tense, freq);
     if (w && !(l3cIsQ() && w.subj.me) && l3cComeOk(w) && l3cPhoneOk(w)) { l3SentWords = w; return; }
   }
 }
@@ -12289,7 +12309,7 @@ function l3cEnglishGive(w, st, f, tense, isQ) {
 // swap in a time word without a particle, as the daily sentence does.
 function l3FixTimeForFreq() {
   const w = l3SentWords;
-  if (!w || w.mode === 'give' || l3SentStates[2] !== 'on' || !L3_FREQ_WORDS[l3FreqIdx].neg || !SG_DAYS.some(d => d[0] === w.time.jp)) return;
+  if (!w || w.mode === 'give' || w.mode === 'being' || l3SentStates[2] !== 'on' || !L3_FREQ_WORDS[l3FreqIdx].neg || !SG_DAYS.some(d => d[0] === w.time.jp)) return;
   const filt = w.mode === 'do'
     ? (jp, t) => !SG_DAYS.some(d => d[0] === jp) && sgActTimeOk(w.V, jp, t, 'hab') && sgPlaceTimeOk(l3cPlaceJp(w), jp, t)
     : (jp, t) => !SG_DAYS.some(d => d[0] === jp) && sgDestTimeOk(w.kind, jp, t, 'hab', null);
@@ -12334,8 +12354,10 @@ function renderL3SentenceRows() {
       stateLabel = `(${f.en}${f.neg ? ' — verb goes negative' : ''})`;
     } else if (state === 'q') {
       badgeText = slot.q[0] + slot.q[2]; badgeClass += ' sentence-particle-badge-q'; stateLabel = '(asked as a question)';
+    } else if (l3cMode === 'being' && (idx === 1 || idx === 5)) {
+      badgeText = idx === 1 ? '∅' : '–';
     } else if (idx === 1) {
-      badgeText = w && / に$/.test(w.time.seg.jp) ? 'に' : '∅';
+      badgeText = w && w.time && w.time.seg && / に$/.test(w.time.seg.jp) ? 'に' : '∅';
     } else if (idx === 3 && l3cMode === 'give') {
       badgeText = 'に';
     } else if (idx === 3) {
@@ -12361,7 +12383,7 @@ function cycleL3SentenceSlot(idx) {
   l3cStopPlay();
   if (idx === 6) {
     // statement -> question -> invitation (ませんか) -> let's (ましょう) -> statement
-    const vOrder = l3cMode === 'give' ? ['stmt', 'q'] : ['stmt', 'q', 'inv', 'lets'];
+    const vOrder = l3cMode === 'give' || l3cMode === 'being' ? ['stmt', 'q'] : ['stmt', 'q', 'inv', 'lets'];
     // With a question word showing, statement and question look the same (か
     // either way), so the next tap goes straight on to inviting.
     if (l3cQWord() && (l3SentStates[6] === 'stmt' || l3SentStates[6] === 'q')) l3SentStates[6] = 'q';
@@ -12389,8 +12411,17 @@ function cycleL3SentenceSlot(idx) {
     // concert") - pick again if this one doesn't fit.
     else if (l3SentStates[2] === 'on' && !l3cFreqFits()) pickFreshL3SentenceWords();
     l3FixTimeForFreq();
-  } else if (L3C_SLOTS[l3cMode][idx].hidden) {
-    // not used in this mode
+  } else if (L3C_SLOTS[l3cMode][idx].hidden || L3C_SLOTS[l3cMode][idx].fixed) {
+    // not used in this mode / always there
+  } else if (l3cMode === 'being' && idx === 1) {
+    // Time: on or off. Switching it on wants a time word - jobs and な-words.
+    l3SentStates[1] = l3SentStates[1] === 'on' ? 'off' : 'on';
+    if (l3SentStates[1] === 'on' && !(l3SentWords && l3SentWords.time)) pickFreshL3SentenceWords();
+  } else if (l3cMode === 'being' && idx === 0) {
+    const order = ['on', 'off', 'q'];
+    l3SentStates[0] = order[(order.indexOf(l3SentStates[0]) + 1) % 3];
+    // だれが…? needs a person, not "the bag"; and questions never ask about わたし.
+    if (l3SentStates[0] === 'q' && l3SentWords && (l3SentWords.subj.thing || l3SentWords.subj.me)) pickFreshL3SentenceWords();
   } else {
     // でんわを かけます: "what do you phone?" isn't a question, so the
     // object there is only on or skipped.
@@ -12408,6 +12439,7 @@ function cycleL3SentenceSlot(idx) {
 function l3cFreqFits() {
   const w = l3SentWords, f = L3_FREQ_WORDS[l3FreqIdx];
   if (!w) return false;
+  if (w.mode === 'being') return false;
   if (w.mode === 'do') return !w.V.outing;
   if (w.mode === 'give') return w.G.tenses.includes('hab') && !(f.neg && SG_DAYS.some(d => d[0] === w.time.jp));
   const kind = w.kind;
@@ -12425,6 +12457,7 @@ function buildL3SentenceExampleM() {
   const w = l3SentWords, st = l3SentStates, S = L3C_SLOTS[l3cMode];
   const f = st[2] === 'on' ? L3_FREQ_WORDS[l3FreqIdx] : null;
   const neg = !!(f && f.neg);
+  if (l3cMode === 'being') return beingBuild(l3SentWords, l3SentStates);
   if (l3cInviting()) return buildL3InviteExample();
   const isQ = l3cIsQ();
   const tense = f ? 'hab' : w.tense;
@@ -14060,6 +14093,7 @@ function dsTimePool() {
   return pool;
 }
 function dsColumns(mode) {
+  if (mode === 'being') return dsBeingColumns();
   const who = { role: 'Who', particle: 'は', note: 'Leave it out if it\'s obvious', items: dsPick(dsWhoPool(true), ['わたし', 'ともだち'], 7) };
   const when = { role: 'When', particle: '(に)', note: 'に only after days: どようびに', items: dsPick(dsTimePool(), ['きのう', 'きょう', 'あした', 'しゅうまつ', 'まいにち'], 11) };
   const freq = { role: 'How often', particle: '–', note: 'あまり / ぜんぜん → verb ends ません', items: L3_FREQ_WORDS.map(f => ({ jp: f.jp, ro: f.romaji, en: f.en })) };
@@ -14143,6 +14177,7 @@ function buildDeskSheets() {
     { mode: 'do', title: 'Doing something', sub: 'Level 3 sentence order', ex: 'わたしは どようびに ともだちと カフェで コーヒーを のみました。' },
     { mode: 'go', title: 'Going somewhere', sub: 'Level 3 sentence order', ex: 'わたしは しゅうまつ ははと でんしゃで デパートに いきます。' },
     { mode: 'give', title: 'Giving & receiving', sub: 'Level 3 sentence order', ex: 'わたしは たんじょうびに ともだちに ぼうしを もらいました。' },
+    { mode: 'being', title: 'Being (X is Y)', sub: 'Level 3 sentence order', ex: 'あには いしゃです。 えいがは おもしろいです。' },
   ];
   el.innerHTML = pages.map(p => {
     const cols = dsColumns(p.mode);
@@ -14163,6 +14198,179 @@ function showDeskSheets() {
   buildDeskSheets();
   showScreen('desk-sheets');
   window.scrollTo(0, 0);
+}
+
+// ==== BEING: "X is Y" (です) SENTENCES (2026-10-24, Andrew) ====
+// A fourth kind of sentence beside Doing / Going / Giving, for words that
+// only make sense in context: jobs (たなかさんは けんちくしです), nationalities
+// (イギリスじん) and describing words (この えいがは おもしろいです - written here
+// without この, which isn't taught yet: えいがは おもしろいです).
+// Slots: 0 who / what は, 1 when (いま, きょねん, らいねん), 5 what they are /
+// what it's like, 6 です and its endings. 2, 3 and 4 aren't used.
+// Describing words: い-words (おもしろい) only take です here - their own
+// negative and past (おもしろくない, おもしろかった) aren't taught yet; な-words
+// (きれい, すてき) take all four endings like a noun.
+const BEING_ENDS = [['です', 'desu', 'hab', false], ['じゃありません', 'ja arimasen', 'hab', true], ['でした', 'deshita', 'past', false], ['じゃありませんでした', 'ja arimasen deshita', 'past', true]];
+const BEING_NA = ['きれい', 'すてき'];
+const BEING_SKIP_JOBS = ['きょうし', 'しゃいん']; // two "teacher"s / vague
+const BEING_DEMONYM = { オーストラリア: 'Australian', ブラジル: 'Brazilian', カナダ: 'Canadian', ちゅうごく: 'Chinese', エジプト: 'Egyptian', フランス: 'French',
+  ドイツ: 'German', インド: 'Indian', インドネシア: 'Indonesian', イラン: 'Iranian', イタリア: 'Italian', にほん: 'Japanese', かんこく: 'Korean', マレーシア: 'Malaysian',
+  メキシコ: 'Mexican', フィリピン: 'Filipino', ポーランド: 'Polish', ロシア: 'Russian', シンガポール: 'Singaporean', スペイン: 'Spanish', スイス: 'Swiss',
+  タイ: 'Thai', イギリス: 'British', アメリカ: 'American', ベトナム: 'Vietnamese' };
+// Things to describe, and the describing words that suit them.
+const BEING_THINGS = [
+  { objs: ['かばん', 'とけい', 'ぼうし', 'カップ', 'マグカップ', 'ハンカチ', 'シャツ', 'コート', 'ふく', 'くつ', 'さいふ'], adjs: ['あたらしい', 'ふるい', 'かわいい', 'かっこいい', 'きれい', 'すてき', 'あかい', 'しろい', 'いい'] },
+  { objs: ['くるま', 'いえ', 'じてんしゃ'], adjs: ['あたらしい', 'ふるい', 'かっこいい', 'きれい', 'すてき', 'すごい', 'あかい', 'しろい'] },
+  { objs: ['ほん', 'えいが', 'ドラマ', 'しんぶん', 'ざっし'], adjs: ['おもしろい', 'いい', 'すごい', 'ながい', 'みじかい', 'ふるい', 'あたらしい'] },
+  { objs: ['にんぎょう', 'ぬいぐるみ', 'え'], adjs: ['かわいい', 'きれい', 'すてき', 'ふるい', 'あたらしい'] },
+  { objs: ['ビール', 'ジュース', 'みず', 'アイスコーヒー'], adjs: ['つめたい'] },
+];
+const BEING_PEOPLE_ADJS = ['おもしろい', 'かっこいい', 'きれい', 'すてき', 'かわいい', 'すごい'];
+const beingEnWord = it => String(it.en || '').split(' / ')[0].replace(/\s*\(.*\)$/, '').trim();
+const beingArticle = w => (/^[aeiou]/i.test(w) ? 'an ' : 'a ') + w;
+const beingIsI = jp => /い$/.test(jp) && !BEING_NA.includes(jp);
+function beingJobs() {
+  return (VOCAB_ALL_TAUGHT_CACHE.jobs = VOCAB_ALL_TAUGHT_CACHE.jobs || Object.values(VOCAB).flatMap(v => v.items || [])
+    .filter(i => (i.tags || []).includes('taught') && (i.tags || []).some(t => /^occupations/.test(t)) && !BEING_SKIP_JOBS.includes(i.jp))
+    .filter((i, k, a) => a.findIndex(x => x.jp === i.jp) === k));
+}
+const VOCAB_ALL_TAUGHT_CACHE = {};
+function beingNations() {
+  return Object.keys(BEING_DEMONYM).filter(c => sgW(c)).map(c => ({ jp: c + 'じん', ro: sgW(c).ro + 'jin', en: BEING_DEMONYM[c] }));
+}
+// English: subject + be + complement (+ when).
+function beingEnglish(S, me, you, kind, compEn, tense, neg, q, timeEn, third) {
+  const C = mk(5, compEn), T = timeEn ? ' ' + mk(1, timeEn) : '';
+  if (q) {
+    if (tense === 'past') return `${neg ? "Wasn't" : (me && !you ? 'Was' : third ? 'Was' : 'Were')} ${S} ${C}${T}?`.replace(/^Wasn't (you)/, "Weren't $1").replace(/^Was (you)/, 'Were $1');
+    if (tense === 'fut') return `${neg ? "Won't" : 'Will'} ${S} be ${C}${T}?`;
+    return `${neg ? (third ? "Isn't" : "Aren't") : (third ? 'Is' : (me && !you ? 'Am' : 'Are'))} ${S} ${C}${T}?`;
+  }
+  let be;
+  if (tense === 'past') be = me ? (neg ? "wasn't" : 'was') : third ? (neg ? "wasn't" : 'was') : (neg ? "weren't" : 'were');
+  else if (tense === 'fut') be = neg ? "won't be" : 'will be';
+  else be = me ? (neg ? "'m not" : "'m") : third ? (neg ? "isn't" : 'is') : (neg ? "aren't" : 'are');
+  return l3cCap(`${S}${be.startsWith("'") ? '' : ' '}${mk(6, be)} ${C}${T}.`);
+}
+// Being sentences in two steps (2026-10-24): beingPick chooses the words,
+// beingBuild lays them out - so the Sentence order card can switch slots on
+// and off and ask questions with the same words, and the challenges use the
+// same pair. opts.needTime: a time word is wanted (jobs and な-words only);
+// opts.person: the topic must be a person (for だれが…?).
+function beingPick(opts = {}) {
+  const r = sgRand();
+  let kind = r < 0.45 ? 'job' : r < 0.65 ? 'nation' : 'adj';
+  if (opts.needTime) kind = 'job'; // time words only go with jobs (2026-10-24: "the shirt was lovely last year" read oddly)
+  let subj, topicWord = null, topicEn = null, comp;
+  if (kind === 'adj' && !opts.person && sgChance(0.65)) {
+    const groups = BEING_THINGS.map(g => ({ objs: g.objs.filter(o => sgW(o)), adjs: g.adjs.filter(a => sgW(a) && !(opts.needTime && !BEING_NA.includes(a))) })).filter(g => g.objs.length && g.adjs.length);
+    if (!groups.length) return null;
+    const g = sgPick(groups), o = sgPick(g.objs), a = sgPick(g.adjs);
+    topicWord = o; topicEn = 'the ' + beingEnWord(l3TaughtItem(o) || { en: o });
+    subj = { segs: [sgSeg(o, 'は', 'wa')], en: topicEn, third: true, thing: true };
+    comp = { jp: a, ro: sgW(a).ro, en: beingEnWord(l3TaughtItem(a) || { en: a }) };
+  } else {
+    subj = sgSubject({ noTeacher: true });
+    if (kind === 'adj') {
+      const a = sgPick(BEING_PEOPLE_ADJS.filter(a => sgW(a) && !(opts.needTime && !BEING_NA.includes(a))));
+      if (!a) return null;
+      comp = { jp: a, ro: sgW(a).ro, en: beingEnWord(l3TaughtItem(a)) };
+    } else if (kind === 'job') {
+      let jobs = beingJobs();
+      if (subj.child) jobs = jobs.filter(j => j.jp === 'がくせい');
+      if (subj.elderly) jobs = jobs.filter(j => j.jp !== 'がくせい');
+      const j = sgPick(jobs);
+      if (!j) return null;
+      comp = { jp: j.jp, ro: j.romaji, en: beingArticle(beingEnWord(j)), jobEn: beingEnWord(j) };
+    } else {
+      const n = sgPick(beingNations());
+      if (!n) return null;
+      comp = n;
+    }
+  }
+  const canTime = kind === 'job';
+  let tense = (kind === 'nation' || (kind === 'adj' && !BEING_NA.includes(comp.jp))) ? 'hab' : sgPick(['hab', 'hab', 'hab', 'past']);
+  let time = null;
+  if (canTime) {
+    const tr = sgRand();
+    const opt = [];
+    if (sgW('いま')) opt.push({ jp: 'いま', ro: 'ima', en: 'now', tense: 'hab' });
+    if (sgW('きょねん')) opt.push({ jp: 'きょねん', ro: 'kyonen', en: 'last year', tense: 'past' });
+    if (sgW('らいねん') && kind === 'job' && !subj.elderly) opt.push({ jp: 'らいねん', ro: 'rainen', en: 'next year', tense: 'fut' });
+    if (opt.length && (opts.needTime || tr < 0.55)) { time = sgPick(opt); tense = time.tense; }
+  }
+  if (opts.needTime && !time) return null;
+  const neg = (kind !== 'adj' || BEING_NA.includes(comp.jp)) && sgChance(0.25);
+  return { mode: 'being', kind, subj, topicWord, topicEn, comp, time, tense, neg };
+}
+// st: the card's slot states (0 on/off/q, 1 on/off, 6 stmt/q). Returns the
+// engine's {parts, end, jp, romaji, enM} plus endIdx / q for the challenges.
+function beingBuild(w, st) {
+  const q = st[6] === 'q' || st[0] === 'q';
+  const whoQ = st[0] === 'q';
+  const neg = w.neg && !whoQ; // "Who isn't a doctor?" is a strange question
+  const endIdx = (w.tense === 'past' ? 2 : 0) + (neg ? 1 : 0);
+  const e = BEING_ENDS[endIdx];
+  const parts = [];
+  const topicOn = st[0] === 'on' && w.subj.segs.length;
+  if (whoQ) parts.push({ slot: 0, jp: 'だれが', ro: 'dare ga' });
+  else if (topicOn) w.subj.segs.forEach(sg => parts.push({ slot: 0, jp: l3cJp(sg), ro: sg.ro }));
+  if (st[1] === 'on' && w.time) parts.push({ slot: 1, jp: w.time.jp, ro: w.time.ro });
+  parts.push({ slot: 5, jp: w.comp.jp, ro: w.comp.ro });
+  parts.push({ slot: 6, jp: e[0] + (q ? 'か' : ''), ro: e[1] + (q ? ' ka' : '') });
+  parts[0].ro = sgCap(parts[0].ro);
+  // English. No topic in a question = "you"; in a statement = "I".
+  const me = !whoQ && (!topicOn ? !q : !!w.subj.me);
+  const you = !whoQ && !topicOn && q;
+  const S = whoQ ? mk(0, 'Who') : topicOn ? mk(0, w.subj.me ? 'I' : w.subj.en) : (q ? 'you' : 'I');
+  const third = whoQ || (!me && !you);
+  const timeEn = st[1] === 'on' && w.time ? w.time.en : '';
+  let enM;
+  if (whoQ) {
+    const be = w.tense === 'past' ? 'was' : w.tense === 'fut' ? 'will be' : 'is';
+    enM = `${S} ${mk(6, be)} ${mk(5, w.comp.en)}${timeEn ? ' ' + mk(1, timeEn) : ''}?`;
+  } else enM = beingEnglish(S, me, you, w.kind, w.comp.en, w.tense, neg, q, timeEn, third);
+  return { parts, end: q ? ['。', '?'] : ['。', '.'], jp: parts.map(x => x.jp).join(' ') + '。', romaji: parts.map(x => x.ro).join(' ') + (q ? '?' : '.'), enM, endIdx, q };
+}
+// A random "X is Y" target for the challenges, in the same shape sbNewTarget returns.
+function sbNewTargetBeing() {
+  let w = null;
+  for (let i = 0; i < 20 && !w; i++) w = beingPick();
+  if (!w) return null;
+  const q = sgChance(0.25);
+  const st = ['on', w.time ? 'on' : 'off', 'off', 'off', 'off', 'on', q ? 'q' : 'stmt'];
+  if (q && w.subj.me) st[0] = 'off'; // "Are you…?", not "Am I…?"
+  const ex = beingBuild(w, st);
+  const slots = {};
+  const ps0 = ex.parts.filter(x => x.slot === 0);
+  if (ps0.length) {
+    const wd = ps0.map(x => x.jp).join('').replace(/は$/, ''), ro = ps0.map(x => x.ro).join(' ').replace(/ wa$/, '');
+    const it = w.topicWord ? l3TaughtItem(w.topicWord) : l3TaughtItem(wd);
+    const twin = sbPoolCard(0, wd);
+    const roFix = SENTENCE_NAME_POOL.some(n => wd.startsWith(n.jp)) ? ro : ro.charAt(0).toLowerCase() + ro.slice(1);
+    slots[0] = { word: wd, ro: twin ? twin.ro : roFix, en: twin ? twin.en : (w.topicEn || w.subj.en), key: it ? it.jp + '|' + it.en : null };
+  }
+  if (w.time && st[1] === 'on') { const it = l3TaughtItem(w.time.jp); slots[1] = { word: w.time.jp, ro: w.time.ro, en: w.time.en, key: it ? it.jp + '|' + it.en : null }; }
+  { const it = l3TaughtItem(w.comp.jp); slots[5] = { word: w.comp.jp, ro: w.comp.ro, en: w.kind === 'job' ? w.comp.jobEn : w.comp.en, key: it ? it.jp + '|' + it.en : null }; }
+  slots[6] = { word: 'です', ro: 'desu', en: 'is / am / are', key: null, end: ex.endIdx, q: ex.q };
+  const say = ex.parts.map((pt, k) => pt.slot === 0 && !(ex.parts[k + 1] && ex.parts[k + 1].slot === 0) ? pt.jp.replace(/は$/, 'わ') : pt.jp).join('');
+  return { slots, en: l3cEnPlain(ex.enM), jp: ex.jp, romaji: ex.romaji, meImplied: !ps0.length, say, being: w.kind };
+}
+// Desk-sheet / builder columns for Being.
+function dsBeingColumns(who) {
+  const things = [...new Set(BEING_THINGS.flatMap(g => g.objs))].filter(o => sgW(o)).map(o => dsItem(o, 'the ' + beingEnWord(l3TaughtItem(o) || { en: o })));
+  const whoCol = { role: 'Who / what', particle: 'は', note: 'a person, or a thing to describe', items: dsPick(dsWhoPool(true), ['わたし', 'ともだち', 'はは'], 6).concat(dsPick(things, [], 5)) };
+  const when = { role: 'When', particle: '–', note: 'mostly with jobs · きょねん → でした', items: ['いま', 'きょねん', 'らいねん'].map(j => dsItem(j)).filter(Boolean) };
+  const jobs = dsPick(beingJobs().map(j => ({ jp: j.jp, ro: j.romaji, en: beingEnWord(j) })), ['がくせい', 'いしゃ', 'かいしゃいん'], 10);
+  const nations = dsPick(beingNations(), ['イギリスじん', 'にほんじん'], 5);
+  const adjs = dsPick([...new Set(BEING_THINGS.flatMap(g => g.adjs).concat(BEING_PEOPLE_ADJS))].filter(a => sgW(a)).map(a => ({ jp: a, ro: sgW(a).ro, en: beingEnWord(l3TaughtItem(a)) })), ['おもしろい', 'きれい', 'すてき'], 8);
+  const what = { role: 'What they are / what it\'s like', particle: '–', note: 'then です — い-words (おもしろい) only with です for now', wide: true,
+    groups: [{ verb: { jp: 'しごと', ro: 'shigoto', en: 'jobs' }, items: jobs }, { verb: { jp: '〜じん', ro: '~jin', en: 'nationality' }, items: nations }, { verb: { jp: 'どんな？', ro: 'donna', en: 'describing' }, items: adjs }].filter(g => g.items.length) };
+  const verb = { role: 'です', particle: '。/か', note: 'です and its endings · か for a question', lead: [{ jp: 'です', ro: 'desu', en: 'is / am / are' }],
+    ends: [['です', 'is / am / are'], ['じゃありません', "isn't"], ['でした', 'was'], ['じゃありませんでした', "wasn't"]] };
+  const cols = [whoCol, when, what, verb];
+  [1, 2, 6, 7].forEach((slot, i) => { cols[i].slot = slot; });
+  return cols;
 }
 
 // ==== SENTENCE BUILDER (2026-10-22, Andrew) ====
@@ -14188,6 +14396,7 @@ const sbNorm = s => String(s || '').replace(/\s/g, '');
 // The particle each slot adds after the chosen word, for this mode.
 function sbParticle(slot, it) {
   if (!it) return ['', ''];
+  if (sbMode === 'being') return slot === 0 ? ['は', 'wa'] : ['', ''];
   if (slot === 0) return ['は', 'wa'];
   if (slot === 3) return /で$/.test(it.jp) ? ['', ''] : sbMode === 'give' ? ['に', 'ni'] : ['と', 'to'];
   if (slot === 4) return it.jp === 'あるいて' ? ['', ''] : ['で', 'de'];
@@ -14202,7 +14411,7 @@ function sbBuildColumns() {
   // Doing lists its object verbs (たべます, のみます…) as group heads, not in
   // the verb column - add them there so any verb can be picked and conjugated.
   const groupVerbs = [];
-  cols.forEach(c => (c.groups || []).forEach(g => { if (!/\//.test(g.verb.jp) && sgW(g.verb.jp)) groupVerbs.push(g.verb); }));
+  if (sbMode === 'do') cols.forEach(c => (c.groups || []).forEach(g => { if (!/\//.test(g.verb.jp) && sgW(g.verb.jp)) groupVerbs.push(g.verb); }));
   cols.forEach(c => {
     if (c.ends) { c.items = c.lead.concat(groupVerbs.filter(v => !c.lead.some(x => x.jp === v.jp))); delete c.ends; c.verbCol = true; }
     // Flattened, but still a double column, so the challenge is the same
@@ -14291,6 +14500,7 @@ const SB_A = { friend: 'a friend', colleague: 'a colleague' };
 function sbEnglishOf(sel, endIdx, q) {
   const M = sbMode, notes = [];
   if (!Object.keys(sel).length) return { enM: '', notes };
+  if (M === 'being') return sbEnglishBeing(sel, endIdx, q);
   const e = SB_ENDS[endIdx], past = e[2] === 'past', neg = e[3];
   // When
   let timeEn = '', timeKind = null;
@@ -14380,6 +14590,33 @@ function sbEnglishOf(sel, endIdx, q) {
   return { enM, notes };
 }
 
+function sbEnglishBeing(sel, endIdx, q) {
+  const notes = [];
+  const e = BEING_ENDS[endIdx], neg = e[3];
+  let tense = e[2] === 'past' ? 'past' : 'hab', timeEn = '';
+  const tc = sel[1];
+  if (tc) {
+    timeEn = tc.jp === 'いま' ? 'now' : tc.jp === 'きょねん' ? 'last year' : tc.jp === 'らいねん' ? 'next year' : tc.en;
+    if (tc.jp === 'きょねん' && tense !== 'past') notes.push('きょねん is in the past — でした or じゃありませんでした');
+    if ((tc.jp === 'らいねん' || tc.jp === 'いま') && tense === 'past') notes.push(`${tc.jp} isn't the past — です or じゃありません`);
+    if (tc.jp === 'らいねん' && tense !== 'past') tense = 'fut';
+  }
+  const w0 = sel[0], me = !w0 || w0.jp === 'わたし', you = !w0 && q;
+  const S = !w0 ? (q ? 'you' : 'I') : w0.jp === 'わたし' ? 'I' : (SB_MY[w0.en] || w0.en);
+  const third = !me && !you;
+  const c = sel[5];
+  let compEn = '…', kind = null;
+  if (c) {
+    if (/じん$/.test(c.jp)) { kind = 'nation'; compEn = c.en; }
+    else if (beingJobs().some(j => j.jp === c.jp)) { kind = 'job'; compEn = beingArticle(c.en); }
+    else { kind = 'adj'; compEn = c.en; }
+    if (kind === 'adj' && beingIsI(c.jp) && endIdx !== 0) notes.push(`${c.jp} is an い-word: only です for now (its own negative and past, like ${c.jp.replace(/い$/, 'くない')}, come later)`);
+  }
+  let enM = beingEnglish(w0 ? mk(0, S) : S, me && !you, you, kind, compEn, tense, neg, q, timeEn, third);
+  enM = enM.replace(/…(\uE001)?\.$/, '…$1');
+  return { enM, notes };
+}
+
 // SENTENCE PARTS (2026-10-23, Andrew): how each PART of a sentence is going,
 // rather than each word - "Verb endings 70%, Time 80%, With whom 30%". Every
 // challenge records, for each part, whether it was right at the first Check.
@@ -14390,7 +14627,7 @@ function sbEnglishOf(sel, endIdx, q) {
 const SB_PARTS_KEY = 'jpDrillSentenceParts';
 const SB_PART_DEFS = [
   ['who', 'Who は', 1], ['when', 'When (に)', 2], ['often', 'How often', 3], ['with', 'With whom と', 4], ['to', 'To / from whom に', 4],
-  ['place', 'Where it happens で', 5], ['how', 'How (by) で', 5], ['what', 'What を', 6], ['whereTo', 'Where to に', 6],
+  ['place', 'Where it happens で', 5], ['how', 'How (by) で', 5], ['what', 'What を', 6], ['whereTo', 'Where to に', 6], ['is', 'What it is (…です)', 6],
   ['verb', 'Verb', 7], ['ending', 'Verb ending (+か)', 7],
 ];
 let sbParts = {}, sbPartsR = {};
@@ -14402,7 +14639,7 @@ function saveSbParts() { try { localStorage.setItem(SB_PARTS_KEY, JSON.stringify
 // Slot (0-6) + mode -> part id.
 function sbPartId(slot, mode) {
   return [
-    'who', 'when', 'often', mode === 'give' ? 'to' : 'with', mode === 'go' ? 'how' : 'place', mode === 'go' ? 'whereTo' : 'what', 'verb',
+    'who', 'when', 'often', mode === 'give' ? 'to' : 'with', mode === 'go' ? 'how' : 'place', mode === 'go' ? 'whereTo' : mode === 'being' ? 'is' : 'what', 'verb',
   ][slot];
 }
 function sbRecordPart(id, ok) {
@@ -14454,7 +14691,7 @@ function sbPoolCard(slotIdx, jp) {
   return f().filter(Boolean).find(x => sbNorm(x.jp) === sbNorm(jp)) || null;
 }
 function sbNewChallenge() {
-  for (let i = 0; i < 10 && !(sbTarget = sbNewTarget()); i++);
+  for (let i = 0; i < 10 && !(sbTarget = sbMode === 'being' ? sbNewTargetBeing() : sbNewTarget()); i++);
   sbSel = {}; sbEnd = 0; sbQ = false; sbTry = 0; sbDone = false; sbResult = null; sbShowRomaji = false;
   sbBuildColumns();
   sbRender();
@@ -14498,6 +14735,7 @@ function sbBuilt() {
     const it = sbSel[i];
     if (!it) return;
     if (i === 6) {
+      if (sbMode === 'being') { const b = BEING_ENDS[sbEnd]; chunks.push({ slot: 6, jp: b[0] + (sbQ ? 'か' : ''), ro: b[1] + (sbQ ? ' ka' : '') }); return; }
       const e = SB_ENDS[sbEnd], v = sgW(it.jp) ? sgVerb(it.jp, e[2], e[3]) : { jp: it.jp, ro: it.ro };
       chunks.push({ slot: 6, jp: v.jp + (sbQ ? 'か' : ''), ro: v.ro + (sbQ ? ' ka' : '') });
       return;
@@ -14551,6 +14789,7 @@ function sbCheck() {
     [0, 1, 2, 3, 4, 5, 6].forEach(i => {
       const r = res[i];
       if (!r) return; // not in the sentence and not picked (or "I" left out)
+      if (i === 6 && sbMode === 'being') { sbRecordPart('ending', r === 'right'); return; } // です is the only "verb"
       if (i === 6) {
         if (r === 'missing') { sbRecordPart('verb', false); return; }
         sbRecordPart('verb', r === 'right' || r === 'ending');
@@ -14654,8 +14893,10 @@ function sbRender() {
       const ends = document.createElement('div');
       ends.className = 'sb-ends';
       // Reading: the endings by meaning first, the Japanese small.
-      const REV_EN = ['does / will', "doesn't / won't", 'did', "didn't"];
-      ends.innerHTML = SB_ENDS.map((e, k) => `<button type="button" class="sb-end${sbEnd === k ? ' active' : ''}" onclick="sbSetEnd(${k})">${sbReverse ? `${REV_EN[k]} <span class="sb-end-jp">〜${e[0]}</span>` : '〜' + e[0]}</button>`).join('')
+      const being = sbMode === 'being';
+      const REV_EN = being ? ['is / will be', "isn't / won't be", 'was', "wasn't"] : ['does / will', "doesn't / won't", 'did', "didn't"];
+      const ENDS = being ? BEING_ENDS : SB_ENDS, tilde = being ? '' : '〜';
+      ends.innerHTML = ENDS.map((e, k) => `<button type="button" class="sb-end${sbEnd === k ? ' active' : ''}" onclick="sbSetEnd(${k})">${sbReverse ? `${REV_EN[k]} <span class="sb-end-jp">${tilde}${e[0]}</span>` : tilde + e[0]}</button>`).join('')
         + `<button type="button" class="sb-end sb-end-q${sbQ ? ' active' : ''}" onclick="sbToggleQ()">${sbReverse ? 'a question <span class="sb-end-jp">か</span>' : '＋か (question)'}</button>`;
       col.appendChild(ends);
     }
