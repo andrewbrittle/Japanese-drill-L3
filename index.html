@@ -1658,7 +1658,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261023.012</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261024.001</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -7011,6 +7011,14 @@ function toggleSoundOn() {
 }
 // Shared Japanese speech (tap-to-hear and hold-to-peek) - same voice
 // settings as the drill's speakCurrent().
+// SPOKEN PARTICLES (2026-10-24, Andrew: "はは は" was read "haha ha"). The
+// voice can't always tell the particle は (wa) from the kana は (ha) once the
+// sentence is joined up - ははは even sounds like laughing. Where the app knows
+// a token is a particle (a space before it), it's spoken as わ / え. Speech only;
+// nothing on screen changes.
+function sayParticles(textWithSpaces) {
+  return String(textWithSpaces || '').replace(/(^|\s)は(?=\s|$|。|か)/g, '$1わ').replace(/(^|\s)へ(?=\s|$|。)/g, '$1え').replace(/[\s。]/g, '');
+}
 function speakJapanese(text) {
   if (!soundAllowed()) return null;
   unlockSpeech();
@@ -10838,7 +10846,7 @@ function renderParticleQuestion(q, charDisplay, container) {
   charDisplay.style.fontSize = '22px';
   charDisplay.innerHTML = q.lines.map(l => {
     const jp = l.jp.split(' ').map((t, j) => j === l.blank ? '<span class="pt-blank">　</span>' : '<span class="pt-tok">' + markSmallKana(t) + '</span>').join(' ');
-    return `<div class="pt-line" data-say="${l.jp.replace(/ /g, '')}"><div class="pt-jp">${jp}</div><div class="pt-en">${l.en}</div></div>`;
+    return `<div class="pt-line" data-say="${sayParticles(l.jp)}"><div class="pt-jp">${jp}</div><div class="pt-en">${l.en}</div></div>`;
   }).join('');
   // Once answered, tap a line to hear the whole sentence.
   charDisplay.querySelectorAll('.pt-line').forEach(el => { el.onclick = () => { if (answered) speakJapanese(el.dataset.say); }; });
@@ -12621,7 +12629,8 @@ function l3cClearMarks() {
   if (ex) ex.classList.remove('l3c-playing');
 }
 function l3cSayText(slot) {
-  return [...document.querySelectorAll(`#sentence-structure-example-jp .l3c-chunk[data-slot="${slot}"]`)].map(e => e.textContent).join('').replace(/[\s。]/g, '');
+  const t = [...document.querySelectorAll(`#sentence-structure-example-jp .l3c-chunk[data-slot="${slot}"]`)].map(e => e.textContent).join('').replace(/[\s。]/g, '');
+  return slot === 0 ? t.replace(/は$/, 'わ') : t; // topic は said "wa"
 }
 function l3cFlashSlot(slot, say) {
   if (l3cPlay) return;
@@ -12656,7 +12665,7 @@ function l3cTogglePlay() {
     if (i > 0) { l3cMark(i - 1, false); const prev = document.querySelectorAll('#sentence-structure-rows .sentence-slot-row')[i - 1]; if (prev) prev.classList.remove('l3c-row-skip'); }
     if (i === 7) { // finale: the whole sentence, lit until it has been read out
       for (let k = 0; k < 7; k++) l3cMark(k, true);
-      const all = document.getElementById('sentence-structure-example-jp').textContent.replace(/[\s。]/g, '');
+      const all = [0, 1, 2, 3, 4, 5, 6].map(l3cSayText).join('');
       const play = l3cPlay;
       l3cPlay.timer = l3cAfterSpeech(speakJapanese(all), all, 2000, () => { if (l3cPlay === play) l3cStopPlay(); });
       return;
@@ -14266,7 +14275,8 @@ function sbNewTarget() {
       end: (tense === 'past' ? 2 : 0) + (neg ? 1 : 0), q: l3cIsQ() };
     // "I" with no topic: わたし or nothing are both right.
     const meImplied = !slots[0] && w.subj.me;
-    return { slots, en: ex.en, jp: ex.jp, romaji: ex.romaji, meImplied };
+    const say = ex.parts.map((pt, k) => pt.slot === 0 && !(ex.parts[k + 1] && ex.parts[k + 1].slot === 0) ? pt.jp.replace(/は$/, 'わ') : pt.jp).join('');
+    return { slots, en: ex.en, jp: ex.jp, romaji: ex.romaji, meImplied, say };
   } finally {
     [l3cMode, l3SentStates, l3FreqIdx, l3SentWords] = saved;
   }
@@ -14499,14 +14509,16 @@ function sbBuilt() {
 }
 // Picking a word says it with its particle (ともだちと, コンビニで…), or the
 // verb with its ending, so the two get learnt together.
+// The topic's は is said "wa" (sayParticles).
+const sbSayOf = c => c.slot === 0 ? c.jp.replace(/は$/, 'わ') : c.jp;
 function sbSaySlot(i) {
   const c = sbBuilt().find(x => x.slot === i);
-  if (c) speakJapanese(c.jp);
+  if (c) speakJapanese(sbSayOf(c));
 }
 function sbToggleKana() { sbShowKana = !sbShowKana; sbRender(); }
 function sbToggleRomaji() { sbShowRomaji = !sbShowRomaji; sbRender(); }
-function sbSay() { const t = sbBuilt().map(c => c.jp).join(''); if (t) speakJapanese(t); }
-function sbSayTarget() { if (sbTarget) speakJapanese(sbTarget.jp.replace(/[\s。]/g, '')); }
+function sbSay() { const t = sbBuilt().map(sbSayOf).join(''); if (t) speakJapanese(t); }
+function sbSayTarget() { if (sbTarget) speakJapanese(sbTarget.say || sbTarget.jp.replace(/[\s。]/g, '')); }
 // Check a challenge: each slot right / wrong / missing / extra.
 function sbCheck() {
   if (!sbTarget || sbDone) return;
@@ -14722,7 +14734,7 @@ function renderProverbSentence() {
   el.style.display = '';
   try { localStorage.setItem(SG_LAST_KEY, lines[0].jp); } catch (e) { /* fine */ }
   el.innerHTML = '<div class="proverb-sentence-label">' + (lines.length > 1 ? 'A short exchange' : 'A sentence to read') + '</div>' +
-    lines.map(l => `<div class="sg-line" data-say="${l.jp.replace(/ /g, '')}"><div class="sg-jp">${markSmallKana(l.jp)}</div><div class="sg-ro">${l.ro}</div><div class="sg-en">${l.en}</div></div>`).join('');
+    lines.map(l => `<div class="sg-line" data-say="${sayParticles(l.jp)}"><div class="sg-jp">${markSmallKana(l.jp)}</div><div class="sg-ro">${l.ro}</div><div class="sg-en">${l.en}</div></div>`).join('');
   el.querySelectorAll('.sg-line').forEach(l => { l.onclick = () => speakJapanese(l.dataset.say); });
 }
 
