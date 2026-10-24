@@ -12,7 +12,7 @@
 // stamp (in index.html) is bumped, so old cached files get cleared out and
 // replaced next time an offline-enabled user is back online. Forgetting
 // this is exactly how a PWA ends up stuck showing someone a stale version.
-const CACHE_VERSION = 'jp-drill-v261024-003';
+const CACHE_VERSION = 'jp-drill-v261024-005';
 
 const PRECACHE_URLS = [
   './',
@@ -43,7 +43,10 @@ self.addEventListener('install', (event) => {
       // Caching one at a time means a single bad asset can't take index.html
       // down with it.
       Promise.all(
-        PRECACHE_URLS.map((url) => cache.add(url).catch(() => {
+        // { cache: 'reload' } (2026-10-24, from the Portuguese app): GitHub
+        // Pages lets browsers reuse a file for 10 minutes, so a plain add()
+        // straight after a release could fill the NEW cache with OLD files.
+        PRECACHE_URLS.map((url) => cache.add(new Request(url, { cache: 'reload' })).catch(() => {
           // This one asset didn't cache - the fetch handler below still
           // opportunistically caches things as they're actually used, so
           // partial coverage is better than none.
