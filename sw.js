@@ -12,7 +12,7 @@
 // stamp (in index.html) is bumped, so old cached files get cleared out and
 // replaced next time an offline-enabled user is back online. Forgetting
 // this is exactly how a PWA ends up stuck showing someone a stale version.
-const CACHE_VERSION = 'jp-drill-v261024-005';
+const CACHE_VERSION = 'jp-drill-v261027-001';
 
 const PRECACHE_URLS = [
   './',
@@ -120,8 +120,11 @@ self.addEventListener('fetch', (event) => {
       // No exact match cached - if this was a page navigation (not an
       // image/font/etc.), fall back to the cached app shell rather than
       // showing the browser's own offline error page.
-      if (event.request.mode === 'navigate') return caches.match('./index.html');
-      return Response.error();
+      // Nothing cached: keep waiting for the network rather than failing
+      // straight away (2026-10-25, from the Portuguese app - a slow but
+      // working connection mid-update showed "vocab.js didn't load").
+      if (event.request.mode === 'navigate') return caches.match('./index.html').then((shell) => shell || networkFetch);
+      return networkFetch;
     }))
   );
 });

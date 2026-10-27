@@ -1658,7 +1658,7 @@
 
     <div style="text-align:center; font-size:12px; color:var(--accent); margin-top:0.75rem;">Any problems: Andrew 07973 835165</div>
     <div style="text-align:center; font-size:11px; color:var(--text-dim); margin-top:0.5rem;">Kana stroke order from <a href="https://kanjivg.tagaini.net/" target="_blank" rel="noopener" style="color:inherit;">KanjiVG</a> © Ulrich Apel, CC BY-SA 3.0.</div>
-    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261024.005</div>
+    <div style="text-align:center; font-size:12px; font-weight:600; color:var(--text-dim); margin-top:0.75rem;">v261027.001</div>
   </div>
 
   <!-- Katakana settings screen -->
@@ -7072,7 +7072,7 @@ let appSettings = { theme: 'dark', showKanji: true, showExtra: true, hintPenalty
 // lastSeenChangelog doesn't match this value sees the flag until they open
 // Settings, which clears it (see showSettingsScreen()) - reading the
 // changelog itself is optional, opening Settings is what counts as "noticed".
-const LATEST_CHANGELOG_ENTRY = '2026-10-22b';
+const LATEST_CHANGELOG_ENTRY = '2026-10-27';
 try {
   const savedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY));
   if (savedSettings && typeof savedSettings === 'object') {
@@ -11932,7 +11932,7 @@ const L3C_SLOTS = {
     { role: 'Time (when)', q: ['いつ', 'itsu', '', ''], note: 'に after a day (にちようびに) — no particle after あした, きのう, まいにち, あさ…' },
     { role: 'Frequency (how often)', note: 'no particle — あまり and ぜんぜん turn the verb negative' },
     { role: 'Companion (with whom)', particle: 'と', q: ['だれ', 'dare', 'と', 'to'], note: 'who with — ひとりで for "on my own"' },
-    { role: 'Place (where it happens)', particle: 'で', q: ['どこ', 'doko', 'で', 'de'], note: 'where the action happens' },
+    { role: 'Place or tool (where / with what)', particle: 'で', q: ['どこ', 'doko', 'で', 'de'], qTool: ['なん', 'nan', 'で', 'de'], note: 'where it happens — or what it\'s done with: はしで, ペンで, えいごで (in English)' },
     { role: 'Object (what)', particle: 'を', q: ['なに', 'nani', 'を', 'o'], note: 'the thing being eaten, drunk, watched, done…' },
     { role: 'Verb', note: 'tense follows the time word — tap for か, ませんか, ましょう' },
   ],
@@ -12015,6 +12015,7 @@ function showL3SentenceOrderReference() {
   list.appendChild(shuffleBtn);
 
   l3Note(list, 'One order for doing and going: <strong>who → when → how often → with whom → where / how → what / where to → verb</strong>. Doing something uses place で + object を; going somewhere uses means で + destination に (or へ). Anything you skip just drops out — the order of the rest never changes.');
+  l3Note(list, 'で has two jobs in a Doing sentence: where it happens (<strong>としょかんで</strong> よみます) or what it\'s done with — a tool or a language (<strong>はしで</strong> たべます, <strong>えいごで</strong> かきます). The question is どこで for a place, <strong>なんで</strong> for a tool. One or the other here, in the same spot.');
   l3Note(list, 'Put the companion after the topic: わたしは あねと デパートへ いきます, never ✗ わたしと あねは… The time word sets the tense: きのう → いきました, あした → いきます ("going to").');
   l3Note(list, 'Giving &amp; receiving: <strong>who → when → how often → to / from whom に → what を → verb</strong>. に means "to" with あげます, かします, おしえます, かきます, おくります and でんわを かけます, and "from" with もらいます, かります, ならいます. Nobody あげます to わたし — say it the other way round with もらいます: わたしは ともだちに はなを もらいました.');
   l3Note(list, 'Being — "X is Y": <strong>who / what は → (when) → what they are / what it\'s like → です</strong>. A job (あには いしゃです), a nationality (〜じん) or a describing word (えいがは おもしろいです). です changes for the tense: じゃありません (isn\'t), でした (was), じゃありませんでした (wasn\'t). い-words like おもしろい only take です for now — their own past and negative come later.');
@@ -12098,9 +12099,12 @@ function l3cPickDo(tense, freq) {
   const place = sgPick(okPlaces);
   const o = sgPick(V.objs.filter(x => sgW(x[0])));
   const comp = sgCompanion(subj, place, !!V.adult, SG_PLACE_WORK.includes(place));
+  // Tool で (Lesson 5): half the time, when the verb and object have one.
+  const tools = sgToolsFor(V, o);
+  const tool = tools.length && sgChance(0.5) ? sgPick(tools) : null;
   return {
     mode: 'do', tense, subj, time, comp, V, o,
-    slot4: { seg: sgSeg(place, 'で', 'de'), en: sgPlaceEn(place) },
+    slot4: tool ? { seg: sgSeg(tool, 'で', 'de'), en: SG_TOOLS[tool], tool: true } : { seg: sgSeg(place, 'で', 'de'), en: sgPlaceEn(place) },
     slot5: { seg: sgSeg(o[0], 'を', 'o') },
     verb: V.v,
     phrase: sgActPhrase(V, o, tense),
@@ -12317,6 +12321,8 @@ function l3FixTimeForFreq() {
   if (t) w.time = t;
 }
 const l3cPlaceJp = w => w.slot4.seg.jp.replace(/ で$/, '');
+// The question word for a slot: なんで for a tool (Lesson 5), else the slot's own.
+const l3cQOf = i => { const sl = L3C_SLOTS[l3cMode][i]; return sl.qTool && l3SentWords && l3SentWords.slot4 && l3SentWords.slot4.tool ? sl.qTool : sl.q; };
 
 function renderL3SentenceRows() {
   const wrap = document.getElementById('sentence-structure-rows');
@@ -12353,7 +12359,7 @@ function renderL3SentenceRows() {
       badgeText = f.jp; badgeClass += ' sentence-particle-badge-freq';
       stateLabel = `(${f.en}${f.neg ? ' — verb goes negative' : ''})`;
     } else if (state === 'q') {
-      badgeText = slot.q[0] + slot.q[2]; badgeClass += ' sentence-particle-badge-q'; stateLabel = '(asked as a question)';
+      const q = l3cQOf(idx); badgeText = q[0] + q[2]; badgeClass += ' sentence-particle-badge-q'; stateLabel = '(asked as a question)';
     } else if (l3cMode === 'being' && (idx === 1 || idx === 5)) {
       badgeText = idx === 1 ? '∅' : '–';
     } else if (idx === 1) {
@@ -12465,7 +12471,7 @@ function buildL3SentenceExampleM() {
   // and stepped through slot by slot (2026-10-09).
   const parts = [];
   const add = (slot, segs) => segs.forEach(s => parts.push({ slot, jp: l3cJp(s), ro: s.ro }));
-  const addQ = i => { const q = S[i].q; parts.push({ slot: i, jp: q[0] + q[2], ro: (q[1] + ' ' + q[3]).trim() }); };
+  const addQ = i => { const q = l3cQOf(i); parts.push({ slot: i, jp: q[0] + q[2], ro: (q[1] + ' ' + q[3]).trim() }); };
   if (st[0] === 'on') add(0, l3cSubjectSegs(w.subj)); else if (st[0] === 'q') addQ(0);
   if (st[1] === 'on') add(1, [w.time.seg]); else if (st[1] === 'q') addQ(1);
   if (f) parts.push({ slot: 2, jp: f.jp, ro: f.romaji });
@@ -12547,7 +12553,8 @@ function l3cEnglish(w, st, f, tense, isQ) {
   // Priority for the one asked first: what / where-to, who with, where / how, when.
   const asked = [5, 3, 4, 1].filter(i => st[i] === 'q');
   const doMode = w.mode === 'do';
-  const extraWord = { 1: 'when', 3: 'with whom', 4: doMode ? 'where' : 'how', 5: doMode ? 'what' : 'where' };
+  const tool = !!(w.slot4 && w.slot4.tool);
+  const extraWord = { 1: 'when', 3: 'with whom', 4: tool ? 'with what' : doMode ? 'where' : 'how', 5: doMode ? 'what' : 'where' };
   const extrasText = list => list.length ? ', and ' + list.map(i => mk(i, extraWord[i])).join(', and ') : '';
   const me = st[0] !== 'on' || w.subj.me;
   const S = st[0] === 'on' ? mk(0, w.subj.me ? 'I' : w.subj.en) : (isQ ? 'you' : 'I');
@@ -12587,8 +12594,14 @@ function l3cEnglish(w, st, f, tense, isQ) {
     else { aux = third ? 'does' : 'do'; mid = !f ? bP : !neg ? F(f.en) + ' ' + bP : isAmari ? F('often') + ' ' + bP : F('never') + ' ' + bP; if (isAmari) aux = third ? "doesn't" : "don't"; }
     if (asked.length) {
       const one = asked[0];
-      const wh = mk(one, { 1: 'When', 3: 'Who', 4: doMode ? 'Where' : 'How', 5: doMode ? 'What' : 'Where' }[one]);
-      return `${wh} ${aux} ${S} ${mid}${one === 3 ? ' ' + mk(3, 'with') : ''}${T}${extrasText(asked.slice(1))}?`;
+      // Tool で: "What do you eat sushi with?" - or, with more after the verb,
+      // "With what does … ?" so it never reads "with with a friend".
+      // Always "with": なんで doesn't say whether the answer is a tool or a language.
+      const prep4 = 'with';
+      const toolFront = one === 4 && tool && T;
+      const wh = mk(one, toolFront ? 'With what' : { 1: 'When', 3: 'Who', 4: tool ? 'What' : doMode ? 'Where' : 'How', 5: doMode ? 'What' : 'Where' }[one]);
+      const strand = one === 3 ? ' ' + mk(3, 'with') : one === 4 && tool && !toolFront ? ' ' + mk(4, prep4) : '';
+      return `${wh} ${aux} ${S} ${mid}${strand}${T}${extrasText(asked.slice(1))}?`;
     }
     return `${sgCap(aux)} ${S} ${mid}${T}?`;
   }
@@ -13202,6 +13215,8 @@ const SG_VERB_EN = {
   // Lesson 4 (2026-10-20): giving & receiving
   give: ['gives', 'gave'], lend: ['lends', 'lent'], borrow: ['borrows', 'borrowed'], teach: ['teaches', 'taught'],
   learn: ['learns', 'learned'], send: ['sends', 'sent'], phone: ['phones', 'phoned'],
+  // Lesson 5 (2026-10-27)
+  cut: ['cuts', 'cut'], draw: ['draws', 'drew'],
 };
 function sgVerbEn(phrase, form) { // form: base | third | past
   if (form === 'base') return phrase;
@@ -13256,6 +13271,11 @@ const SG_OBJECT_VERBS = [
   { v: 'よみます', en: 'read', objs: [['ほん', 'books', 'a book'], ['しんぶん', 'the newspaper', 'the newspaper'], ['ざっし', 'magazines', 'a magazine']], places: ['うち', 'へや', 'しんしつ', 'カフェ', 'きっさてん', 'としょかん', 'こうえん'] },
   { v: 'かきます', en: 'write', objs: [['メール', 'emails', 'an email'], ['てがみ', 'letters', 'a letter'], ['レポート', 'reports', 'a report']], places: ['うち', 'かいしゃ', 'じむしょ'] },
   { v: 'とります', en: 'take', objs: [['しゃしん', 'photos', 'photos'], ['セルフィー', 'selfies', 'selfies']], places: ['こうえん', 'うみ', 'やま', 'いなか', 'どうぶつえん'] },
+  // Lesson 5 (2026-10-27): tool で - things to cut, write and draw, so the
+  // tools (はさみで, ペンで, ふでで) have something to do.
+  { v: 'きります', en: 'cut', objs: [['かみ', 'paper', 'the paper'], ['パン', 'bread', 'the bread'], ['にく', 'meat', 'the meat'], ['ピザ', 'pizza', 'the pizza'], ['りんご', 'apples', 'an apple'], ['はな', 'flowers', 'the flowers']], places: ['うち', 'だいどころ'] },
+  { v: 'かきます', en: 'write', objs: [['カード', 'cards', 'a card'], ['メモ', 'notes', 'a note'], ['でんごん', 'messages', 'a message']], places: ['うち', 'かいしゃ', 'じむしょ'] },
+  { v: 'かきます', phrase: true, objs: [['え', 'draw pictures']], places: ['うち', 'へや', 'こうえん'] },
   // します: English phrase is whole (play tennis, go swimming).
   { v: 'します', phrase: true, objs: [['テニス', 'play tennis'], ['サッカー', 'play football'], ['ジョギング', 'go jogging']], places: ['こうえん'] },
   { v: 'します', phrase: true, objs: [['ゴルフ', 'play golf']], places: [], outing: true, noLunch: true },
@@ -13289,6 +13309,40 @@ const SG_PLACE_EN = {
   うみ: ['at the seaside'], やま: ['in the mountains'], いなか: ['in the countryside'], どうぶつえん: ['at the zoo'], ジム: ['at the gym'],
   バー: ['at a bar'], パブ: ['at the pub'], カラオケ: ['at karaoke'], きょうかい: ['at church'],
 };
+// TOOL で (L3 Lesson 5, 2026-10-27): "with what" - はしで たべます, ペンで
+// かきます, えいごで かきます (a language is a tool too). The Doing sentences
+// put a tool where the place goes (slot 5), never both: the lesson's point is
+// that both are で. [English]. SG_TOOL_USE says which tools suit which verb
+// and object (no chopsticks for soup, no pizza cutter for paper).
+const SG_TOOLS = {
+  はし: 'with chopsticks', フォーク: 'with a fork', スプーン: 'with a spoon', ナイフ: 'with a knife', ほうちょう: 'with a kitchen knife',
+  はさみ: 'with scissors', ピザカッター: 'with a pizza cutter', ペン: 'with a pen', えんぴつ: 'with a pencil', ふで: 'with a brush',
+  シャーペン: 'with a mechanical pencil', パソコン: 'on the computer', タブレット: 'on a tablet', スマホ: 'on a smartphone', カメラ: 'with a camera',
+  えいご: 'in English', にほんご: 'in Japanese',
+};
+const SG_TOOL_USE = [
+  { v: 'たべます', objs: ['すし', 'ラーメン', 'ごはん', 'てんぷら', 'ぎょうざ', 'さかな', 'やさい', 'なっとう'], tools: ['はし'] },
+  { v: 'たべます', objs: ['パスタ', 'サラダ', 'オムレツ', 'パンケーキ'], tools: ['フォーク'] },
+  { v: 'たべます', objs: ['ステーキ', 'ぶたにく', 'ぎゅうにく', 'とりにく'], tools: ['ナイフ', 'フォーク'] },
+  { v: 'たべます', objs: ['カレー', 'シリアル', 'ヨーグルト'], tools: ['スプーン'] },
+  { v: 'のみます', objs: ['スープ'], tools: ['スプーン'] },
+  { v: 'きります', objs: ['かみ', 'はな'], tools: ['はさみ'] },
+  { v: 'きります', objs: ['パン', 'にく', 'りんご'], tools: ['ほうちょう', 'ナイフ'] },
+  { v: 'きります', objs: ['ピザ'], tools: ['ピザカッター', 'ナイフ'] },
+  { v: 'かきます', objs: ['メール'], tools: ['パソコン', 'スマホ', 'タブレット', 'えいご', 'にほんご'] },
+  { v: 'かきます', objs: ['レポート'], tools: ['パソコン', 'えいご', 'にほんご'] },
+  { v: 'かきます', objs: ['てがみ', 'カード'], tools: ['ペン', 'ふで', 'えいご', 'にほんご'] },
+  { v: 'かきます', objs: ['メモ', 'でんごん'], tools: ['ペン', 'えんぴつ', 'シャーペン', 'えいご', 'にほんご'] },
+  { v: 'かきます', objs: ['え'], tools: ['えんぴつ', 'ふで', 'ペン'] },
+  { v: 'よみます', objs: ['ほん', 'しんぶん', 'ざっし'], tools: ['タブレット', 'スマホ', 'えいご', 'にほんご'] },
+  { v: 'みます', objs: ['えいが', 'ドラマ', 'ニュース', 'ビデオ'], tools: ['タブレット', 'パソコン', 'スマホ'] },
+  { v: 'ききます', objs: ['おんがく', 'ラジオ', 'ポップス'], tools: ['スマホ'] },
+  { v: 'とります', objs: ['しゃしん'], tools: ['スマホ', 'カメラ'] },
+  { v: 'とります', objs: ['セルフィー'], tools: ['スマホ'] },
+  { v: 'します', objs: ['べんきょう', 'しごと'], tools: ['パソコン'] },
+];
+const sgToolsFor = (V, o) => !V || !o ? [] : SG_TOOL_USE.filter(u => u.v === V.v && u.objs.includes(o[0])).flatMap(u => u.tools).filter(t => sgW(t));
+const sgIsTool = jp => Object.prototype.hasOwnProperty.call(SG_TOOLS, jp);
 // Which time words a PLACE can go with, whatever the activity.
 const SG_PLACE_OUTING = ['うみ', 'やま', 'いなか', 'どうぶつえん'];
 const SG_PLACE_WORK = ['かいしゃ', 'じむしょ', 'だいがく', 'きょうしつ', 'しょくどう']; // しょくどう = the work/school canteen
@@ -13594,13 +13648,19 @@ function sgObjectSentence() {
   if (!neg && !V.routine && !V.workObj && objSegs.length < 2 && sgChance(freq ? 0.15 : 0.25)) {
     comp = sgCompanion(subj, placeJp, !!V.adult, SG_PLACE_WORK.includes(placeJp));
   }
+  // Tool で (Lesson 5): sometimes, when there's no place - one or the other.
+  let toolSeg = null, toolEn = '';
+  if (!placeSeg && o1 && objSegs.length === 1 && sgChance(0.45)) {
+    const tl = sgToolsFor(V, o1);
+    if (tl.length) { const t = sgPick(tl); toolSeg = sgSeg(t, 'で', 'de'); toolEn = SG_TOOLS[t]; }
+  }
   // A verb with no object needs its place ("I sing" alone is too bare) - except
   // in a negative ("I never swim"), where no place reads naturally.
   if (V.intrans && !neg && !placeSeg) return null;
   const verb = sgVerb(V.v, tense, neg);
-  const segs = [...subj.segs, time && time.seg, freq && { jp: freq.jp, ro: sgW(freq.jp).ro }, ...(comp ? (comp.segs || [comp.seg]) : []), placeSeg, ...objSegs, verb].filter(Boolean);
+  const segs = [...subj.segs, time && time.seg, freq && { jp: freq.jp, ro: sgW(freq.jp).ro }, ...(comp ? (comp.segs || [comp.seg]) : []), placeSeg, toolSeg, ...objSegs, verb].filter(Boolean);
   const out = sgJoin(segs);
-  out.en = sgEnFinish([sgEnClause(subj, phrase, tense, freq, neg && !freq), comp && comp.en, placeEn, time && time.en]);
+  out.en = sgEnFinish([sgEnClause(subj, phrase, tense, freq, neg && !freq), comp && comp.en, placeEn, toolEn, time && time.en]);
   return [out];
 }
 
@@ -14102,9 +14162,12 @@ function dsColumns(mode) {
   if (mode === 'do') {
     const placeSet = new Set();
     SG_OBJECT_VERBS.forEach(V => V.places.forEach(p => { if (!SG_PLACE_EN[p] || !SG_PLACE_EN[p][1]) placeSet.add(p); }));
-    const where = { role: 'Where it happens', particle: 'で', note: 'where the action is', items: dsPick([...placeSet].map(p => dsItem(p, (l3PlaceItem(p) || {}).en)), ['うち', 'レストラン', 'こうえん', 'カフェ', 'としょかん'], 12) };
+    // Lesson 5: tools share the で column (はしで, ペンで, えいごで).
+    const placeCards = dsPick([...placeSet].map(p => dsItem(p, (l3PlaceItem(p) || {}).en)), ['うち', 'レストラン', 'こうえん', 'カフェ', 'としょかん'], 8);
+    const toolCards = dsPick(Object.keys(SG_TOOLS).map(t => dsItem(t)), ['はし', 'ペン', 'パソコン', 'えいご'], 6);
+    const where = { role: 'Place / tool', particle: 'で', note: 'a place — or a tool or language: はしで, えいごで', items: placeCards.concat(toolCards) };
     // What + verb: objects grouped under their verb.
-    const PLAN = [['たべます', 4], ['のみます', 2], ['みます', 2], ['ききます', 2], ['よみます', 2], ['かいます', 2], ['します', 4]];
+    const PLAN = [['たべます', 4], ['のみます', 2], ['みます', 2], ['ききます', 2], ['よみます', 2], ['かきます', 2], ['きります', 2], ['かいます', 2], ['します', 4]];
     const usedObjs = new Set(); // スポーツ is both watched and done - list it once
     const groups = [];
     PLAN.forEach(([v, k]) => {
@@ -14119,7 +14182,7 @@ function dsColumns(mode) {
     // Verbs that don't need a thing from column 6 (those are listed there).
     const verb = dsVerbColumn([['おきます', 'get up'], ['ねます', 'go to bed'], ['はたらきます', 'work'], ['べんきょうします', 'study'],
       ['やすみます', 'rest / day off'], ['うんどうします', 'exercise'], ['およぎます', 'swim'], ['うたいます', 'sing'],
-      ['あいます', 'meet (ともだちに)'], ['かきます', 'write'], ['とります', 'take (photos)']], 7);
+      ['あいます', 'meet (ともだちに)'], ['とります', 'take (photos)']], 7);
     return [who, when, freq, comp, where, what, verb];
   }
   if (mode === 'give') {
@@ -14419,7 +14482,8 @@ function sbBuildColumns() {
     if (c.ends) { c.items = c.lead.concat(groupVerbs.filter(v => !c.lead.some(x => x.jp === v.jp))); delete c.ends; c.verbCol = true; }
     // Flattened, but still a double column, so the challenge is the same
     // width as the builder (Andrew noticed the difference on a laptop).
-    if (c.groups && sbChallenge) { c.items = shuffle(c.groups.flatMap(g => g.items)).slice(0, 14); delete c.groups; }
+    // Once only: a word can sit under two verb groups (カード: give and send).
+    if (c.groups && sbChallenge) { c.items = shuffle(c.groups.flatMap(g => g.items).filter((x, k, a) => a.findIndex(y => sbNorm(y.jp) === sbNorm(x.jp)) === k)).slice(0, 14); delete c.groups; }
   });
   if (sbChallenge && sbTarget) {
     cols.forEach(c => {
@@ -14584,7 +14648,7 @@ function sbEnglishOf(sel, endIdx, q) {
     if (M === 'give') { const G = v && L3C_GIVE.find(G => G.v === v.jp); const prep = G ? (G.v === 'おしえます' && !o ? '' : G.prep) : 'to'; tail.push(mk(3, (prep ? prep + ' ' : '') + sel[3].en)); }
     else tail.push(mk(3, sel[3].jp === 'ひとりで' ? (me ? 'on my own' : 'on their own') : 'with ' + (SB_A[sel[3].en] || sel[3].en)));
   }
-  if (sel[4]) tail.push(mk(4, M === 'go' ? ((SG_TRANSPORT.find(t => t[0] === sel[4].jp) || [])[1] || sel[4].en) : ((SG_PLACE_EN[sel[4].jp] || [])[0] || 'at ' + sel[4].en)));
+  if (sel[4]) tail.push(mk(4, M === 'go' ? ((SG_TRANSPORT.find(t => t[0] === sel[4].jp) || [])[1] || sel[4].en) : SG_TOOLS[sel[4].jp] || ((SG_PLACE_EN[sel[4].jp] || [])[0] || 'at ' + sel[4].en)));
   if (timeEn) tail.push(mk(1, timeEn));
   const T = tail.length ? ' ' + tail.join(' ') : '';
   const subj = w0 ? mk(0, S) : S;
@@ -14630,7 +14694,7 @@ function sbEnglishBeing(sel, endIdx, q) {
 const SB_PARTS_KEY = 'jpDrillSentenceParts';
 const SB_PART_DEFS = [
   ['who', 'Who は', 1], ['when', 'When (に)', 2], ['often', 'How often', 3], ['with', 'With whom と', 4], ['to', 'To / from whom に', 4],
-  ['place', 'Where it happens で', 5], ['how', 'How (by) で', 5], ['what', 'What を', 6], ['whereTo', 'Where to に', 6], ['is', 'What it is (…です)', 6],
+  ['place', 'Where it happens で', 5], ['tool', 'With what で (tool, language)', 5], ['how', 'How (by) で', 5], ['what', 'What を', 6], ['whereTo', 'Where to に', 6], ['is', 'What it is (…です)', 6],
   ['verb', 'Verb', 7], ['ending', 'Verb ending (+か)', 7],
 ];
 let sbParts = {}, sbPartsR = {};
@@ -14799,7 +14863,9 @@ function sbCheck() {
         if (r === 'right' || r === 'ending') sbRecordPart('ending', r === 'right');
         return;
       }
-      sbRecordPart(sbPartId(i, sbMode), r === 'right');
+      // Tool で has its own part (Lesson 5): by the target's word, or what was picked.
+      const tw = i === 4 && sbMode === 'do' ? (T[4] ? T[4].word : (sbSel[4] && sbSel[4].jp)) : null;
+      sbRecordPart(tw && sgIsTool(sbNorm(tw)) ? 'tool' : sbPartId(i, sbMode), r === 'right');
     });
     saveSbParts();
   }
