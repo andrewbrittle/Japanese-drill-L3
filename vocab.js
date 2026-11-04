@@ -827,7 +827,7 @@ window.JP_DRILL_VOCAB = {
       {jp:'あげます', romaji:'agemasu', en:'to give', tags:['L3','verbs-l3','taught','l3-4'], dateAdded:'2026-10-20'},
       {jp:'もらいます', romaji:'moraimasu', en:'to receive', tags:['L3','verbs-l3','taught','l3-4'], altForm:'貰います', dateAdded:'2026-10-20'},
       {jp:'かします', romaji:'kashimasu', en:'to lend', tags:['L3','verbs-l3','taught','l3-4'], altForm:'貸します', altIsStandard:true, dateAdded:'2026-10-20'},
-      {jp:'かります', romaji:'karimasu', en:'to borrow', tags:['L3','verbs-l3','taught','l3-4'], altForm:'借ります', altIsStandard:true, dateAdded:'2026-10-20'},
+      {jp:'かります', romaji:'karimasu', en:'to borrow', tags:['L3','verbs-l3','taught','l3-4','homophones-l3'], altForm:'借ります', altIsStandard:true, dateAdded:'2026-10-20'},
       {jp:'おしえます', romaji:'oshiemasu', en:'to teach', tags:['L3','verbs-l3','taught','l3-4'], altForm:'教えます', altIsStandard:true, dateAdded:'2026-10-20'},
       {jp:'ならいます', romaji:'naraimasu', en:'to learn (from someone)', tags:['L3','verbs-l3','taught','l3-4'], altForm:'習います', altIsStandard:true, dateAdded:'2026-10-20'},
       {jp:'かけます', romaji:'kakemasu', en:'to make (a phone call)', tags:['L3','verbs-l3','taught','l3-4'], altForm:'掛けます', dateAdded:'2026-10-20'},
@@ -836,6 +836,10 @@ window.JP_DRILL_VOCAB = {
       {jp:'かえします', romaji:'kaeshimasu', en:'to give back / return (a thing)', tags:['L3','verbs-l3','taught','l3-4'], altForm:'返します', altIsStandard:true, dateAdded:'2026-10-20'},
       // Lesson 6 (2026-11-03)
       {jp:'はいります', romaji:'hairimasu', en:'to enter / get into (おふろに はいります = have a bath)', tags:['L3','verbs-l3','taught','l3-6'], altForm:'入ります', altIsStandard:true, dateAdded:'2026-11-03'},
+      // Lesson 6 (2026-11-04, from class)
+      {jp:'ほんやくします', romaji:'honyaku shimasu', en:'to translate (writing)', tags:['L3','verbs-l3','taught','l3-6'], altForm:'翻訳します', altIsStandard:true, dateAdded:'2026-11-04'},
+      {jp:'つうやくします', romaji:'tsuuyaku shimasu', en:'to interpret (speech)', tags:['L3','verbs-l3','taught','l3-6'], altForm:'通訳します', altIsStandard:true, dateAdded:'2026-11-04'},
+      {jp:'けします', romaji:'keshimasu', en:'to erase / to switch off', tags:['L3','verbs-l3','taught','l3-6'], altForm:'消します', altIsStandard:true, dateAdded:'2026-11-04'},
     ],
   },
   'vocab-hobbies-l3': {
@@ -910,6 +914,11 @@ window.JP_DRILL_VOCAB = {
       {jp:'まいしゅう', romaji:'maishuu', en:'every week', tags:['L3','frequency-l3','time-l3','taught','l3-6'], altForm:'毎週', altIsStandard:true, dateAdded:'2026-11-03'},
       {jp:'まいつき', romaji:'maitsuki', en:'every month', tags:['L3','frequency-l3','time-l3','taught','l3-6'], altForm:'毎月', altIsStandard:true, dateAdded:'2026-11-03'},
       {jp:'まいとし', romaji:'maitoshi', en:'every year', tags:['L3','frequency-l3','time-l3','taught','l3-6'], altForm:'毎年', altIsStandard:true, dateAdded:'2026-11-03'},
+      // Lesson 6 calendar sheet (2026-11-04): the bare words behind せんしゅう / こんげつ / ことし / まいにち
+      {jp:'しゅう', romaji:'shuu', en:'week', tags:['L3','frequency-l3','time-l3','taught','l3-6'], altForm:'週', altIsStandard:true, dateAdded:'2026-11-04'},
+      {jp:'つき', romaji:'tsuki', en:'month (also: the moon)', tags:['L3','frequency-l3','time-l3','taught','l3-6'], altForm:'月', altIsStandard:true, dateAdded:'2026-11-04'},
+      {jp:'とし', romaji:'toshi', en:'year', tags:['L3','frequency-l3','time-l3','taught','l3-6'], altForm:'年', altIsStandard:true, dateAdded:'2026-11-04'},
+      {jp:'ひ', romaji:'hi', en:'day', tags:['L3','frequency-l3','time-l3','taught','l3-6'], altForm:'日', altIsStandard:true, dateAdded:'2026-11-04'},
     ],
   },
   'vocab-general-l3': {
@@ -971,6 +980,12 @@ window.JP_DRILL_VOCAB = {
       {jp:'あの', romaji:'ano', en:'that … (over there) — before a noun', tags:['L3','general-l3','taught','l3-6','genki','genki-1-2'], dateAdded:'2026-11-03'},
       {jp:'この', romaji:'kono', en:'this … — before a noun', tags:['L3','general-l3','taught','l3-6','genki','genki-1-2'], dateAdded:'2026-11-03'},
       {jp:'〜ちゃん', romaji:'~chan', en:'friendly name ending (children, close friends)', tags:['L3','general-l3','taught','l3-6'], dateAdded:'2026-11-03'},
+      // Lesson 6 (2026-11-04, from class): word parts - けしゴム, もみじがり
+      {jp:'ほんやく', romaji:'honyaku', en:'translation (written)', tags:['L3','general-l3','taught','l3-6'], altForm:'翻訳', altIsStandard:true, dateAdded:'2026-11-04'},
+      {jp:'つうやく', romaji:'tsuuyaku', en:'interpreting / an interpreter (spoken)', tags:['L3','general-l3','taught','l3-6'], altForm:'通訳', altIsStandard:true, dateAdded:'2026-11-04'},
+      {jp:'け', romaji:'ke', en:'a hair, body hair, fur', tags:['L3','general-l3','taught','l3-6'], altForm:'毛', altIsStandard:true, dateAdded:'2026-11-04'},
+      {jp:'ゴム', romaji:'gomu', en:'rubber', tags:['L3','general-l3','taught','l3-6'], dateAdded:'2026-11-04'},
+      {jp:'もみじ', romaji:'momiji', en:'maple / autumn leaves', tags:['L3','general-l3','taught','l3-6'], altForm:'紅葉', altIsStandard:true, dateAdded:'2026-11-04'},
     ],
   },
   // LEVEL 3 LESSON 2 (2026-10-06) - three new L3 categories. As in Lesson 1,
@@ -1214,7 +1229,7 @@ window.JP_DRILL_VOCAB = {
       {jp:'シャーペン', romaji:'shaapen', en:'mechanical pencil', tags:['L3','tools-l3','objects','taught','l3-5'], dateAdded:'2026-10-27'},
       {jp:'ほうちょう', romaji:'houchou', en:'kitchen knife', tags:['L3','tools-l3','objects','taught','l3-5'], altForm:'包丁', altIsStandard:true, dateAdded:'2026-10-27'},
       {jp:'ピザカッター', romaji:'piza kattaa', en:'pizza cutter', tags:['L3','tools-l3','objects','taught','l3-5'], dateAdded:'2026-10-27'},
-      {jp:'かみ', romaji:'kami', en:'paper', tags:['L3','tools-l3','objects','taught','l3-5'], altForm:'紙', altIsStandard:true, dateAdded:'2026-10-27'},
+      {jp:'かみ', romaji:'kami', en:'paper', tags:['L3','tools-l3','objects','taught','l3-5','homophones-l3'], altForm:'紙', altIsStandard:true, dateAdded:'2026-10-27'},
       {jp:'メモ', romaji:'memo', en:'note / memo', tags:['L3','tools-l3','objects','taught','l3-5'], dateAdded:'2026-10-27'},
       {jp:'でんごん', romaji:'dengon', en:'message (left for someone)', tags:['L3','tools-l3','taught','l3-5'], altForm:'伝言', altIsStandard:true, dateAdded:'2026-10-27'},
       {jp:'パソコン', romaji:'pasokon', en:'computer / laptop', tags:['L3','tools-l3','objects','taught','l3-5'], dateAdded:'2026-10-27'},
@@ -1255,6 +1270,21 @@ window.JP_DRILL_VOCAB = {
       {jp:'ハイタッチ', romaji:'haitacchi', en:'high five', tags:['L3','loanwords-l3','taught','l3-5'], dateAdded:'2026-10-27'},
       {jp:'トランプ', romaji:'toranpu', en:'playing cards', tags:['L3','loanwords-l3','objects','taught','l3-5'], dateAdded:'2026-10-27'},
       {jp:'ガソリンスタンド', romaji:'gasorin sutando', en:'petrol station', tags:['L3','loanwords-l3','taught','l3-5'], dateAdded:'2026-10-27'},
+    ],
+  },
+  // Lesson 6 (2026-11-04): words that sound the same. Kept AFTER the
+  // categories that hold かみ = paper (tools) and かります = borrow (verbs), so
+  // the sentence engine's lookup (first taught match) still finds those.
+  'vocab-homophones-l3': {
+    level: 3,
+    hasReference: true,
+    label: 'Same sound, different word',
+    chars: 'かみ かみ かみ…',
+    tagQuery: ['L3','homophones-l3'],
+    items: [
+      {jp:'かみ', romaji:'kami', en:'hair (on your head)', tags:['L3','homophones-l3','taught','l3-6'], altForm:'髪', altIsStandard:true, dateAdded:'2026-11-04'},
+      {jp:'かみ', romaji:'kami', en:'god', tags:['L3','homophones-l3','taught','l3-6'], altForm:'神', altIsStandard:true, dateAdded:'2026-11-04'},
+      {jp:'かります', romaji:'karimasu', en:'to hunt / to pick (もみじがり, いちごがり)', tags:['L3','homophones-l3','verbs-l3','taught','l3-6'], altForm:'狩ります', altIsStandard:true, dateAdded:'2026-11-04'},
     ],
   },
   // みず (water) moved out to Level 2's General vocabulary in Week 6, now
