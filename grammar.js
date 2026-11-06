@@ -296,7 +296,7 @@ window.JP_DRILL_GRAMMAR = {
       ["note", "Joining words can make sounds collide, and some words just sound the same. かみ is paper (紙), hair on your head (髪) or a god (神). Hair has two words: かみ for the hair on your head, as a whole; け (毛) for a single hair, body hair or an animal's fur. See Vocabulary → Same sound, different word."],
     ] },
     "mou-mada": { title: "もう / まだ — already, not yet", blocks: [
-      ["note", "<strong>もう + 〜ました</strong> = already: the action is finished. As a question, <strong>もう 〜ましたか</strong> = have you … yet? (Lesson 6, Minna no Nihongo ch.7)"],
+      ["note", "<strong>もう + 〜ました</strong> = already: the action is finished. As a question, <strong>もう 〜ましたか</strong> = have you … yet? (Lesson 6)"],
       ["ex", "もう ばんごはんを たべましたか。", "Mou bangohan o tabemashita ka.", "Have you had dinner yet?"],
       ["ex", "はい、もう たべました。", "Hai, mou tabemashita.", "Yes, I've already eaten."],
       ["ex", "いいえ、まだです。これから たべます。", "Iie, mada desu. Korekara tabemasu.", "Not yet. I'm about to."],
@@ -322,7 +322,7 @@ window.JP_DRILL_GRAMMAR = {
       ["note", "これ and あれ stand on their own: これは なんですか. この and あの always need a noun after them: この ほんは なんですか."],
     ] },
     "de-five-jobs": { title: "で — all five jobs", blocks: [
-      ["note", "One idea covers them all: で marks <strong>the setting or the means</strong> of an action — where it happens, or what you do it with. The verb is always an action, never です. Lesson 5 (Minna no Nihongo ch.7) adds the last two."],
+      ["note", "One idea covers them all: で marks <strong>the setting or the means</strong> of an action — where it happens, or what you do it with. The verb is always an action, never です. Lesson 5 adds the last two."],
       ["heading", "1. Place — where it happens (どこで)"],
       ["ex", "としょかんで べんきょうします。", "Toshokan de benkyou shimasu.", "I study at the library."],
       ["heading", "2. Transport — how you get there (なんで)"],
